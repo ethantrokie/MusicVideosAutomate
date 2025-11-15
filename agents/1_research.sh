@@ -35,14 +35,53 @@ sed "s/{{TOPIC}}/$TOPIC/g; s/{{TONE}}/$TONE/g" agents/prompts/researcher_prompt.
 
 # Call Claude Code CLI
 echo "  Calling Claude Code for research..."
-claude -p "$(cat $TEMP_PROMPT)" --output-format json > outputs/research.json
+claude -p "$(cat $TEMP_PROMPT)" --output-format json > outputs/research_raw.json
 
-# Clean up
+# Clean up temp prompt
 rm "$TEMP_PROMPT"
 
-# Validate JSON output
-if ! python3 -c "import json; json.load(open('outputs/research.json'))" 2>/dev/null; then
-    echo "❌ Error: Invalid JSON output from Claude"
+# Extract the actual result from Claude's wrapper and parse the embedded JSON string
+python3 << 'EOF'
+import json
+import sys
+
+try:
+    # Read Claude's output wrapper
+    with open('outputs/research_raw.json') as f:
+        wrapper = json.load(f)
+
+    # Check if it's an error
+    if wrapper.get('is_error', False):
+        print(f"❌ Error from Claude: {wrapper.get('result', 'Unknown error')}")
+        sys.exit(1)
+
+    # The actual JSON data is in the 'result' field as a string
+    # Claude tried to write to a file but was denied, so it's showing us the content
+    result_text = wrapper.get('result', '')
+
+    # Look for JSON in permission denials (where Claude tried to write)
+    if 'permission_denials' in wrapper and wrapper['permission_denials']:
+        for denial in wrapper['permission_denials']:
+            if denial.get('tool_name') == 'Write' and 'tool_input' in denial:
+                content = denial['tool_input'].get('content', '')
+                if content:
+                    # This is the actual JSON we want
+                    data = json.loads(content)
+                    with open('outputs/research.json', 'w') as f:
+                        json.dump(data, f, indent=2)
+                    print("✅ Extracted research data from Claude response")
+                    sys.exit(0)
+
+    print("❌ Could not find valid JSON in Claude response")
+    sys.exit(1)
+
+except Exception as e:
+    print(f"❌ Error processing Claude output: {e}")
+    sys.exit(1)
+EOF
+
+if [ $? -ne 0 ]; then
+    echo "❌ Failed to extract research data"
     exit 1
 fi
 
