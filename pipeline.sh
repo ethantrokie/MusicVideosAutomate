@@ -11,9 +11,18 @@ NC='\033[0m' # No Color
 
 # Parse arguments
 EXPRESS_MODE=false
-if [[ "$1" == "--express" ]]; then
-    EXPRESS_MODE=true
-fi
+START_STAGE=1
+
+for arg in "$@"; do
+    case $arg in
+        --express)
+            EXPRESS_MODE=true
+            ;;
+        --start=*)
+            START_STAGE="${arg#*=}"
+            ;;
+    esac
+done
 
 echo -e "${BLUE}🎬 Educational Video Automation Pipeline${NC}"
 echo "=========================================="
@@ -51,73 +60,80 @@ mkdir -p outputs/media logs
 LOG_FILE="logs/pipeline_$(date +%Y%m%d_%H%M%S).log"
 exec > >(tee -a "$LOG_FILE") 2>&1
 
-echo -e "${GREEN}Starting pipeline...${NC}"
+echo -e "${GREEN}Starting pipeline from stage $START_STAGE...${NC}"
 echo "Log: $LOG_FILE"
 echo ""
 
 # Stage 1: Research
-echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${BLUE}Stage 1/5: Research${NC}"
-echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-./agents/1_research.sh
-if [ $? -ne 0 ]; then
-    echo -e "${RED}❌ Research failed${NC}"
-    exit 1
-fi
-echo ""
-
-# Stage 2: Lyrics
-echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${BLUE}Stage 2/5: Lyrics Generation${NC}"
-echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-./agents/2_lyrics.sh
-if [ $? -ne 0 ]; then
-    echo -e "${RED}❌ Lyrics generation failed${NC}"
-    exit 1
-fi
-echo ""
-
-# Stage 3: Music
-echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${BLUE}Stage 3/5: Music Composition${NC}"
-echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-./agents/3_compose.py
-if [ $? -ne 0 ]; then
-    echo -e "${RED}❌ Music composition failed${NC}"
-    exit 1
-fi
-echo ""
-
-# Stage 4: Media Curation
-echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${BLUE}Stage 4/5: Media Curation${NC}"
-echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-./agents/4_curate_media.sh
-if [ $? -ne 0 ]; then
-    echo -e "${RED}❌ Media curation failed${NC}"
-    exit 1
-fi
-echo ""
-
-# Stage 4.5: Media Approval (unless express mode)
-if [ "$EXPRESS_MODE" = false ]; then
-    echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${YELLOW}Human Review: Media Approval${NC}"
-    echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo ""
-    ./approve_media.sh
+if [ $START_STAGE -le 1 ]; then
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${BLUE}Stage 1/5: Research${NC}"
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    ./agents/1_research.sh
     if [ $? -ne 0 ]; then
-        echo -e "${RED}❌ Media approval cancelled${NC}"
+        echo -e "${RED}❌ Research failed${NC}"
         exit 1
     fi
-else
-    echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${YELLOW}Express Mode: Auto-approving media${NC}"
-    echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    # Copy media plan to approved
-    cp outputs/media_plan.json outputs/approved_media.json
-    # Add local_path to approved media
-    python3 << 'EOF'
+    echo ""
+fi
+
+# Stage 2: Lyrics
+if [ $START_STAGE -le 2 ]; then
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${BLUE}Stage 2/5: Lyrics Generation${NC}"
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    ./agents/2_lyrics.sh
+    if [ $? -ne 0 ]; then
+        echo -e "${RED}❌ Lyrics generation failed${NC}"
+        exit 1
+    fi
+    echo ""
+fi
+
+# Stage 3: Music
+if [ $START_STAGE -le 3 ]; then
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${BLUE}Stage 3/5: Music Composition${NC}"
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    ./agents/3_compose.py
+    if [ $? -ne 0 ]; then
+        echo -e "${RED}❌ Music composition failed${NC}"
+        exit 1
+    fi
+    echo ""
+fi
+
+# Stage 4: Media Curation
+if [ $START_STAGE -le 4 ]; then
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${BLUE}Stage 4/5: Media Curation${NC}"
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    ./agents/4_curate_media.sh
+    if [ $? -ne 0 ]; then
+        echo -e "${RED}❌ Media curation failed${NC}"
+        exit 1
+    fi
+    echo ""
+
+    # Stage 4.5: Media Approval (unless express mode)
+    if [ "$EXPRESS_MODE" = false ]; then
+        echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+        echo -e "${YELLOW}Human Review: Media Approval${NC}"
+        echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+        echo ""
+        ./approve_media.sh
+        if [ $? -ne 0 ]; then
+            echo -e "${RED}❌ Media approval cancelled${NC}"
+            exit 1
+        fi
+    else
+        echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+        echo -e "${YELLOW}Express Mode: Auto-approving media${NC}"
+        echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+        # Copy media plan to approved
+        cp outputs/media_plan.json outputs/approved_media.json
+        # Add local_path to approved media
+        python3 << 'EOF'
 import json
 
 with open('outputs/media_plan.json') as f:
@@ -136,19 +152,22 @@ with open('outputs/approved_media.json', 'w') as f:
 
 print("✅ Auto-approved all downloaded media")
 EOF
+    fi
+    echo ""
 fi
-echo ""
 
 # Stage 5: Video Assembly
-echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${BLUE}Stage 5/5: Video Assembly${NC}"
-echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-./agents/5_assemble_video.py
-if [ $? -ne 0 ]; then
-    echo -e "${RED}❌ Video assembly failed${NC}"
-    exit 1
+if [ $START_STAGE -le 5 ]; then
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${BLUE}Stage 5/5: Video Assembly${NC}"
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    ./agents/5_assemble_video.py
+    if [ $? -ne 0 ]; then
+        echo -e "${RED}❌ Video assembly failed${NC}"
+        exit 1
+    fi
+    echo ""
 fi
-echo ""
 
 # Success!
 echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"

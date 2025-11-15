@@ -48,9 +48,12 @@ class SunoAPIClient:
         response = requests.post(endpoint, headers=self.headers, json=payload)
 
         if response.status_code != 200:
+            print(f"❌ API Error Response: {response.text}")
             raise Exception(f"Suno API error: {response.status_code} - {response.text}")
 
-        return response.json()
+        result = response.json()
+        print(f"  API Response: {json.dumps(result, indent=2)}")
+        return result
 
     def check_status(self, generation_id: str) -> dict:
         """Check generation status."""
