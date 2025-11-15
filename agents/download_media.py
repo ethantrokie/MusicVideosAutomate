@@ -1,0 +1,111 @@
+#!/usr/bin/env python3
+"""
+Download media files from URLs with retry logic.
+"""
+
+import os
+import sys
+import json
+import requests
+from pathlib import Path
+from urllib.parse import urlparse
+
+
+def download_file(url: str, output_path: str, max_retries: int = 3) -> bool:
+    """
+    Download file with retry logic.
+
+    Returns:
+        bool: True if successful, False otherwise
+    """
+    for attempt in range(max_retries):
+        try:
+            response = requests.get(url, stream=True, timeout=30)
+
+            if response.status_code == 200:
+                with open(output_path, 'wb') as f:
+                    for chunk in response.iter_content(chunk_size=8192):
+                        f.write(chunk)
+                return True
+            else:
+                print(f"  ⚠️  Attempt {attempt + 1}: HTTP {response.status_code}")
+
+        except Exception as e:
+            print(f"  ⚠️  Attempt {attempt + 1}: {str(e)}")
+
+    return False
+
+
+def main():
+    """Download all media from shot list."""
+
+    # Load shot list
+    shot_list_path = Path("outputs/media_plan.json")
+    if not shot_list_path.exists():
+        print("❌ Error: outputs/media_plan.json not found")
+        sys.exit(1)
+
+    with open(shot_list_path) as f:
+        data = json.load(f)
+
+    shots = data["shot_list"]
+    media_dir = Path("outputs/media")
+    media_dir.mkdir(exist_ok=True)
+
+    print(f"📥 Downloading {len(shots)} media files...")
+
+    downloaded = []
+    failed = []
+
+    for shot in shots:
+        shot_num = shot["shot_number"]
+        url = shot["media_url"]
+        media_type = shot["media_type"]
+
+        # Determine extension
+        parsed = urlparse(url)
+        ext = Path(parsed.path).suffix
+        if not ext:
+            ext = ".jpg" if media_type == "image" else ".mp4"
+
+        # Output filename
+        filename = f"shot_{shot_num:02d}{ext}"
+        output_path = media_dir / filename
+
+        print(f"  [{shot_num}/{len(shots)}] {filename}... ", end="", flush=True)
+
+        if download_file(url, str(output_path)):
+            print("✅")
+            downloaded.append({
+                "shot_number": shot_num,
+                "local_path": str(output_path),
+                "url": url
+            })
+        else:
+            print("❌")
+            failed.append({
+                "shot_number": shot_num,
+                "url": url,
+                "reason": "download_failed"
+            })
+
+    # Save download manifest
+    manifest = {
+        "downloaded": downloaded,
+        "failed": failed,
+        "success_count": len(downloaded),
+        "failure_count": len(failed)
+    }
+
+    with open("outputs/media_manifest.json", "w") as f:
+        json.dump(manifest, f, indent=2)
+
+    print(f"\n✅ Downloaded: {len(downloaded)}/{len(shots)}")
+    if failed:
+        print(f"❌ Failed: {len(failed)}")
+        for f in failed:
+            print(f"  - Shot {f['shot_number']}: {f['url']}")
+
+
+if __name__ == "__main__":
+    main()
