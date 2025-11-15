@@ -39,6 +39,7 @@ rm "$TEMP_PROMPT"
 python3 << 'EOF'
 import json
 import sys
+import re
 
 try:
     # Read Claude's output wrapper
@@ -50,7 +51,7 @@ try:
         print(f"❌ Error from Claude: {wrapper.get('result', 'Unknown error')}")
         sys.exit(1)
 
-    # Look for JSON in permission denials (where Claude tried to write)
+    # Strategy 1: Look for JSON in permission denials (where Claude tried to write)
     if 'permission_denials' in wrapper and wrapper['permission_denials']:
         for denial in wrapper['permission_denials']:
             if denial.get('tool_name') == 'Write' and 'tool_input' in denial:
@@ -62,6 +63,19 @@ try:
                         json.dump(data, f, indent=2)
                     print("✅ Extracted lyrics data from Claude response")
                     sys.exit(0)
+
+    # Strategy 2: Look for JSON in the result field (markdown code block)
+    result_text = wrapper.get('result', '')
+    if result_text:
+        # Extract JSON from markdown code block
+        json_match = re.search(r'```json\s*\n(.*?)\n```', result_text, re.DOTALL)
+        if json_match:
+            json_str = json_match.group(1)
+            data = json.loads(json_str)
+            with open('outputs/lyrics.json', 'w') as f:
+                json.dump(data, f, indent=2)
+            print("✅ Extracted lyrics data from Claude response")
+            sys.exit(0)
 
     print("❌ Could not find valid JSON in Claude response")
     sys.exit(1)
