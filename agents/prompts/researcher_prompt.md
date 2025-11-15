@@ -42,7 +42,7 @@ You are a research agent for educational video creation targeting TikTok/Instagr
 
 ## Output Format
 
-Output ONLY valid JSON (no markdown, no commentary):
+Write your output to the file `outputs/research.json` using the Write tool with the following JSON structure:
 
 ```json
 {

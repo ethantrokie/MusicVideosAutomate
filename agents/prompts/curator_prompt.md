@@ -35,7 +35,7 @@ You are a media curator for educational video creation. Your job is to select th
 
 ## Output Format
 
-Output ONLY valid JSON:
+Write your output to the file `outputs/media_plan.json` using the Write tool with the following JSON structure:
 
 ```json
 {

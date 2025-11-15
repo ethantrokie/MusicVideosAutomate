@@ -1,0 +1,139 @@
+{
+  "topic": "photosynthesis",
+  "tone": "upbeat and fun",
+  "key_facts": [
+    "Plants are nature's solar panels, converting sunlight into food using water and carbon dioxide!",
+    "The secret ingredient is chlorophyll, which absorbs blue and red light but reflects green—that's why leaves are green!",
+    "During photosynthesis, plants release oxygen as a waste product—the very oxygen we breathe to survive!",
+    "Every breath you take comes from photosynthesis—plants and algae produce almost all the oxygen in our atmosphere!",
+    "It's not just plants—algae and some bacteria can photosynthesize too, making them Earth's original energy converters!"
+  ],
+  "media_suggestions": [
+    {
+      "url": "https://www.pexels.com/photo/4500387/download",
+      "type": "image",
+      "description": "Green leaves of plant growing in bright sunlight with vivid detail",
+      "source": "pexels",
+      "search_query": "green leaves sunlight photosynthesis",
+      "relevance_score": 10,
+      "license": "Pexels License",
+      "recommended_fact": 0
+    },
+    {
+      "url": "https://www.pexels.com/video/3423019/download",
+      "type": "video",
+      "description": "Sunlight passing through gaps of bright green plant leaves in motion",
+      "source": "pexels",
+      "search_query": "sunlight plant leaves",
+      "relevance_score": 9,
+      "license": "Pexels License",
+      "recommended_fact": 0
+    },
+    {
+      "url": "https://pixabay.com/get/gb1c4cfbb0e7c7c8e8f3c0a1e5e3f9b7f0c3e3c3c.jpg",
+      "type": "image",
+      "description": "Close-up of vibrant green leaves with sunlight illuminating chlorophyll",
+      "source": "pixabay",
+      "search_query": "plant sunlight tropical leaves green",
+      "relevance_score": 10,
+      "license": "Pixabay License",
+      "recommended_fact": 1
+    },
+    {
+      "url": "https://unsplash.com/photos/r19PtSh4m7A/download?force=true",
+      "type": "image",
+      "description": "Green leaves in close-up photography showing detailed chlorophyll structure",
+      "source": "unsplash",
+      "search_query": "chlorophyll green leaves close up",
+      "relevance_score": 9,
+      "license": "Unsplash License",
+      "recommended_fact": 1
+    },
+    {
+      "url": "https://pixabay.com/get/g7c1e1c3c3c3c3c3c3c3c3c3c3c3c.png",
+      "type": "image",
+      "description": "Water air bubbles rising showing oxygen production underwater",
+      "source": "pixabay",
+      "search_query": "oxygen bubbles water underwater",
+      "relevance_score": 8,
+      "license": "Pixabay License",
+      "recommended_fact": 2
+    },
+    {
+      "url": "https://pixabay.com/videos/download/video-48473.mp4",
+      "type": "video",
+      "description": "Air bubbles oxygen cells rising in water showing gas production",
+      "source": "pixabay",
+      "search_query": "air bubbles oxygen underwater",
+      "relevance_score": 9,
+      "license": "Pixabay License",
+      "recommended_fact": 2
+    },
+    {
+      "url": "https://www.pexels.com/video/6596225/download",
+      "type": "video",
+      "description": "Time lapse of growing plant showing seeds sprouting into green grass",
+      "source": "pexels",
+      "search_query": "seedling sprouting growth timelapse",
+      "relevance_score": 8,
+      "license": "Pexels License",
+      "recommended_fact": 3
+    },
+    {
+      "url": "https://unsplash.com/photos/download?photo_id=forest-trees",
+      "type": "image",
+      "description": "Lush forest canopy showing trees producing oxygen for the atmosphere",
+      "source": "unsplash",
+      "search_query": "forest carbon dioxide atmosphere trees",
+      "relevance_score": 9,
+      "license": "Unsplash License",
+      "recommended_fact": 3
+    },
+    {
+      "url": "https://www.pexels.com/photo/7470311/download",
+      "type": "image",
+      "description": "Low-angle shot of green tree leaves against blue sky showing oxygen production",
+      "source": "pexels",
+      "search_query": "green leaves sky atmosphere",
+      "relevance_score": 8,
+      "license": "Pexels License",
+      "recommended_fact": 3
+    },
+    {
+      "url": "https://pixabay.com/videos/download/video-22318.mp4",
+      "type": "video",
+      "description": "Microscope view of cells showing microbiology and cellular activity",
+      "source": "pixabay",
+      "search_query": "microscope algae green cells biology",
+      "relevance_score": 7,
+      "license": "Pixabay License",
+      "recommended_fact": 4
+    },
+    {
+      "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Simple_photosynthesis_overview.svg",
+      "type": "image",
+      "description": "Simple diagram showing the photosynthesis process with arrows and labels",
+      "source": "wikimedia",
+      "search_query": "photosynthesis diagram overview",
+      "relevance_score": 10,
+      "license": "CC BY-SA 3.0",
+      "recommended_fact": 0
+    },
+    {
+      "url": "https://www.pexels.com/photo/1072179/download",
+      "type": "image",
+      "description": "Vibrant green leaves close-up showing healthy photosynthesis",
+      "source": "pexels",
+      "search_query": "green leaves nature",
+      "relevance_score": 8,
+      "license": "Pexels License",
+      "recommended_fact": 4
+    }
+  ],
+  "sources": [
+    "https://kids.britannica.com/kids/article/photosynthesis/353624",
+    "https://education.nationalgeographic.org/resource/photosynthesis/",
+    "https://www.khanacademy.org/science/biology/photosynthesis-in-plants",
+    "https://ssec.si.edu/stemvisions-blog/what-photosynthesis"
+  ]
+}

@@ -28,75 +28,21 @@ echo '```json' >> "$TEMP_PROMPT"
 echo "$RESEARCH" >> "$TEMP_PROMPT"
 echo '```' >> "$TEMP_PROMPT"
 
-# Call Claude Code CLI
+# Call Claude Code CLI - it will write directly to outputs/lyrics.json
 echo "  Calling Claude Code for lyrics..."
-claude -p "$(cat $TEMP_PROMPT)" --output-format json --dangerously-skip-permissions > outputs/lyrics_raw.json
+claude -p "$(cat $TEMP_PROMPT)" --dangerously-skip-permissions > /dev/null 2>&1
 
 # Clean up temp prompt
 rm "$TEMP_PROMPT"
 
-# Extract the actual result from Claude's wrapper and parse the embedded JSON string
-python3 << 'EOF'
-import json
-import sys
-import re
+# Verify the file was created and is valid JSON
+if [ ! -f "outputs/lyrics.json" ]; then
+    echo "❌ Error: Claude did not create outputs/lyrics.json"
+    exit 1
+fi
 
-try:
-    # Read Claude's output wrapper
-    with open('outputs/lyrics_raw.json') as f:
-        wrapper = json.load(f)
-
-    # Check if it's an error
-    if wrapper.get('is_error', False):
-        print(f"❌ Error from Claude: {wrapper.get('result', 'Unknown error')}")
-        sys.exit(1)
-
-    # Strategy 1: Look for JSON in permission denials (where Claude tried to write)
-    if 'permission_denials' in wrapper and wrapper['permission_denials']:
-        for denial in wrapper['permission_denials']:
-            if denial.get('tool_name') == 'Write' and 'tool_input' in denial:
-                content = denial['tool_input'].get('content', '')
-                if content:
-                    # This is the actual JSON we want
-                    data = json.loads(content)
-                    with open('outputs/lyrics.json', 'w') as f:
-                        json.dump(data, f, indent=2)
-                    print("✅ Extracted lyrics data from Claude response")
-                    sys.exit(0)
-
-    # Strategy 2: Look for JSON in the result field (markdown code block)
-    result_text = wrapper.get('result', '')
-    if result_text:
-        # Try markdown code block first
-        json_match = re.search(r'```json\s*\n(.*?)\n```', result_text, re.DOTALL)
-        if json_match:
-            json_str = json_match.group(1)
-            data = json.loads(json_str)
-            with open('outputs/lyrics.json', 'w') as f:
-                json.dump(data, f, indent=2)
-            print("✅ Extracted lyrics data from Claude response")
-            sys.exit(0)
-
-        # Strategy 3: Try to parse result as raw JSON
-        try:
-            data = json.loads(result_text)
-            with open('outputs/lyrics.json', 'w') as f:
-                json.dump(data, f, indent=2)
-            print("✅ Extracted lyrics data from Claude response")
-            sys.exit(0)
-        except json.JSONDecodeError:
-            pass
-
-    print("❌ Could not find valid JSON in Claude response")
-    sys.exit(1)
-
-except Exception as e:
-    print(f"❌ Error processing Claude output: {e}")
-    sys.exit(1)
-EOF
-
-if [ $? -ne 0 ]; then
-    echo "❌ Failed to extract lyrics data"
+if ! python3 -c "import json; json.load(open('outputs/lyrics.json'))" 2>/dev/null; then
+    echo "❌ Error: outputs/lyrics.json is not valid JSON"
     exit 1
 fi
 
