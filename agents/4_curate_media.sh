@@ -37,7 +37,7 @@ echo '```' >> "$TEMP_PROMPT"
 
 # Call Claude Code CLI
 echo "  Calling Claude Code for media curation..."
-claude -p "$(cat $TEMP_PROMPT)" --output-format json > outputs/media_plan_raw.json
+claude -p "$(cat $TEMP_PROMPT)" --output-format json --dangerously-skip-permissions > outputs/media_plan_raw.json
 
 # Clean up temp prompt
 rm "$TEMP_PROMPT"
@@ -74,7 +74,7 @@ try:
     # Strategy 2: Look for JSON in the result field (markdown code block)
     result_text = wrapper.get('result', '')
     if result_text:
-        # Extract JSON from markdown code block
+        # Try markdown code block first
         json_match = re.search(r'```json\s*\n(.*?)\n```', result_text, re.DOTALL)
         if json_match:
             json_str = json_match.group(1)
@@ -83,6 +83,16 @@ try:
                 json.dump(data, f, indent=2)
             print("✅ Extracted media plan data from Claude response")
             sys.exit(0)
+
+        # Strategy 3: Try to parse result as raw JSON
+        try:
+            data = json.loads(result_text)
+            with open('outputs/media_plan.json', 'w') as f:
+                json.dump(data, f, indent=2)
+            print("✅ Extracted media plan data from Claude response")
+            sys.exit(0)
+        except json.JSONDecodeError:
+            pass
 
     print("❌ Could not find valid JSON in Claude response")
     sys.exit(1)

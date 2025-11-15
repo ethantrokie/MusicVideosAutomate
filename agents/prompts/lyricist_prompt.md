@@ -73,4 +73,15 @@ Output ONLY valid JSON:
 3. **No copyrighted references** - original content only
 4. **Output valid JSON only** - no commentary
 
+## CRITICAL OUTPUT REQUIREMENTS
+
+You MUST output ONLY the raw JSON object. Do NOT:
+- Use markdown code fences (no ```json)
+- Add any explanatory text before or after
+- Describe what you're doing
+- Announce that you're following any workflows
+- Add any commentary whatsoever
+
+Your ENTIRE response must be valid JSON starting with `{` and ending with `}`.
+
 Begin writing now.
