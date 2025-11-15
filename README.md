@@ -1,5 +1,42 @@
 # Educational Video Automation System
 
+> Transform ideas into educational TikTok/Instagram Reels videos automatically with AI-generated music and curated visuals.
+
+## Quick Start
+
+```bash
+# 1. Setup (one-time)
+./setup.sh
+
+# 2. Configure API keys
+nano config/config.json  # Add your Suno API key
+
+# 3. Create your first video
+echo "Explain black holes. Tone: mysterious and awe-inspiring" > input/idea.txt
+./pipeline.sh
+
+# 4. Watch!
+open outputs/final_video.mp4
+```
+
+## Features
+
+- 🤖 **AI Research**: Automatically gathers facts and finds royalty-free media
+- 🎵 **Music Generation**: Creates custom educational songs via Suno API
+- 🎬 **Video Assembly**: Combines media, lyrics, and music into polished videos
+- 👁️ **Human Review**: Preview media before final assembly
+- ⚡ **Express Mode**: Fully automated pipeline for trusted workflows
+- 💰 **Cost Effective**: ~$0.02-$0.04 per video
+
+## Documentation
+
+- [Setup Guide](docs/SETUP_GUIDE.md) - Detailed installation and configuration
+- [Troubleshooting](docs/TROUBLESHOOTING.md) - Common issues and solutions
+
+---
+
+# Educational Video Automation System
+
 Automatically generate 30-second educational videos with AI-generated music and curated visuals.
 
 ## Prerequisites
