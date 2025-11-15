@@ -1,0 +1,30 @@
+# API Keys and Secrets
+config/config.json
+
+# Outputs
+outputs/
+!outputs/.gitkeep
+
+# Media Cache
+agents/media/
+!agents/media/.gitkeep
+
+# Logs
+logs/
+!logs/.gitkeep
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+
+# macOS
+.DS_Store
+
+# Temp files
+*.tmp
+*.swp

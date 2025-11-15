@@ -1,0 +1,22 @@
+{
+  "suno_api": {
+    "base_url": "https://api.sunoapi.org",
+    "api_key": "YOUR_SUNO_API_KEY_HERE"
+  },
+  "media_sources": {
+    "pexels_api_key": "OPTIONAL_PEXELS_API_KEY",
+    "pixabay_api_key": "OPTIONAL_PIXABAY_API_KEY",
+    "unsplash_api_key": "OPTIONAL_UNSPLASH_API_KEY"
+  },
+  "video_settings": {
+    "duration": 30,
+    "resolution": [1080, 1920],
+    "fps": 30,
+    "format": "mp4"
+  },
+  "pipeline_settings": {
+    "express_mode": false,
+    "max_media_items": 10,
+    "min_media_items": 6
+  }
+}
