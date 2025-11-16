@@ -43,10 +43,11 @@ class SunoAPIClient:
         endpoint = f"{self.base_url}/api/v1/generate"
 
         payload = {
-            "lyrics": lyrics,
-            "prompt": prompt,
-            "duration": duration,
-            "make_instrumental": False,
+            "customMode": True,
+            "instrumental": False,
+            "prompt": lyrics,  # Lyrics go in prompt field
+            "style": prompt,   # Music style/genre description
+            "title": "Educational Song",
             "model": self.model,
             "callBackUrl": ""  # Empty string for polling-based approach
         }
@@ -60,12 +61,17 @@ class SunoAPIClient:
 
         result = response.json()
         print(f"  API Response: {json.dumps(result, indent=2)}")
+
+        # Extract taskId from response
+        if result.get("code") == 200 and result.get("data"):
+            result["generation_id"] = result["data"].get("taskId")
+
         return result
 
-    def check_status(self, generation_id: str) -> dict:
-        """Check generation status."""
+    def check_status(self, task_id: str) -> dict:
+        """Check generation status using taskId."""
         endpoint = f"{self.base_url}/api/v1/generate/record-info"
-        params = {"id": generation_id}
+        params = {"taskId": task_id}
         response = requests.get(endpoint, headers=self.headers, params=params)
 
         if response.status_code != 200:
@@ -84,27 +90,30 @@ class SunoAPIClient:
             for chunk in response.iter_content(chunk_size=8192):
                 f.write(chunk)
 
-    def wait_for_completion(self, generation_id: str, max_wait: int = 300, poll_interval: int = 5) -> dict:
+    def wait_for_completion(self, task_id: str, max_wait: int = 300, poll_interval: int = 5) -> dict:
         """
         Poll for completion with timeout.
 
         Args:
-            generation_id: The generation job ID
+            task_id: The task ID from Suno API
             max_wait: Maximum seconds to wait
             poll_interval: Seconds between polls
 
         Returns:
-            Final status dict with audio_url
+            Final status dict with audio data
         """
         elapsed = 0
 
         while elapsed < max_wait:
-            status = self.check_status(generation_id)
+            result = self.check_status(task_id)
 
-            if status.get("status") == "completed":
-                return status
-            elif status.get("status") == "failed":
-                raise Exception(f"Generation failed: {status.get('error')}")
+            if result.get("code") == 200 and result.get("data"):
+                status = result["data"].get("status")
+
+                if status == "SUCCESS":
+                    return result
+                elif status == "FAILED":
+                    raise Exception(f"Generation failed")
 
             time.sleep(poll_interval)
             elapsed += poll_interval
@@ -160,27 +169,39 @@ def main():
         duration=lyrics_data['estimated_duration_seconds']
     )
 
-    generation_id = result.get("generation_id")
-    print(f"  Generation ID: {generation_id}")
+    task_id = result.get("generation_id")
+    print(f"  Task ID: {task_id}")
+
+    if not task_id:
+        print("❌ Error: No task ID returned from API")
+        sys.exit(1)
 
     # Wait for completion
-    final_status = client.wait_for_completion(generation_id)
+    final_result = client.wait_for_completion(task_id)
 
-    # Download audio
-    audio_url = final_status.get("audio_url")
+    # Extract audio data from response
+    audio_data = final_result.get("data", {}).get("response", {}).get("data", [])
+    if not audio_data:
+        print("❌ Error: No audio data in response")
+        sys.exit(1)
+
+    # Get first audio file (API may return multiple variations)
+    first_audio = audio_data[0]
+    audio_url = first_audio.get("audio_url")
     output_path = "outputs/song.mp3"
 
-    print(f"  Downloading audio...")
+    print(f"  Downloading audio from: {audio_url}")
     client.download_audio(audio_url, output_path)
 
     print(f"✅ Music generation complete: {output_path}")
 
     # Save metadata
     metadata = {
-        "generation_id": generation_id,
+        "task_id": task_id,
         "audio_url": audio_url,
-        "duration": final_status.get("duration"),
-        "created_at": final_status.get("created_at")
+        "title": first_audio.get("title"),
+        "tags": first_audio.get("tags"),
+        "duration": first_audio.get("duration")
     }
 
     with open("outputs/music_metadata.json", "w") as f:
