@@ -1,7 +1,8 @@
 {
   "suno_api": {
     "base_url": "https://api.sunoapi.org",
-    "api_key": "YOUR_SUNO_API_KEY_HERE"
+    "api_key": "YOUR_SUNO_API_KEY_HERE",
+    "model": "V4"
   },
   "media_sources": {
     "pexels_api_key": "OPTIONAL_PEXELS_API_KEY",

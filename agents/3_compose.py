@@ -19,9 +19,10 @@ sys.stderr = os.fdopen(sys.stderr.fileno(), 'w', buffering=1)
 class SunoAPIClient:
     """Client for Suno API music generation."""
 
-    def __init__(self, api_key: str, base_url: str = "https://api.sunoapi.org"):
+    def __init__(self, api_key: str, base_url: str = "https://api.sunoapi.org", model: str = "V4"):
         self.api_key = api_key
         self.base_url = base_url
+        self.model = model
         self.headers = {
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json"
@@ -45,7 +46,8 @@ class SunoAPIClient:
             "lyrics": lyrics,
             "prompt": prompt,
             "duration": duration,
-            "make_instrumental": False
+            "make_instrumental": False,
+            "model": self.model
         }
 
         print(f"  Sending request to Suno API...")
@@ -143,7 +145,8 @@ def main():
     # Initialize client
     client = SunoAPIClient(
         api_key=api_key,
-        base_url=config["suno_api"]["base_url"]
+        base_url=config["suno_api"]["base_url"],
+        model=config["suno_api"].get("model", "V4")
     )
 
     # Generate music
