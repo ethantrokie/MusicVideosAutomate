@@ -47,7 +47,8 @@ class SunoAPIClient:
             "prompt": prompt,
             "duration": duration,
             "make_instrumental": False,
-            "model": self.model
+            "model": self.model,
+            "callBackUrl": ""  # Empty string for polling-based approach
         }
 
         print(f"  Sending request to Suno API...")
