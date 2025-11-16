@@ -107,8 +107,13 @@ class SunoAPIClient:
         while elapsed < max_wait:
             result = self.check_status(task_id)
 
+            # DEBUG: Print what we're actually getting from status check
+            if elapsed % 30 == 0:  # Print every 30 seconds to avoid spam
+                print(f"  [DEBUG] Status check response: {json.dumps(result, indent=2)}")
+
             if result.get("code") == 200 and result.get("data"):
                 status = result["data"].get("status")
+                print(f"  Status: {status}")
 
                 if status == "SUCCESS":
                     return result
@@ -119,6 +124,8 @@ class SunoAPIClient:
             elapsed += poll_interval
             print(f"  Waiting for generation... ({elapsed}s)")
 
+        # DEBUG: Show final response before timeout
+        print(f"  [DEBUG] Final status before timeout: {json.dumps(result, indent=2)}")
         raise Exception(f"Timeout after {max_wait}s")
 
 
