@@ -186,15 +186,15 @@ def main():
     # Wait for completion
     final_result = client.wait_for_completion(task_id)
 
-    # Extract audio data from response
-    audio_data = final_result.get("data", {}).get("response", {}).get("data", [])
+    # Extract audio data from response - correct path is data.response.sunoData
+    audio_data = final_result.get("data", {}).get("response", {}).get("sunoData", [])
     if not audio_data:
         print("❌ Error: No audio data in response")
         sys.exit(1)
 
     # Get first audio file (API may return multiple variations)
     first_audio = audio_data[0]
-    audio_url = first_audio.get("audio_url")
+    audio_url = first_audio.get("audioUrl")  # camelCase, not snake_case
     output_path = "outputs/song.mp3"
 
     print(f"  Downloading audio from: {audio_url}")
@@ -205,10 +205,13 @@ def main():
     # Save metadata
     metadata = {
         "task_id": task_id,
+        "audio_id": first_audio.get("id"),
         "audio_url": audio_url,
+        "source_audio_url": first_audio.get("sourceAudioUrl"),
         "title": first_audio.get("title"),
         "tags": first_audio.get("tags"),
-        "duration": first_audio.get("duration")
+        "duration": first_audio.get("duration"),
+        "model": first_audio.get("modelName")
     }
 
     with open("outputs/music_metadata.json", "w") as f:
