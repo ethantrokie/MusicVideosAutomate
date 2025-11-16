@@ -49,7 +49,7 @@ class SunoAPIClient:
             "style": prompt,   # Music style/genre description
             "title": "Educational Song",
             "model": self.model,
-            "callBackUrl": ""  # Empty string for polling-based approach
+            "callBackUrl": "https://example.com/webhook"  # Placeholder URL for polling
         }
 
         print(f"  Sending request to Suno API...")
