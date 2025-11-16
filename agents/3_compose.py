@@ -33,14 +33,26 @@ class SunoAPIClient:
         Generate music using Suno API.
 
         Args:
-            lyrics: Song lyrics
-            prompt: Style/genre description
-            duration: Target duration in seconds
+            lyrics: Song lyrics (max 3000 chars for V4)
+            prompt: Style/genre description (max 200 chars for V4)
+            duration: Target duration in seconds (ignored, for backwards compatibility)
 
         Returns:
             dict with generation_id and status
         """
         endpoint = f"{self.base_url}/api/v1/generate"
+
+        # Validate character limits per model
+        max_prompt_length = 3000 if self.model in ["V3_5", "V4"] else 5000
+        max_style_length = 200 if self.model in ["V3_5", "V4"] else 1000
+
+        if len(lyrics) > max_prompt_length:
+            print(f"⚠️  Warning: Lyrics truncated from {len(lyrics)} to {max_prompt_length} chars")
+            lyrics = lyrics[:max_prompt_length]
+
+        if len(prompt) > max_style_length:
+            print(f"⚠️  Warning: Style truncated from {len(prompt)} to {max_style_length} chars")
+            prompt = prompt[:max_style_length]
 
         payload = {
             "customMode": True,
