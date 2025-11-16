@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3 -u
 """
 Music composition agent using Suno API.
 Generates music based on lyrics and style prompt.
@@ -10,6 +10,10 @@ import json
 import time
 import requests
 from pathlib import Path
+
+# Force unbuffered output
+sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', buffering=1)
+sys.stderr = os.fdopen(sys.stderr.fileno(), 'w', buffering=1)
 
 
 class SunoAPIClient:
