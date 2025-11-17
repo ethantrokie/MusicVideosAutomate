@@ -16,17 +16,66 @@ echo "Explain black holes. Tone: mysterious and awe-inspiring" > input/idea.txt
 ./pipeline.sh
 
 # 4. Watch!
-open outputs/final_video.mp4
+open outputs/current/final_video.mp4
 ```
 
 ## Features
 
 - 🤖 **AI Research**: Automatically gathers facts and finds royalty-free media
+- 🎨 **Visual Ranking**: CLIP-powered diversity analysis ensures engaging variety
 - 🎵 **Music Generation**: Creates custom educational songs via Suno API
 - 🎬 **Video Assembly**: Combines media, lyrics, and music into polished videos
 - 👁️ **Human Review**: Preview media before final assembly
 - ⚡ **Express Mode**: Fully automated pipeline for trusted workflows
 - 💰 **Cost Effective**: ~$0.02-$0.04 per video
+- 📁 **Timestamped Runs**: Each pipeline run creates a unique timestamped directory
+
+## Command-Line Options
+
+```bash
+./pipeline.sh [OPTIONS]
+
+Options:
+  --express              Auto-approve all media (skip manual review)
+  --start=N              Start from stage N (1-6)
+  --resume               Resume from latest run
+  --resume=TIMESTAMP     Resume from specific run directory
+
+Examples:
+  ./pipeline.sh                              # New run, all stages
+  ./pipeline.sh --express                    # New run, skip approval
+  ./pipeline.sh --start=3 --resume           # Resume latest from stage 3
+  ./pipeline.sh --start=5 --resume=20250116_143025  # Resume specific run
+```
+
+## YouTube Upload
+
+After creating a video, you can manually upload it to YouTube:
+
+```bash
+./upload_to_youtube.sh [OPTIONS]
+
+Options:
+  --run=TIMESTAMP        Upload specific run (e.g., 20250116_143025)
+  --privacy=STATUS       Privacy status: public, unlisted, private (default: unlisted)
+  --help                 Show help message
+
+Examples:
+  ./upload_to_youtube.sh                     # Upload latest run as unlisted
+  ./upload_to_youtube.sh --privacy=public    # Upload latest as public
+  ./upload_to_youtube.sh --run=20250116_143025  # Upload specific run
+```
+
+### YouTube Setup (One-Time)
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project (or select existing)
+3. Enable **YouTube Data API v3**
+4. Create **OAuth 2.0 credentials** (Desktop app)
+5. Download credentials JSON
+6. Save as: `config/youtube_credentials.json`
+
+The script will guide you through OAuth authentication on first upload.
 
 ## Documentation
 
@@ -64,12 +113,54 @@ echo "Explain photosynthesis in plants. Tone: upbeat and fun" > input/idea.txt
 ./pipeline.sh
 
 # 3. Review and approve media when prompted
-# 4. Find final video at outputs/final_video.mp4
+# 4. Find final video at outputs/current/final_video.mp4
 ```
 
 ### Express Mode (auto-approve media)
 ```bash
 ./pipeline.sh --express
+```
+
+### Resume from Specific Stage
+Start the pipeline from a later stage (useful if a stage fails):
+
+```bash
+# Resume latest run from stage 3
+./pipeline.sh --start=3 --resume
+
+# Resume specific run from stage 5
+./pipeline.sh --start=5 --resume=20250116_143025
+```
+
+**Available stages:**
+1. Research
+2. Visual Ranking
+3. Lyrics Generation
+4. Music Composition
+5. Media Curation & Download
+6. Video Assembly
+
+### Multiple Runs
+Each pipeline run creates a timestamped directory in `outputs/runs/`. The latest run is always symlinked at `outputs/current/` for easy access.
+
+```bash
+# Run 1
+./pipeline.sh  # Creates outputs/runs/20250116_143025/
+
+# Run 2
+./pipeline.sh  # Creates outputs/runs/20250116_150432/
+
+# Access latest run
+ls outputs/current/  # Symlink to most recent run
+
+# Resume latest run from stage 5 (video assembly)
+./pipeline.sh --start=5 --resume
+
+# Resume specific run
+./pipeline.sh --start=4 --resume=20250116_143025
+
+# List all runs
+ls outputs/runs/
 ```
 
 ## Project Structure
@@ -83,10 +174,15 @@ MusicVideosAutomate/
 │   ├── 3_compose.py            # Suno API integration
 │   ├── 4_curate_media.sh       # Media selection
 │   ├── 5_assemble_video.py     # MoviePy assembly
+│   ├── output_helper.py        # Path management for timestamped runs
 │   └── prompts/                # Claude Code prompts
 ├── pipeline.sh                 # Master orchestrator
 ├── approve_media.sh            # Media review UI
 ├── outputs/                    # Generated files
+│   ├── runs/                   # Timestamped run directories
+│   │   ├── 20250116_143025/    # Example run
+│   │   └── 20250116_150432/    # Example run
+│   └── current/                # Symlink to latest run
 └── config/config.json          # API keys, settings
 ```
 
