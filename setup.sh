@@ -46,6 +46,16 @@ pip install --upgrade pip
 pip install -r requirements.txt
 
 echo ""
+echo "📥 Downloading CLIP model (one-time, ~400MB)..."
+python3 -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('clip-ViT-B-32')"
+
+if [ $? -eq 0 ]; then
+    echo "✅ CLIP model downloaded and cached"
+else
+    echo "⚠️  CLIP model download failed - will download on first use"
+fi
+
+echo ""
 echo "✅ Setup complete!"
 echo ""
 echo "📝 Next steps:"
