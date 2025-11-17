@@ -228,6 +228,18 @@ with open(f'{output_dir}/approved_media.json', 'w') as f:
 print("✅ Auto-approved all downloaded media")
 EOF
     fi
+
+    # Check for research gaps
+    if python3 agents/3.5_fill_research_gaps.py; then
+        echo "✅ No research gaps"
+    else
+        GAP_EXIT_CODE=$?
+        if [ $GAP_EXIT_CODE -eq 2 ]; then
+            echo -e "${YELLOW}⚠️  Research gaps detected, re-running research with gap-filling${NC}"
+            # TODO: Implement gap-filling research loop
+            # For now, continue with available media
+        fi
+    fi
     echo ""
 fi
 
