@@ -246,6 +246,13 @@ def main():
     with open(research_path) as f:
         research_data = json.load(f)
 
+    # Enrich media suggestions with thumbnail URLs
+    from stock_photo_api import StockPhotoResolver
+    resolver = StockPhotoResolver()
+    media_suggestions = research_data.get('media_suggestions', [])
+    enriched_media = resolver.enrich_with_thumbnails(media_suggestions)
+    research_data['media_suggestions'] = enriched_media
+
     # Initialize ranker
     ranker = VisualRanker(lambda_param=0.7)
 
