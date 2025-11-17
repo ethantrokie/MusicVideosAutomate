@@ -12,6 +12,7 @@ NC='\033[0m' # No Color
 # Parse arguments
 EXPRESS_MODE=false
 START_STAGE=1
+RESUME_DIR=""
 
 for arg in "$@"; do
     case $arg in
@@ -20,6 +21,14 @@ for arg in "$@"; do
             ;;
         --start=*)
             START_STAGE="${arg#*=}"
+            ;;
+        --resume)
+            # Resume from latest run
+            RESUME_DIR="latest"
+            ;;
+        --resume=*)
+            # Resume from specific run directory
+            RESUME_DIR="${arg#*=}"
             ;;
     esac
 done
@@ -53,14 +62,60 @@ fi
 
 source venv/bin/activate
 
-# Create outputs directory
-mkdir -p outputs/media logs
+# Determine run directory
+if [ -n "$RESUME_DIR" ]; then
+    # Resuming from existing run
+    if [ "$RESUME_DIR" = "latest" ]; then
+        # Use the current symlink (most recent run)
+        if [ -L "outputs/current" ]; then
+            RUN_DIR=$(readlink -f "outputs/current" 2>/dev/null || readlink "outputs/current")
+            RUN_DIR="outputs/${RUN_DIR}"
+            RUN_TIMESTAMP=$(basename "$RUN_DIR")
+            echo -e "${YELLOW}📂 Resuming latest run: ${RUN_TIMESTAMP}${NC}"
+        else
+            echo -e "${RED}❌ Error: No previous runs found (outputs/current doesn't exist)${NC}"
+            exit 1
+        fi
+    else
+        # Use specified run directory
+        if [ -d "outputs/runs/${RESUME_DIR}" ]; then
+            RUN_DIR="outputs/runs/${RESUME_DIR}"
+            RUN_TIMESTAMP="${RESUME_DIR}"
+            echo -e "${YELLOW}📂 Resuming run: ${RUN_TIMESTAMP}${NC}"
+        else
+            echo -e "${RED}❌ Error: Run directory not found: outputs/runs/${RESUME_DIR}${NC}"
+            echo ""
+            echo "Available runs:"
+            ls -1 outputs/runs/ 2>/dev/null || echo "  (none)"
+            exit 1
+        fi
+    fi
+else
+    # Create new timestamped run directory
+    RUN_TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+    RUN_DIR="outputs/runs/${RUN_TIMESTAMP}"
+    mkdir -p "${RUN_DIR}/media" logs
+
+    # Create symlink to latest run
+    rm -f outputs/current
+    ln -sf "runs/${RUN_TIMESTAMP}" outputs/current
+
+    echo -e "${GREEN}📂 New run: ${RUN_TIMESTAMP}${NC}"
+fi
+
+# Ensure media directory exists
+mkdir -p "${RUN_DIR}/media" logs
+
+# Export for agents to use
+export OUTPUT_DIR="${RUN_DIR}"
+export RUN_TIMESTAMP="${RUN_TIMESTAMP}"
 
 # Log file
-LOG_FILE="logs/pipeline_$(date +%Y%m%d_%H%M%S).log"
+LOG_FILE="logs/pipeline_${RUN_TIMESTAMP}.log"
 exec > >(tee -a "$LOG_FILE") 2>&1
 
 echo -e "${GREEN}Starting pipeline from stage $START_STAGE...${NC}"
+echo "Run directory: ${RUN_DIR}"
 echo "Log: $LOG_FILE"
 echo ""
 
@@ -77,10 +132,27 @@ if [ $START_STAGE -le 1 ]; then
     echo ""
 fi
 
-# Stage 2: Lyrics
+# Stage 2: Visual Ranking
 if [ $START_STAGE -le 2 ]; then
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${BLUE}Stage 2/5: Lyrics Generation${NC}"
+    echo -e "${BLUE}Stage 2/6: Visual Ranking${NC}"
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+
+    echo "🎨 Visual Ranking Agent: Analyzing media diversity..."
+
+    if python3 agents/3_rank_visuals.py; then
+        echo "✅ Visual ranking complete"
+    else
+        echo -e "${YELLOW}⚠️  Visual ranking failed, continuing without rankings${NC}"
+        # Not critical - curator can work without rankings
+    fi
+    echo ""
+fi
+
+# Stage 3: Lyrics
+if [ $START_STAGE -le 3 ]; then
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${BLUE}Stage 3/6: Lyrics Generation${NC}"
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     ./agents/2_lyrics.sh
     if [ $? -ne 0 ]; then
@@ -90,10 +162,10 @@ if [ $START_STAGE -le 2 ]; then
     echo ""
 fi
 
-# Stage 3: Music
-if [ $START_STAGE -le 3 ]; then
+# Stage 4: Music
+if [ $START_STAGE -le 4 ]; then
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${BLUE}Stage 3/5: Music Composition${NC}"
+    echo -e "${BLUE}Stage 4/6: Music Composition${NC}"
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     ./agents/3_compose.py
     if [ $? -ne 0 ]; then
@@ -103,10 +175,10 @@ if [ $START_STAGE -le 3 ]; then
     echo ""
 fi
 
-# Stage 4: Media Curation
-if [ $START_STAGE -le 4 ]; then
+# Stage 5: Media Curation
+if [ $START_STAGE -le 5 ]; then
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${BLUE}Stage 4/5: Media Curation${NC}"
+    echo -e "${BLUE}Stage 5/6: Media Curation${NC}"
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     ./agents/4_curate_media.sh
     if [ $? -ne 0 ]; then
@@ -131,15 +203,18 @@ if [ $START_STAGE -le 4 ]; then
         echo -e "${YELLOW}Express Mode: Auto-approving media${NC}"
         echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
         # Copy media plan to approved
-        cp outputs/media_plan.json outputs/approved_media.json
+        cp "${OUTPUT_DIR}/media_plan.json" "${OUTPUT_DIR}/approved_media.json"
         # Add local_path to approved media
-        python3 << 'EOF'
+        python3 << EOF
 import json
+import os
 
-with open('outputs/media_plan.json') as f:
+output_dir = os.getenv('OUTPUT_DIR', 'outputs')
+
+with open(f'{output_dir}/media_plan.json') as f:
     plan = json.load(f)
 
-with open('outputs/media_manifest.json') as f:
+with open(f'{output_dir}/media_manifest.json') as f:
     manifest = json.load(f)
 
 for shot in plan['shot_list']:
@@ -147,7 +222,7 @@ for shot in plan['shot_list']:
     if downloaded:
         shot['local_path'] = downloaded[0]['local_path']
 
-with open('outputs/approved_media.json', 'w') as f:
+with open(f'{output_dir}/approved_media.json', 'w') as f:
     json.dump(plan, f, indent=2)
 
 print("✅ Auto-approved all downloaded media")
@@ -156,10 +231,10 @@ EOF
     echo ""
 fi
 
-# Stage 5: Video Assembly
-if [ $START_STAGE -le 5 ]; then
+# Stage 6: Video Assembly
+if [ $START_STAGE -le 6 ]; then
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${BLUE}Stage 5/5: Video Assembly${NC}"
+    echo -e "${BLUE}Stage 6/6: Video Assembly${NC}"
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     ./agents/5_assemble_video.py
     if [ $? -ne 0 ]; then
