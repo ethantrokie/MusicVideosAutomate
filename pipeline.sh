@@ -235,9 +235,111 @@ EOF
     else
         GAP_EXIT_CODE=$?
         if [ $GAP_EXIT_CODE -eq 2 ]; then
-            echo -e "${YELLOW}⚠️  Research gaps detected, re-running research with gap-filling${NC}"
-            # TODO: Implement gap-filling research loop
-            # For now, continue with available media
+            echo -e "${YELLOW}⚠️  Research gaps detected, running targeted research to fill gaps${NC}"
+
+            # Load gap request to get parameters
+            GAP_REQUEST="${OUTPUT_DIR}/research_gap_request.json"
+
+            if [ -f "$GAP_REQUEST" ]; then
+                # Extract parameters using Python
+                GAP_INFO=$(python3 << 'EOF'
+import json
+import sys
+
+with open(sys.argv[1]) as f:
+    data = json.load(f)
+
+# Format missing concepts as numbered list
+concepts = data['missing_concepts']
+formatted = '\n'.join([f"{i+1}. {c}" for i, c in enumerate(concepts)])
+
+# Output formatted data
+print(f"CONCEPTS_LIST={formatted}")
+print(f"TARGET_COUNT={data['target_media_count']}")
+print(f"TONE={data['tone']}")
+EOF
+python3 "$GAP_REQUEST")
+
+                # Extract values
+                eval "$GAP_INFO"
+
+                # Get topic from original input
+                IDEA=$(cat input/idea.txt)
+                if [[ $IDEA == *"Tone:"* ]]; then
+                    TOPIC="${IDEA%%Tone:*}"
+                else
+                    TOPIC="$IDEA"
+                fi
+                TOPIC=$(echo "$TOPIC" | xargs)
+
+                # Create gap-fill prompt
+                TEMP_GAP_PROMPT=$(mktemp)
+                sed "s/{{TOPIC}}/$TOPIC/g; \
+                     s/{{TONE}}/$TONE/g; \
+                     s|{{OUTPUT_PATH}}|${OUTPUT_DIR}/gap_fill_media.json|g; \
+                     s|{{TARGET_COUNT}}|$TARGET_COUNT|g" \
+                    agents/prompts/researcher_gap_fill_prompt.md > "$TEMP_GAP_PROMPT"
+
+                # Insert missing concepts list
+                python3 << EOF
+import sys
+concepts_list = '''$CONCEPTS_LIST'''
+with open('$TEMP_GAP_PROMPT', 'r') as f:
+    content = f.read()
+content = content.replace('{{MISSING_CONCEPTS}}', concepts_list)
+with open('$TEMP_GAP_PROMPT', 'w') as f:
+    f.write(content)
+EOF
+
+                # Run gap-filling research
+                echo "  Finding media for $TARGET_COUNT missing concepts..."
+                claude -p "$(cat $TEMP_GAP_PROMPT)" --dangerously-skip-permissions > /dev/null 2>&1
+
+                rm "$TEMP_GAP_PROMPT"
+
+                # Merge gap-fill media into original research
+                if [ -f "${OUTPUT_DIR}/gap_fill_media.json" ]; then
+                    python3 << 'EOF'
+import json
+import sys
+import os
+
+output_dir = os.getenv('OUTPUT_DIR', 'outputs')
+
+# Load original research
+with open(f'{output_dir}/research.json') as f:
+    research = json.load(f)
+
+# Load gap-fill media
+with open(f'{output_dir}/gap_fill_media.json') as f:
+    gap_data = json.load(f)
+
+# Merge gap-fill media into research
+gap_media = gap_data.get('gap_fill_media', [])
+if gap_media:
+    research['media_suggestions'].extend(gap_media)
+
+    # Save updated research
+    with open(f'{output_dir}/research.json', 'w') as f:
+        json.dump(research, f, indent=2)
+
+    print(f"  ✅ Added {len(gap_media)} new media items to research")
+    print(f"  Total media now: {len(research['media_suggestions'])}")
+else:
+    print("  ⚠️  No gap-fill media found")
+EOF
+
+                    # Re-run visual ranking with updated research
+                    echo "  Re-running visual ranking with expanded media set..."
+                    if python3 agents/3_rank_visuals.py; then
+                        echo "  ✅ Visual ranking updated"
+                    else
+                        echo -e "  ${YELLOW}⚠️  Visual ranking failed, continuing${NC}"
+                    fi
+                fi
+            else
+                echo -e "${YELLOW}⚠️  Gap request file not found, skipping gap-fill${NC}"
+            fi
         fi
     fi
     echo ""
