@@ -411,15 +411,36 @@ class StockPhotoResolver:
             return page_url
 
     def _get_pexels_thumbnail(self, page_url: str) -> str:
-        """Extract Pexels thumbnail URL."""
-        # Pexels video page URLs contain video ID
-        # Example: https://www.pexels.com/video/NAME-12345/
+        """Extract Pexels thumbnail URL using API."""
+        if not self.pexels_api_key:
+            return page_url  # Return original URL if no API key
+
         try:
-            video_id = page_url.rstrip('/').split('-')[-1]
-            # Pexels API or fallback to page scraping
-            return f"https://images.pexels.com/videos/{video_id}/preview.jpg"
-        except:
-            return page_url
+            # Extract video ID from URL
+            match = re.search(r'/(?:photo|video)/[^/]+-(\d+)/', page_url)
+            if not match:
+                return page_url
+
+            video_id = match.group(1)
+
+            # Call Pexels API to get video metadata
+            url = f"https://api.pexels.com/videos/videos/{video_id}"
+            headers = {"Authorization": self.pexels_api_key}
+            response = requests.get(url, headers=headers, timeout=10)
+
+            if response.status_code == 200:
+                data = response.json()
+                # Use the 'image' field which contains the thumbnail
+                if 'image' in data:
+                    return data['image']
+                # Fallback to video_pictures if available
+                if 'video_pictures' in data and data['video_pictures']:
+                    return data['video_pictures'][0].get('picture', page_url)
+        except Exception as e:
+            # Log error but don't fail - return original URL as fallback
+            pass
+
+        return page_url
 
     def _get_pixabay_thumbnail(self, page_url: str) -> str:
         """Extract Pixabay thumbnail URL."""
@@ -432,8 +453,48 @@ class StockPhotoResolver:
             return page_url
 
     def _get_giphy_thumbnail(self, page_url: str) -> str:
-        """Extract Giphy thumbnail URL."""
-        # Giphy GIF URLs already work as thumbnails
+        """Extract Giphy thumbnail URL using API."""
+        if not self.giphy_api_key:
+            return page_url  # Return original URL if no API key
+
+        try:
+            # Extract GIF ID from URL
+            # https://giphy.com/gifs/science-chemistry-photosynthesis-abc123
+            match = re.search(r'/gifs/[^/]+-([A-Za-z0-9]+)$', page_url)
+            if not match:
+                # Try alternate format: https://media.giphy.com/media/abc123/
+                match = re.search(r'/media/([A-Za-z0-9]+)/', page_url)
+            if not match:
+                return page_url
+
+            gif_id = match.group(1)
+
+            # Call Giphy API to get GIF metadata
+            url = f"https://api.giphy.com/v1/gifs/{gif_id}"
+            params = {'api_key': self.giphy_api_key}
+            response = requests.get(url, params=params, timeout=10)
+
+            if response.status_code == 200:
+                data = response.json()
+                # Use 'downsized' version for thumbnails (smaller file, good quality)
+                gif_url = (data.get('data', {})
+                              .get('images', {})
+                              .get('downsized', {})
+                              .get('url'))
+                if gif_url:
+                    return gif_url
+
+                # Fallback to original if downsized not available
+                gif_url = (data.get('data', {})
+                              .get('images', {})
+                              .get('original', {})
+                              .get('url'))
+                if gif_url:
+                    return gif_url
+        except Exception as e:
+            # Log error but don't fail - return original URL as fallback
+            pass
+
         return page_url
 
     def enrich_with_thumbnails(self, media_suggestions: List[Dict]) -> List[Dict]:

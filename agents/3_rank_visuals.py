@@ -61,7 +61,7 @@ class VisualRanker:
             self.logger.warning(f"Failed to download thumbnail from {url}: {e}")
         return None
 
-    def _download_thumbnails_parallel(self, candidates: List[Dict], max_workers: int = 10) -> Tuple[List[Image.Image], List[Dict]]:
+    def _download_thumbnails_parallel(self, candidates: List[Dict], max_workers: int = 10) -> Tuple[List[Image.Image], List[Dict], List[Dict]]:
         """
         Download thumbnails in parallel for faster processing.
 
@@ -70,10 +70,11 @@ class VisualRanker:
             max_workers: Number of parallel download threads
 
         Returns:
-            Tuple of (images, valid_candidates)
+            Tuple of (images, valid_candidates, failed_candidates)
         """
         images = []
         valid_candidates = []
+        failed_candidates = []
 
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             future_to_candidate = {
@@ -88,10 +89,14 @@ class VisualRanker:
                     if image:
                         images.append(image)
                         valid_candidates.append(candidate)
+                    else:
+                        # Track failed downloads to append later
+                        failed_candidates.append(candidate)
                 except Exception as e:
                     self.logger.error(f"Thumbnail download failed for {candidate.get('url')}: {e}")
+                    failed_candidates.append(candidate)
 
-        return images, valid_candidates
+        return images, valid_candidates, failed_candidates
 
     def _encode_images(self, images: List[Image.Image]) -> np.ndarray:
         """
@@ -214,7 +219,7 @@ class VisualRanker:
         self.logger.info(f"Ranking {len(candidates)} media candidates against {len(key_facts)} facts")
 
         # Download thumbnails in parallel
-        images, valid_candidates = self._download_thumbnails_parallel(candidates)
+        images, valid_candidates, failed_candidates = self._download_thumbnails_parallel(candidates)
 
         if not images:
             self.logger.error("Failed to download any thumbnails")
@@ -228,6 +233,12 @@ class VisualRanker:
 
         # Apply MMR ranking
         ranked = self._calculate_mmr_scores(image_embeddings, fact_embeddings, valid_candidates)
+
+        # Append failed candidates to end (unranked but present)
+        for candidate in failed_candidates:
+            candidate['rank'] = len(ranked) + 1
+            candidate['visual_score'] = 0.0  # No score since no thumbnail
+            ranked.append(candidate)
 
         return ranked
 
