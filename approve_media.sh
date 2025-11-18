@@ -2,18 +2,21 @@
 
 set -e
 
+# Use OUTPUT_DIR from pipeline or default to outputs/
+OUTPUT_DIR="${OUTPUT_DIR:-outputs}"
+
 echo "🖼️  Media Approval Interface"
 echo "============================="
 echo ""
 
 # Check for media plan
-if [ ! -f "outputs/media_plan.json" ]; then
-    echo "❌ Error: outputs/media_plan.json not found"
+if [ ! -f "${OUTPUT_DIR}/media_plan.json" ]; then
+    echo "❌ Error: ${OUTPUT_DIR}/media_plan.json not found"
     exit 1
 fi
 
 # Check for downloaded media
-if [ ! -f "outputs/media_manifest.json" ]; then
+if [ ! -f "${OUTPUT_DIR}/media_manifest.json" ]; then
     echo "❌ Error: No media downloaded yet"
     exit 1
 fi
@@ -28,7 +31,7 @@ else
 fi
 
 # Load data
-SHOT_COUNT=$(python3 -c "import json; print(len(json.load(open('outputs/media_plan.json'))['shot_list']))")
+SHOT_COUNT=$(python3 -c "import json; print(len(json.load(open('${OUTPUT_DIR}/media_plan.json'))['shot_list']))")
 
 echo "📋 Shot List Review ($SHOT_COUNT shots)"
 echo ""
@@ -43,7 +46,7 @@ show_shot() {
     python3 << EOF
 import json
 
-with open('outputs/media_plan.json') as f:
+with open('${OUTPUT_DIR}/media_plan.json') as f:
     data = json.load(f)
 
 shot = data['shot_list'][$SHOT_NUM - 1]
@@ -60,7 +63,7 @@ EOF
 
     # Show preview if available
     if [ "$USE_VIU" = true ]; then
-        MEDIA_FILE=$(python3 -c "import json; manifest = json.load(open('outputs/media_manifest.json')); downloaded = [d for d in manifest['downloaded'] if d['shot_number'] == $SHOT_NUM]; print(downloaded[0]['local_path'] if downloaded else '')")
+        MEDIA_FILE=$(python3 -c "import json; manifest = json.load(open('${OUTPUT_DIR}/media_manifest.json')); downloaded = [d for d in manifest['downloaded'] if d['shot_number'] == $SHOT_NUM]; print(downloaded[0]['local_path'] if downloaded else '')")
 
         if [ -n "$MEDIA_FILE" ] && [ -f "$MEDIA_FILE" ]; then
             # Check if image (viu only works with images)
@@ -118,18 +121,22 @@ for i in $(seq 1 $SHOT_COUNT); do
 done
 
 # Generate approved media list
-python3 << 'EOF'
+python3 << EOF
 import json
 import sys
+import os
+
+# Get OUTPUT_DIR from environment
+output_dir = os.getenv('OUTPUT_DIR', 'outputs')
 
 # Read approvals from bash array
 # For simplicity, we'll re-read the manifest and assume all are approved unless script exits
 # In a full implementation, you'd pass the APPROVALS array to Python
 
-with open('outputs/media_plan.json') as f:
+with open(f'{output_dir}/media_plan.json') as f:
     plan = json.load(f)
 
-with open('outputs/media_manifest.json') as f:
+with open(f'{output_dir}/media_manifest.json') as f:
     manifest = json.load(f)
 
 # Create approved list (simple version: all downloaded = approved)
@@ -155,9 +162,9 @@ approved_data = {
     'pacing': plan['pacing']
 }
 
-with open('outputs/approved_media.json', 'w') as f:
+with open(f'{output_dir}/approved_media.json', 'w') as f:
     json.dump(approved_data, f, indent=2)
 
 print(f"\n✅ Approved {len(approved_shots)} shots")
-print("Saved to: outputs/approved_media.json")
+print(f"Saved to: {output_dir}/approved_media.json")
 EOF

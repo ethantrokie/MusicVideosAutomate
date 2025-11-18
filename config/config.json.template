@@ -2,7 +2,7 @@
   "suno_api": {
     "base_url": "https://api.sunoapi.org",
     "api_key": "YOUR_SUNO_API_KEY_HERE",
-    "model": "V4"
+    "model": "V5"
   },
   "media_sources": {
     "pexels_api_key": "OPTIONAL_PEXELS_API_KEY",
@@ -19,5 +19,10 @@
     "express_mode": false,
     "max_media_items": 10,
     "min_media_items": 6
+  },
+  "youtube": {
+    "default_privacy": "unlisted",
+    "default_category": "Education",
+    "credentials_path": "config/youtube_credentials.json"
   }
 }

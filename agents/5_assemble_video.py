@@ -8,6 +8,19 @@ import os
 import sys
 import json
 from pathlib import Path
+
+# Add agents directory to path for imports
+sys.path.insert(0, str(Path(__file__).parent))
+from output_helper import get_output_path, ensure_output_dir
+
+# Monkey patch for Pillow 10+ compatibility with moviepy 1.0.3
+try:
+    from PIL import Image
+    if not hasattr(Image, 'ANTIALIAS'):
+        Image.ANTIALIAS = Image.LANCZOS
+except ImportError:
+    pass
+
 from moviepy.editor import (
     VideoFileClip,
     ImageClip,
@@ -16,7 +29,7 @@ from moviepy.editor import (
     concatenate_videoclips,
     CompositeAudioClip
 )
-from moviepy.video.fx import resize, fadein, fadeout
+import moviepy.video.fx.all as vfx
 
 
 def load_config():
@@ -29,9 +42,9 @@ def load_config():
 
 def load_approved_media():
     """Load approved media shot list."""
-    media_path = Path("outputs/approved_media.json")
+    media_path = get_output_path("approved_media.json")
     if not media_path.exists():
-        print("❌ Error: outputs/approved_media.json not found")
+        print(f"❌ Error: {media_path} not found")
         print("Run approval script first: ./approve_media.sh")
         sys.exit(1)
 
@@ -72,39 +85,47 @@ def create_clip_from_shot(shot: dict, video_settings: dict):
                 # Loop if too short
                 clip = clip.loop(duration=duration)
 
-        # Resize to target resolution (maintain aspect ratio, crop to fit)
-        clip = clip.resize(height=target_height)
+        # Resize to fit target resolution (letterbox/pillarbox instead of crop)
+        # This preserves all content without cropping
 
-        if clip.w < target_width:
+        # Calculate aspect ratios
+        clip_aspect = clip.w / clip.h
+        target_aspect = target_width / target_height
+
+        if clip_aspect > target_aspect:
+            # Video is wider than target (horizontal video for vertical format)
+            # Fit to width, add black bars top/bottom (letterbox)
             clip = clip.resize(width=target_width)
+        else:
+            # Video is taller than target (or already vertical)
+            # Fit to height, add black bars left/right (pillarbox)
+            clip = clip.resize(height=target_height)
 
-        # Center crop
-        if clip.w > target_width:
-            x_center = clip.w / 2
-            x1 = x_center - target_width / 2
-            clip = clip.crop(x1=x1, width=target_width)
-
-        if clip.h > target_height:
-            y_center = clip.h / 2
-            y1 = y_center - target_height / 2
-            clip = clip.crop(y1=y1, height=target_height)
-
-        # Apply transitions
+        # Apply transitions BEFORE centering to avoid recursion issues
         if transition == "fade" or transition == "crossfade":
             fade_duration = 0.5
-            clip = fadein(clip, fade_duration)
-            clip = fadeout(clip, fade_duration)
+            clip = vfx.fadein(clip, fade_duration)
+            clip = vfx.fadeout(clip, fade_duration)
+
+        # Center the clip on a black background of target size using margin
+        if clip.w != target_width or clip.h != target_height:
+            # Use margin to center clip - simpler than custom make_frame
+            clip = clip.on_color(
+                size=(target_width, target_height),
+                color=(0, 0, 0),
+                pos='center'
+            )
 
         return clip
 
     except Exception as e:
         print(f"  ⚠️  Error loading shot {shot['shot_number']}: {e}")
+        import traceback
+        traceback.print_exc()
         # Return black placeholder clip
-        return ImageClip(
-            size=(target_width, target_height),
-            color=(0, 0, 0),
-            duration=duration
-        )
+        import numpy as np
+        black_frame = np.zeros((target_height, target_width, 3), dtype='uint8')
+        return ImageClip(black_frame).set_duration(duration)
 
 
 def assemble_video(approved_data: dict, video_settings: dict, audio_path: str):
@@ -122,12 +143,26 @@ def assemble_video(approved_data: dict, video_settings: dict, audio_path: str):
     print("🎬 Assembling video...")
 
     shots = approved_data["shot_list"]
+
+    # Filter out shots without local_path (failed downloads)
+    available_shots = [s for s in shots if 'local_path' in s]
+    skipped_shots = [s for s in shots if 'local_path' not in s]
+
+    if skipped_shots:
+        print(f"  ⚠️  Skipping {len(skipped_shots)} shots with failed downloads:")
+        for shot in skipped_shots:
+            print(f"    - Shot {shot['shot_number']}: {shot['description'][:50]}...")
+
+    if not available_shots:
+        print("  ❌ No shots available - all downloads failed!")
+        sys.exit(1)
+
     clips = []
 
     # Create clips for each shot
-    print(f"  Creating {len(shots)} video clips...")
-    for i, shot in enumerate(shots, 1):
-        print(f"    [{i}/{len(shots)}] Shot {shot['shot_number']}: {shot['description'][:40]}...")
+    print(f"  Creating {len(available_shots)} video clips...")
+    for i, shot in enumerate(available_shots, 1):
+        print(f"    [{i}/{len(available_shots)}] Shot {shot['shot_number']}: {shot['description'][:40]}...")
         clip = create_clip_from_shot(shot, video_settings)
         clips.append(clip)
 
@@ -150,7 +185,8 @@ def assemble_video(approved_data: dict, video_settings: dict, audio_path: str):
     final_video = final_video.set_audio(audio)
 
     # Export final video
-    output_path = "outputs/final_video.mp4"
+    ensure_output_dir()
+    output_path = str(get_output_path("final_video.mp4"))
     print(f"  Rendering final video to {output_path}...")
     print("  (This may take a few minutes...)")
 
@@ -183,11 +219,13 @@ def main():
     approved_data = load_approved_media()
 
     # Check for audio
-    audio_path = "outputs/song.mp3"
-    if not Path(audio_path).exists():
-        print("❌ Error: outputs/song.mp3 not found")
+    audio_path = get_output_path("song.mp3")
+    if not audio_path.exists():
+        print(f"❌ Error: {audio_path} not found")
         print("Run composer agent first: ./agents/3_compose.py")
         sys.exit(1)
+
+    audio_path = str(audio_path)  # Convert to string for MoviePy
 
     # Assemble video
     output_path = assemble_video(approved_data, video_settings, audio_path)

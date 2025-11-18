@@ -10,6 +10,11 @@ import requests
 from pathlib import Path
 from urllib.parse import urlparse
 
+# Add agents directory to path for imports
+sys.path.insert(0, str(Path(__file__).parent))
+from stock_photo_api import StockPhotoResolver
+from output_helper import get_output_path, ensure_output_dir
+
 
 def download_file(url: str, output_path: str, max_retries: int = 3) -> bool:
     """
@@ -40,27 +45,40 @@ def main():
     """Download all media from shot list."""
 
     # Load shot list
-    shot_list_path = Path("outputs/media_plan.json")
+    shot_list_path = get_output_path("media_plan.json")
     if not shot_list_path.exists():
-        print("❌ Error: outputs/media_plan.json not found")
+        print(f"❌ Error: {shot_list_path} not found")
         sys.exit(1)
 
     with open(shot_list_path) as f:
         data = json.load(f)
 
     shots = data["shot_list"]
-    media_dir = Path("outputs/media")
-    media_dir.mkdir(exist_ok=True)
+    media_dir = ensure_output_dir("media")
 
     print(f"📥 Downloading {len(shots)} media files...")
+
+    # Initialize URL resolver
+    resolver = StockPhotoResolver()
 
     downloaded = []
     failed = []
 
     for shot in shots:
         shot_num = shot["shot_number"]
-        url = shot["media_url"]
+        page_url = shot["media_url"]
         media_type = shot["media_type"]
+
+        # Resolve page URL to download URL
+        url = resolver.resolve_url(page_url, media_type)
+        if not url:
+            print(f"  [{shot_num}/{len(shots)}] shot_{shot_num:02d}... ❌ (URL resolution failed)")
+            failed.append({
+                "shot_number": shot_num,
+                "url": page_url,
+                "reason": "url_resolution_failed"
+            })
+            continue
 
         # Determine extension
         parsed = urlparse(url)
@@ -97,7 +115,8 @@ def main():
         "failure_count": len(failed)
     }
 
-    with open("outputs/media_manifest.json", "w") as f:
+    manifest_path = get_output_path("media_manifest.json")
+    with open(manifest_path, "w") as f:
         json.dump(manifest, f, indent=2)
 
     print(f"\n✅ Downloaded: {len(downloaded)}/{len(shots)}")

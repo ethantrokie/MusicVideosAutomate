@@ -11,6 +11,10 @@ import time
 import requests
 from pathlib import Path
 
+# Add agents directory to path for imports
+sys.path.insert(0, str(Path(__file__).parent))
+from output_helper import get_output_path, ensure_output_dir
+
 # Force unbuffered output
 sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', buffering=1)
 sys.stderr = os.fdopen(sys.stderr.fileno(), 'w', buffering=1)
@@ -19,7 +23,7 @@ sys.stderr = os.fdopen(sys.stderr.fileno(), 'w', buffering=1)
 class SunoAPIClient:
     """Client for Suno API music generation."""
 
-    def __init__(self, api_key: str, base_url: str = "https://api.sunoapi.org", model: str = "V4"):
+    def __init__(self, api_key: str, base_url: str = "https://api.sunoapi.org", model: str = "V5"):
         self.api_key = api_key
         self.base_url = base_url
         self.model = model
@@ -33,8 +37,8 @@ class SunoAPIClient:
         Generate music using Suno API.
 
         Args:
-            lyrics: Song lyrics (max 3000 chars for V4)
-            prompt: Style/genre description (max 200 chars for V4)
+            lyrics: Song lyrics (max 5000 chars for V5, 3000 chars for V3.5/V4)
+            prompt: Style/genre description (max 1000 chars for V5, 200 chars for V3.5/V4)
             duration: Target duration in seconds (ignored, for backwards compatibility)
 
         Returns:
@@ -43,8 +47,10 @@ class SunoAPIClient:
         endpoint = f"{self.base_url}/api/v1/generate"
 
         # Validate character limits per model
-        max_prompt_length = 3000 if self.model in ["V3_5", "V4"] else 5000
-        max_style_length = 200 if self.model in ["V3_5", "V4"] else 1000
+        # V5: 5000 chars for lyrics (prompt field), 1000 chars for style
+        # V3.5/V4: 3000 chars for lyrics, 200 chars for style
+        max_prompt_length = 5000 if self.model == "V5" else 3000
+        max_style_length = 1000 if self.model == "V5" else 200
 
         if len(lyrics) > max_prompt_length:
             print(f"⚠️  Warning: Lyrics truncated from {len(lyrics)} to {max_prompt_length} chars")
@@ -162,9 +168,9 @@ def main():
         sys.exit(1)
 
     # Load lyrics data
-    lyrics_path = Path("outputs/lyrics.json")
+    lyrics_path = get_output_path("lyrics.json")
     if not lyrics_path.exists():
-        print("❌ Error: outputs/lyrics.json not found")
+        print(f"❌ Error: {lyrics_path} not found")
         print("Run lyrics agent first: ./agents/2_lyrics.sh")
         sys.exit(1)
 
@@ -175,7 +181,7 @@ def main():
     client = SunoAPIClient(
         api_key=api_key,
         base_url=config["suno_api"]["base_url"],
-        model=config["suno_api"].get("model", "V4")
+        model=config["suno_api"].get("model", "V5")
     )
 
     # Generate music
@@ -207,10 +213,53 @@ def main():
     # Get first audio file (API may return multiple variations)
     first_audio = audio_data[0]
     audio_url = first_audio.get("audioUrl")  # camelCase, not snake_case
-    output_path = "outputs/song.mp3"
+
+    # Ensure output directory exists
+    ensure_output_dir()
+    output_path = str(get_output_path("song.mp3"))
 
     print(f"  Downloading audio from: {audio_url}")
     client.download_audio(audio_url, output_path)
+
+    # Trim audio to target duration (video duration + 5s outro for fade)
+    target_duration = config.get("video_settings", {}).get("duration", 60) + 5
+    print(f"  Trimming audio to {target_duration} seconds...")
+
+    # Use ffmpeg directly (Python 3.13 compatible)
+    try:
+        import subprocess
+        temp_output = output_path + ".trimmed.mp3"
+
+        # Use ffmpeg to trim audio
+        result = subprocess.run([
+            'ffmpeg', '-i', output_path,
+            '-t', str(target_duration),
+            '-c', 'copy',  # Copy codec for faster processing
+            '-y',  # Overwrite output file
+            temp_output
+        ], capture_output=True, text=True, timeout=30)
+
+        if result.returncode == 0:
+            # Get original duration
+            probe_result = subprocess.run([
+                'ffprobe', '-v', 'error',
+                '-show_entries', 'format=duration',
+                '-of', 'default=noprint_wrappers=1:nokey=1',
+                output_path
+            ], capture_output=True, text=True)
+
+            original_duration = float(probe_result.stdout.strip()) if probe_result.returncode == 0 else 0
+
+            # Replace original with trimmed
+            import shutil
+            shutil.move(temp_output, output_path)
+            print(f"  ✓ Trimmed from {original_duration:.1f}s to {target_duration}s")
+        else:
+            print(f"  ⚠️  ffmpeg trim failed: {result.stderr[:100]}")
+    except FileNotFoundError:
+        print(f"  ⚠️  ffmpeg not available, skipping trim (song will be full length)")
+    except Exception as e:
+        print(f"  ⚠️  Could not trim audio: {e}")
 
     print(f"✅ Music generation complete: {output_path}")
 
@@ -226,7 +275,8 @@ def main():
         "model": first_audio.get("modelName")
     }
 
-    with open("outputs/music_metadata.json", "w") as f:
+    metadata_path = get_output_path("music_metadata.json")
+    with open(metadata_path, "w") as f:
         json.dump(metadata, f, indent=2)
 
 
