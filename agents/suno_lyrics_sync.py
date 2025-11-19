@@ -20,10 +20,26 @@ class SunoLyricsSync:
         Initialize Suno API client.
 
         Args:
-            api_key: Suno API key (defaults to SUNO_API_KEY env var)
+            api_key: Suno API key (defaults to config.json or SUNO_API_KEY env var)
             max_retries: Maximum number of retry attempts
         """
-        self.api_key = api_key or os.getenv("SUNO_API_KEY")
+        if api_key:
+            self.api_key = api_key
+        else:
+            # Try environment variable first, then config file
+            self.api_key = os.getenv("SUNO_API_KEY")
+            if not self.api_key:
+                try:
+                    from pathlib import Path
+                    config_path = Path("config/config.json")
+                    if config_path.exists():
+                        import json
+                        with open(config_path) as f:
+                            config = json.load(f)
+                        self.api_key = config.get("suno_api", {}).get("api_key")
+                except Exception:
+                    pass
+
         self.max_retries = max_retries
         self.logger = logging.getLogger(__name__)
 

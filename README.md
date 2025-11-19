@@ -95,15 +95,17 @@ The script will guide you through OAuth authentication on first upload.
 
 ### Optional: Lyric Synchronization
 
-For synchronized video-lyric switching:
+The synchronized video-lyric system uses the same Suno API key from `config/config.json`.
+
+**No additional setup needed** - if you have the Suno API key configured for music generation, lyric sync will work automatically.
+
+Alternatively, you can set an environment variable:
 
 ```bash
 export SUNO_API_KEY='your_suno_api_key'
 ```
 
-Get your key from [SunoAPI.org](https://sunoapi.org)
-
-Without this key, the system falls back to curator's timing.
+Without a valid API key, the system falls back to curator's timing.
 
 ## Documentation
 
