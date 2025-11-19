@@ -95,17 +95,15 @@ The script will guide you through OAuth authentication on first upload.
 
 ### Optional: Lyric Synchronization
 
-The synchronized video-lyric system uses the same Suno API key from `config/config.json`.
+The synchronized video-lyric system uses:
+- **Suno API**: Same API key from `config/config.json` (for word-level timestamps)
+- **Claude Code CLI**: Included with your Claude Code subscription (for AI phrase grouping)
 
-**No additional setup needed** - if you have the Suno API key configured for music generation, lyric sync will work automatically.
+**No additional setup needed** - if you have:
+1. Suno API key configured for music generation
+2. Claude Code CLI installed and authenticated
 
-Alternatively, you can set an environment variable:
-
-```bash
-export SUNO_API_KEY='your_suno_api_key'
-```
-
-Without a valid API key, the system falls back to curator's timing.
+The lyric sync will work automatically. Without these, the system falls back to curator's timing.
 
 ## Documentation
 

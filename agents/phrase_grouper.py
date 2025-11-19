@@ -6,8 +6,8 @@ AI-powered phrase grouping and key term extraction.
 import os
 import json
 import logging
+import subprocess
 from typing import List, Dict, Optional
-from anthropic import Anthropic
 
 
 class PhraseGrouper:
@@ -18,9 +18,8 @@ class PhraseGrouper:
         Initialize phrase grouper.
 
         Args:
-            api_key: Anthropic API key (defaults to ANTHROPIC_API_KEY env var)
+            api_key: Unused (kept for compatibility)
         """
-        self.client = Anthropic(api_key=api_key)
         self.logger = logging.getLogger(__name__)
 
     def parse_into_phrases(self, aligned_words: List[Dict], gap_threshold: float = 0.3) -> List[Dict]:
@@ -97,13 +96,19 @@ Return ONLY a JSON array of terms, lowercase, no duplicates.
 Example: ["chlorophyll", "atp synthase", "electron transport", "photosynthesis"]"""
 
         try:
-            response = self.client.messages.create(
-                model="claude-3-5-sonnet-20241022",
-                max_tokens=500,
-                messages=[{"role": "user", "content": prompt}]
+            # Call Claude Code CLI
+            result = subprocess.run(
+                ["claude", "-p", prompt, "--dangerously-skip-permissions"],
+                capture_output=True,
+                text=True,
+                timeout=30
             )
 
-            result_text = response.content[0].text.strip()
+            if result.returncode != 0:
+                self.logger.error(f"Claude CLI failed: {result.stderr}")
+                return []
+
+            result_text = result.stdout.strip()
             # Extract JSON array from response
             if "[" in result_text and "]" in result_text:
                 json_start = result_text.index("[")
@@ -160,13 +165,19 @@ Return JSON array of groups:
 ]"""
 
         try:
-            response = self.client.messages.create(
-                model="claude-3-5-sonnet-20241022",
-                max_tokens=2000,
-                messages=[{"role": "user", "content": prompt}]
+            # Call Claude Code CLI
+            result = subprocess.run(
+                ["claude", "-p", prompt, "--dangerously-skip-permissions"],
+                capture_output=True,
+                text=True,
+                timeout=60
             )
 
-            result_text = response.content[0].text.strip()
+            if result.returncode != 0:
+                self.logger.error(f"Claude CLI failed: {result.stderr}")
+                raise Exception("Claude CLI failed")
+
+            result_text = result.stdout.strip()
             # Extract JSON array
             if "[" in result_text and "]" in result_text:
                 json_start = result_text.index("[")
