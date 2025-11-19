@@ -23,12 +23,28 @@ open outputs/current/final_video.mp4
 
 - 🤖 **AI Research**: Automatically gathers facts and finds royalty-free media
 - 🎨 **Visual Ranking**: CLIP-powered diversity analysis ensures engaging variety
+- 🎵 **Synchronized Video-Lyric Switching**: Videos switch exactly when key scientific terms are sung
 - 🎵 **Music Generation**: Creates custom educational songs via Suno API
 - 🎬 **Video Assembly**: Combines media, lyrics, and music into polished videos
 - 👁️ **Human Review**: Preview media before final assembly
 - ⚡ **Express Mode**: Fully automated pipeline for trusted workflows
 - 💰 **Cost Effective**: ~$0.02-$0.04 per video
 - 📁 **Timestamped Runs**: Each pipeline run creates a unique timestamped directory
+
+### 🎵 Synchronized Video-Lyric Switching
+
+**Word-Level Precision**: Videos switch exactly when key scientific terms are sung, using Suno API's word-level timestamps.
+
+**AI Semantic Grouping**: Phrases discussing the same concept stay on the same video, creating smooth educational flow.
+
+**CLIP + Keyword Boosting**: Videos are matched to phrases using semantic similarity plus 2x boost for exact keyword matches (e.g., "ATP synthase" lyric → ATP synthase animation).
+
+**Graceful Fallback**: If Suno API is unavailable, falls back to curator's timing automatically.
+
+**Configuration**: Control sync behavior in `config/config.json`:
+- `phrase_gap_threshold`: Minimum pause to split phrases (default: 0.3s)
+- `min_phrase_duration`: Minimum shot duration (default: 1.5s)
+- `keyword_boost_multiplier`: Boost for keyword matches (default: 2.0)
 
 ## Command-Line Options
 
@@ -76,6 +92,18 @@ Examples:
 6. Save as: `config/youtube_credentials.json`
 
 The script will guide you through OAuth authentication on first upload.
+
+### Optional: Lyric Synchronization
+
+For synchronized video-lyric switching:
+
+```bash
+export SUNO_API_KEY='your_suno_api_key'
+```
+
+Get your key from [SunoAPI.org](https://sunoapi.org)
+
+Without this key, the system falls back to curator's timing.
 
 ## Documentation
 

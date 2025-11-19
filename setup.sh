@@ -55,6 +55,21 @@ else
     echo "⚠️  CLIP model download failed - will download on first use"
 fi
 
+# Check for Suno API key (optional, for lyric sync)
+echo ""
+if [ -z "$SUNO_API_KEY" ]; then
+    echo "⚠️  SUNO_API_KEY not set"
+    echo "Lyric synchronization will be disabled."
+    echo ""
+    echo "To enable synchronized video-lyric switching:"
+    echo "1. Get API key from https://sunoapi.org"
+    echo "2. Add to your shell profile:"
+    echo "   export SUNO_API_KEY='your_key_here'"
+    echo ""
+else
+    echo "✅ Suno API key configured"
+fi
+
 echo ""
 echo "✅ Setup complete!"
 echo ""
