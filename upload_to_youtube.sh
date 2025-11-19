@@ -87,16 +87,19 @@ if [ ! -f "$RESEARCH_PATH" ]; then
 fi
 
 # Extract topic and key facts using Python
-METADATA=$(python3 << 'PYMETA'
+METADATA=$(python3 << PYMETA
 import json
 import sys
 
 try:
-    with open('$RESEARCH_PATH') as f:
+    with open('${RESEARCH_PATH}') as f:
         research = json.load(f)
 
     topic = research.get('topic', 'Educational Video')
     key_facts = research.get('key_facts', [])
+
+    # Create title from topic (capitalize first letter of each word)
+    title = topic.title() if topic else 'Educational Video'
 
     # Create a more descriptive summary from first few facts
     if key_facts:
@@ -109,14 +112,14 @@ try:
     else:
         description = f"An educational video exploring {topic}"
 
-    print(f"{topic}|||{description}")
+    print(f"{title}|||{description}")
 except Exception as e:
-    print(f"Educational Video|||Learn something new today!", file=sys.stderr)
+    print("Educational Video|||Learn something new today!", file=sys.stderr)
     sys.exit(0)
 PYMETA
 )
 
-# Parse metadata
+# Parse metadata (|||  = 3 pipes as separator)
 TITLE=$(echo "$METADATA" | cut -d'|' -f1)
 FACT_DESCRIPTION=$(echo "$METADATA" | cut -d'|' -f4)
 
