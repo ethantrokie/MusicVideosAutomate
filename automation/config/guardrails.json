@@ -1,0 +1,28 @@
+{
+  "safe_ranges": {
+    "video_duration": [15, 120],
+    "max_media_items": [5, 30],
+    "min_media_items": [3, 15],
+    "fps": [24, 60],
+    "tone_description_max_length": 200
+  },
+  "allowed_changes": [
+    "tone adjustments",
+    "duration tweaks",
+    "media variety",
+    "posting time"
+  ],
+  "forbidden_changes": [
+    "API keys",
+    "channel selection",
+    "privacy status",
+    "resolution",
+    "file paths",
+    "system commands"
+  ],
+  "confidence_thresholds": {
+    "auto_apply": 0.8,
+    "flag_for_review": 0.5,
+    "document_only": 0.0
+  }
+}

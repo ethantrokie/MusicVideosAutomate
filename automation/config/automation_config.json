@@ -1,0 +1,32 @@
+{
+  "scheduling": {
+    "daily_run_time": "09:00",
+    "timezone": "America/Chicago",
+    "weekly_analysis_day": "Sunday",
+    "weekly_analysis_time": "10:00"
+  },
+  "youtube": {
+    "channel_handle": "@LearningScienceMusic",
+    "privacy_status": "private",
+    "default_category": "Education",
+    "credentials_path": "config/youtube_credentials.json"
+  },
+  "notifications": {
+    "phone": "914-844-4402",
+    "notify_on_success": true,
+    "notify_on_failure": true,
+    "notify_on_weekly_report": true,
+    "notify_on_pending_changes": true
+  },
+  "optimization": {
+    "enabled": false,
+    "auto_apply_high_confidence": true,
+    "confidence_threshold": 0.8,
+    "max_changes_per_week": 2
+  },
+  "topic_generation": {
+    "avoid_repeat_days": 30,
+    "categories": ["biology", "chemistry", "physics", "earth_science"],
+    "prefer_trending": false
+  }
+}
