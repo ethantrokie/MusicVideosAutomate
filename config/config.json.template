@@ -17,8 +17,8 @@
   },
   "pipeline_settings": {
     "express_mode": false,
-    "max_media_items": 10,
-    "min_media_items": 6
+    "max_media_items": 20,
+    "min_media_items": 12
   },
   "youtube": {
     "default_privacy": "unlisted",

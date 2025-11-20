@@ -117,11 +117,8 @@ def create_clip_from_shot(shot: dict, video_settings: dict):
             # Fit to height, add black bars left/right (pillarbox)
             clip = clip.resize(height=target_height)
 
-        # Apply transitions BEFORE centering to avoid recursion issues
-        if transition == "fade" or transition == "crossfade":
-            fade_duration = 0.5
-            clip = vfx.fadein(clip, fade_duration)
-            clip = vfx.fadeout(clip, fade_duration)
+        # No transitions - hard cuts only
+        # (Transitions removed per user preference)
 
         # Center the clip on a black background of target size using margin
         if clip.w != target_width or clip.h != target_height:
