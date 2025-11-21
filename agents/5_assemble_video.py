@@ -7,6 +7,7 @@ Combines approved media with generated music into final video.
 import os
 import sys
 import json
+import argparse
 from pathlib import Path
 
 # Add agents directory to path for imports
@@ -369,11 +370,26 @@ def main():
     logging.basicConfig(level=logging.INFO, format='%(message)s')
     logger = logging.getLogger(__name__)
 
+    # Parse command-line arguments
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--resolution',
+                       type=str,
+                       default='1080x1920',
+                       help='Output resolution WIDTHxHEIGHT (default: 1080x1920 for vertical)')
+    args = parser.parse_args()
+
+    # Parse resolution
+    width, height = map(int, args.resolution.split('x'))
+
     print("🎞️  Video Assembly Agent: Creating final video...")
 
     # Load configuration
     video_settings = load_config()
     sync_config = load_sync_config()
+
+    # Override resolution with command-line argument
+    video_settings["resolution"] = (width, height)
+    print(f"  Target resolution: {width}x{height}")
 
     # Load approved media
     approved_data = load_approved_media()
