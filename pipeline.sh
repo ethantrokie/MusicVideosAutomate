@@ -278,35 +278,56 @@ EOF
 
             if [ -f "$GAP_REQUEST" ]; then
                 # Extract parameters using Python
-                GAP_INFO=$(python3 - "$GAP_REQUEST" << 'EOF'
+                TARGET_COUNT=$(python3 - "$GAP_REQUEST" << 'EOF'
 import json
 import sys
 
 # Check if file argument provided
 if len(sys.argv) < 2:
-    print("Error: No gap request file provided", file=sys.stderr)
+    print("5", file=sys.stderr)  # Default value
+    sys.exit(0)
+
+with open(sys.argv[1]) as f:
+    data = json.load(f)
+
+print(data.get('target_media_count', 5))
+EOF
+)
+
+                TONE=$(python3 - "$GAP_REQUEST" << 'EOF'
+import json
+import sys
+
+if len(sys.argv) < 2:
+    print("educational")
+    sys.exit(0)
+
+with open(sys.argv[1]) as f:
+    data = json.load(f)
+
+print(data.get('tone', 'educational'))
+EOF
+)
+
+                # Format missing concepts as numbered list
+                CONCEPTS_LIST=$(python3 - "$GAP_REQUEST" << 'EOF'
+import json
+import sys
+
+if len(sys.argv) < 2:
     sys.exit(1)
 
 with open(sys.argv[1]) as f:
     data = json.load(f)
 
-# Format missing concepts as numbered list
 concepts = data.get('missing_concepts', [])
 if not concepts:
-    print("Error: No missing concepts found", file=sys.stderr)
     sys.exit(1)
 
 formatted = '\n'.join([f"{i+1}. {c}" for i, c in enumerate(concepts)])
-
-# Output formatted data
-print(f"CONCEPTS_LIST={formatted}")
-print(f"TARGET_COUNT={data.get('target_media_count', 5)}")
-print(f"TONE={data.get('tone', 'educational')}")
+print(formatted)
 EOF
 )
-
-                # Extract values
-                eval "$GAP_INFO"
 
                 # Get topic from original input
                 IDEA=$(cat input/idea.txt)
