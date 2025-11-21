@@ -129,9 +129,8 @@ fi
 UPLOAD_OUTPUT=$(eval $UPLOAD_CMD)
 echo "$UPLOAD_OUTPUT"
 
-# Extract video ID from output (youtube_channel_helper.py prints it)
-# Assuming output format contains "Video ID: ABC123"
-VIDEO_ID=$(echo "$UPLOAD_OUTPUT" | grep -o "Video ID: [A-Za-z0-9_-]*" | cut -d' ' -f3)
+# Extract video ID from output URL format: "Video uploaded: https://youtube.com/watch?v=VIDEO_ID"
+VIDEO_ID=$(echo "$UPLOAD_OUTPUT" | grep -oE 'watch\?v=([A-Za-z0-9_-]+)' | cut -d= -f2)
 
 if [ -n "$VIDEO_ID" ]; then
     # Save video ID to file for cross-linking
