@@ -1,0 +1,57 @@
+/* Karaoke subtitle styling for YouTube Shorts */
+
+.word {
+  font-family: 'Montserrat ExtraBold', 'Arial Black', sans-serif;
+  font-size: 72px;
+  font-weight: 900;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+
+  /* Bold black outline for readability */
+  text-shadow:
+    -4px -4px 0 #000,
+     4px -4px 0 #000,
+    -4px  4px 0 #000,
+     4px  4px 0 #000,
+    -4px  0   0 #000,
+     4px  0   0 #000,
+     0   -4px 0 #000,
+     0    4px 0 #000;
+
+  /* Pop-in animation */
+  animation: pop-in 0.2s ease-out;
+}
+
+/* Currently narrated word - bright gold highlight */
+.word-being-narrated {
+  color: #FFD700;
+  transform: scale(1.15);
+  filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.8));
+}
+
+/* Pop-in animation keyframes */
+@keyframes pop-in {
+  0% {
+    transform: scale(0.7);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Positioning - centered vertically, allow horizontal flow */
+.subtitle-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  width: 90%;
+  z-index: 100;
+}
