@@ -175,11 +175,47 @@ if [ $START_STAGE -le 4 ]; then
     echo ""
 fi
 
+# Stage 4.5: Segment Analysis (for multi-format videos)
+if [ $START_STAGE -le 5 ]; then
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${BLUE}Stage 4.5: Segment Analysis${NC}"
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+
+    echo "🎯 Analyzing song segments for multi-format videos..."
+    if python3 agents/analyze_segments.py; then
+        echo "✅ Segment analysis complete"
+    else
+        echo -e "${YELLOW}⚠️  Segment analysis failed, will use full song for all formats${NC}"
+        # Create fallback segments
+        python3 << 'EOF'
+import json
+import os
+from pathlib import Path
+
+output_dir = os.getenv('OUTPUT_DIR', 'outputs/current')
+segments_file = Path(f"{output_dir}/segments.json")
+
+# Create fallback segments (full song for all)
+fallback = {
+    'full': {'start': 0, 'end': 180, 'duration': 180, 'rationale': 'Fallback: using full song'},
+    'hook': {'start': 30, 'end': 60, 'duration': 30, 'rationale': 'Fallback: middle section'},
+    'educational': {'start': 10, 'end': 40, 'duration': 30, 'rationale': 'Fallback: intro section'}
+}
+
+with open(segments_file, 'w') as f:
+    json.dump(fallback, f, indent=2)
+EOF
+    fi
+    echo ""
+fi
+
 # Stage 5: Media Curation
 if [ $START_STAGE -le 5 ]; then
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo -e "${BLUE}Stage 5/6: Media Curation${NC}"
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    # TODO: Add multi-format media download with aspect ratio support
+    # For now, using standard media curation
     ./agents/4_curate_media.sh
     if [ $? -ne 0 ]; then
         echo -e "${RED}❌ Media curation failed${NC}"
