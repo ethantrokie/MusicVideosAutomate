@@ -381,15 +381,144 @@ EOF
     echo ""
 fi
 
-# Stage 6: Video Assembly
+# Stage 6: Video Assembly (Multi-Format)
 if [ $START_STAGE -le 6 ]; then
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${BLUE}Stage 6/6: Video Assembly${NC}"
+    echo -e "${BLUE}Stage 6/9: Multi-Format Video Assembly${NC}"
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    ./agents/5_assemble_video.py
-    if [ $? -ne 0 ]; then
-        echo -e "${RED}❌ Video assembly failed${NC}"
-        exit 1
+
+    # Check if multi-format is enabled
+    if python3 -c "import json; c=json.load(open('config/config.json')); print(c.get('video_formats',{}).get('full_video',{}).get('enabled',True))" | grep -q "True"; then
+        echo "🎬 Building multi-format videos..."
+        python3 agents/build_multiformat_videos.py
+        if [ $? -ne 0 ]; then
+            echo -e "${RED}❌ Multi-format video assembly failed${NC}"
+            exit 1
+        fi
+    else
+        echo "📹 Building single video..."
+        ./agents/5_assemble_video.py
+        if [ $? -ne 0 ]; then
+            echo -e "${RED}❌ Video assembly failed${NC}"
+            exit 1
+        fi
+    fi
+    echo ""
+fi
+
+# Stage 7: Subtitle Generation
+if [ $START_STAGE -le 7 ]; then
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${BLUE}Stage 7/9: Subtitle Generation${NC}"
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+
+    # Check if videos exist for subtitling
+    if [ -f "${RUN_DIR}/full.mp4" ]; then
+        echo "📝 Adding subtitles to all videos..."
+
+        # Traditional subtitles for full video (FFmpeg)
+        if python3 agents/generate_subtitles.py --engine=ffmpeg --type=traditional --video=full; then
+            echo "  ✅ Full video subtitles applied"
+        else
+            echo -e "${YELLOW}  ⚠️  Full video subtitles failed, continuing...${NC}"
+        fi
+
+        # Karaoke subtitles for shorts (pycaps)
+        if [ -f "${RUN_DIR}/short_hook.mp4" ]; then
+            if python3 agents/generate_subtitles.py --engine=pycaps --type=karaoke --video=short_hook --segment=hook; then
+                echo "  ✅ Hook short subtitles applied"
+            else
+                echo -e "${YELLOW}  ⚠️  Hook short subtitles failed, continuing...${NC}"
+            fi
+        fi
+
+        if [ -f "${RUN_DIR}/short_educational.mp4" ]; then
+            if python3 agents/generate_subtitles.py --engine=pycaps --type=karaoke --video=short_educational --segment=educational; then
+                echo "  ✅ Educational short subtitles applied"
+            else
+                echo -e "${YELLOW}  ⚠️  Educational short subtitles failed, continuing...${NC}"
+            fi
+        fi
+    else
+        echo -e "${YELLOW}⚠️  No multi-format videos found, skipping subtitles${NC}"
+    fi
+    echo ""
+fi
+
+# Stage 8: Upload to YouTube
+if [ $START_STAGE -le 8 ]; then
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${BLUE}Stage 8/9: YouTube Upload${NC}"
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+
+    # Ask user if they want to upload
+    if [ "$EXPRESS_MODE" = false ]; then
+        echo "📤 Upload videos to YouTube?"
+        echo ""
+        echo "Videos ready:"
+        if [ -f "${RUN_DIR}/full.mp4" ]; then
+            echo "  - Full video (${RUN_DIR}/full.mp4)"
+        fi
+        if [ -f "${RUN_DIR}/short_hook.mp4" ]; then
+            echo "  - Hook short (${RUN_DIR}/short_hook.mp4)"
+        fi
+        if [ -f "${RUN_DIR}/short_educational.mp4" ]; then
+            echo "  - Educational short (${RUN_DIR}/short_educational.mp4)"
+        fi
+        echo ""
+        read -p "Upload now? [y/N] " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            echo "⏭️  Skipping upload"
+            echo ""
+            echo "To upload later, run:"
+            echo "  ./upload_to_youtube.sh --run=${RUN_TIMESTAMP} --type=full"
+            echo "  ./upload_to_youtube.sh --run=${RUN_TIMESTAMP} --type=short_hook"
+            echo "  ./upload_to_youtube.sh --run=${RUN_TIMESTAMP} --type=short_educational"
+            START_STAGE=10  # Skip remaining stages
+        fi
+    fi
+
+    if [ $START_STAGE -le 8 ]; then
+        echo "📤 Uploading all videos..."
+
+        # Upload full video
+        if [ -f "${RUN_DIR}/full.mp4" ]; then
+            echo "  Uploading full video..."
+            ./upload_to_youtube.sh --run="${RUN_TIMESTAMP}" --type=full --privacy=unlisted
+            FULL_ID=$(cat "${RUN_DIR}/video_id_full.txt" 2>/dev/null || echo "")
+        fi
+
+        # Upload hook short
+        if [ -f "${RUN_DIR}/short_hook.mp4" ]; then
+            echo "  Uploading hook short..."
+            ./upload_to_youtube.sh --run="${RUN_TIMESTAMP}" --type=short_hook --privacy=unlisted
+            HOOK_ID=$(cat "${RUN_DIR}/video_id_short_hook.txt" 2>/dev/null || echo "")
+        fi
+
+        # Upload educational short
+        if [ -f "${RUN_DIR}/short_educational.mp4" ]; then
+            echo "  Uploading educational short..."
+            ./upload_to_youtube.sh --run="${RUN_TIMESTAMP}" --type=short_educational --privacy=unlisted
+            EDU_ID=$(cat "${RUN_DIR}/video_id_short_educational.txt" 2>/dev/null || echo "")
+        fi
+
+        echo "✅ All uploads complete"
+        echo ""
+    fi
+fi
+
+# Stage 9: Cross-Link Videos
+if [ $START_STAGE -le 9 ] && [ -n "$FULL_ID" ] && [ -n "$HOOK_ID" ] && [ -n "$EDU_ID" ]; then
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${BLUE}Stage 9/9: Cross-Link Videos${NC}"
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+
+    echo "🔗 Cross-linking video descriptions..."
+    if python3 agents/crosslink_videos.py "$FULL_ID" "$HOOK_ID" "$EDU_ID"; then
+        echo "✅ Cross-linking complete"
+    else
+        echo -e "${YELLOW}⚠️  Cross-linking failed${NC}"
     fi
     echo ""
 fi
@@ -399,18 +528,49 @@ echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━
 echo -e "${GREEN}✅ Pipeline Complete!${NC}"
 echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo ""
-echo -e "${GREEN}📹 Final video: outputs/final_video.mp4${NC}"
+
+# Show generated videos
+if [ -f "${RUN_DIR}/full.mp4" ]; then
+    echo -e "${GREEN}📹 Videos Generated:${NC}"
+    echo "  - ${RUN_DIR}/full.mp4 (Full horizontal video)"
+    if [ -f "${RUN_DIR}/short_hook.mp4" ]; then
+        echo "  - ${RUN_DIR}/short_hook.mp4 (Hook short)"
+    fi
+    if [ -f "${RUN_DIR}/short_educational.mp4" ]; then
+        echo "  - ${RUN_DIR}/short_educational.mp4 (Educational short)"
+    fi
+else
+    echo -e "${GREEN}📹 Final video: ${RUN_DIR}/final_video.mp4${NC}"
+fi
 echo ""
+
+# Show upload results if available
+if [ -f "${RUN_DIR}/upload_results.json" ]; then
+    echo -e "${GREEN}🔗 YouTube URLs:${NC}"
+    python3 -c "import json; r=json.load(open('${RUN_DIR}/upload_results.json')); print(f\"  Full: {r['full_video']['url']}\"); print(f\"  Hook: {r['hook_short']['url']}\"); print(f\"  Educational: {r['educational_short']['url']}\")"
+    echo ""
+fi
+
 echo "Generated files:"
-echo "  - outputs/research.json       (research data)"
-echo "  - outputs/lyrics.txt           (song lyrics)"
-echo "  - outputs/song.mp3             (AI-generated music)"
-echo "  - outputs/media_plan.json      (shot list)"
-echo "  - outputs/final_video.mp4      (final video)"
+echo "  - ${RUN_DIR}/research.json       (research data)"
+echo "  - ${RUN_DIR}/lyrics.txt          (song lyrics)"
+echo "  - ${RUN_DIR}/song.mp3            (AI-generated music)"
+echo "  - ${RUN_DIR}/media_plan.json     (shot list)"
+if [ -f "${RUN_DIR}/segments.json" ]; then
+    echo "  - ${RUN_DIR}/segments.json       (segment analysis)"
+fi
 echo ""
+
 echo "Next steps:"
-echo "  - Preview: open outputs/final_video.mp4"
+if [ -f "${RUN_DIR}/full.mp4" ]; then
+    echo "  - Preview: open ${RUN_DIR}/full.mp4"
+    echo "  - Preview shorts: open ${RUN_DIR}/short_hook.mp4"
+else
+    echo "  - Preview: open ${RUN_DIR}/final_video.mp4"
+fi
 echo "  - Edit in iMovie if needed"
-echo "  - Share to social media!"
+if [ ! -f "${RUN_DIR}/upload_results.json" ]; then
+    echo "  - Upload: ./upload_to_youtube.sh --run=${RUN_TIMESTAMP} --type=full"
+fi
 echo ""
-echo -e "${BLUE}Cost estimate for this video: ~\$0.02-\$0.04${NC}"
+echo -e "${BLUE}Cost estimate for this pipeline run: ~\$0.02-\$0.04${NC}"
