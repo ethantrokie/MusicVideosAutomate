@@ -279,6 +279,32 @@ def main():
     with open(metadata_path, "w") as f:
         json.dump(metadata, f, indent=2)
 
+    # Save Suno output with word-level timestamps for subtitle generation and segment analysis
+    suno_output_path = get_output_path("suno_output.json")
+
+    # Extract the full response data with all timestamps
+    suno_data = {
+        'taskId': task_id,
+        'song': first_audio,  # Contains all metadata including potential timestamps
+        'metadata': {
+            'duration': first_audio.get('duration'),
+            'title': first_audio.get('title', 'Educational Song'),
+            'model': first_audio.get('modelName', 'chirp-crow')
+        }
+    }
+
+    # Check if word-level timestamps exist in response
+    # Suno API v5 might have different structure - save whatever timestamp data is available
+    if 'segments' in first_audio:
+        suno_data['segments'] = first_audio.get('segments', [])
+    if 'words' in first_audio:
+        suno_data['words'] = first_audio.get('words', [])
+
+    with open(suno_output_path, 'w') as f:
+        json.dump(suno_data, f, indent=2)
+
+    print(f"✅ Saved Suno output: {suno_output_path}")
+
 
 if __name__ == "__main__":
     main()
