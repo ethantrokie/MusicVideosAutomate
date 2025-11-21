@@ -125,6 +125,8 @@ The lyric sync will work automatically. Without these, the system falls back to 
 ## Documentation
 
 - [Setup Guide](docs/SETUP_GUIDE.md) - Detailed installation and configuration
+- [Testing Guide](docs/TESTING_GUIDE.md) - Complete pipeline testing and validation
+- [Multi-Format Usage](docs/MULTI_FORMAT_USAGE.md) - Multi-format video generation guide
 - [Troubleshooting](docs/TROUBLESHOOTING.md) - Common issues and solutions
 
 ---

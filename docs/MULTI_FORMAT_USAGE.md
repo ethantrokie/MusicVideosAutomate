@@ -186,8 +186,11 @@ outputs/runs/YYYYMMDD_HHMMSS/
 
 ## Troubleshooting
 
-### pycaps Installation Issues
+For comprehensive troubleshooting and testing procedures, see the [Testing Guide](TESTING_GUIDE.md).
 
+### Quick Fixes
+
+**pycaps Installation Issues:**
 ```bash
 # Reinstall pycaps
 ./venv/bin/pip uninstall pycaps
@@ -197,16 +200,11 @@ outputs/runs/YYYYMMDD_HHMMSS/
 ./venv/bin/playwright install chromium
 ```
 
-### Segment Analysis Fails
+**Segment Analysis Fails:**
+Check `logs/pipeline_*.log` for Claude CLI errors. The system uses heuristics as fallback if Claude analysis fails.
 
-Check `logs/pipeline_*.log` for Claude CLI errors.
-
-Fallback: The system uses heuristics if Claude analysis fails.
-
-### Tests Fail
-
+**Run Unit Tests:**
 ```bash
-# Run all tests
 ./venv/bin/python tests/test_segment_analyzer.py
 ./venv/bin/python tests/test_subtitle_generator.py
 ```
