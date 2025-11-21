@@ -8,3 +8,4 @@ torch>=2.0.0
 google-api-python-client
 google-auth-httplib2
 google-auth-oauthlib
+pycaps @ git+https://github.com/francozanardi/pycaps.git#egg=pycaps[all]
