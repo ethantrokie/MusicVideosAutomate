@@ -43,6 +43,14 @@ def download_file(url: str, output_path: str, max_retries: int = 3) -> bool:
 
 def main():
     """Download all media from shot list."""
+    import argparse
+
+    parser = argparse.ArgumentParser(description='Download media files from shot list')
+    parser.add_argument('--aspect-ratio', choices=['landscape', 'portrait', 'any'],
+                       default='any', help='Preferred media orientation')
+    parser.add_argument('--segment', choices=['full', 'hook', 'educational'],
+                       default='full', help='Which segment to fetch media for')
+    args = parser.parse_args()
 
     # Load shot list
     shot_list_path = get_output_path("media_plan.json")
@@ -54,12 +62,20 @@ def main():
         data = json.load(f)
 
     shots = data["shot_list"]
-    media_dir = ensure_output_dir("media")
 
-    print(f"📥 Downloading {len(shots)} media files...")
+    # Create segment-specific subdirectory if not full
+    if args.segment != 'full':
+        media_dir = ensure_output_dir(f"media/{args.segment}")
+    else:
+        media_dir = ensure_output_dir("media")
+
+    print(f"📥 Downloading {len(shots)} media files for {args.segment} segment...")
 
     # Initialize URL resolver
     resolver = StockPhotoResolver()
+
+    # Note: aspect_ratio parameter will be used by upstream media planning
+    # to filter API results for landscape (16:9) or portrait (9:16) orientation
 
     downloaded = []
     failed = []
