@@ -33,9 +33,9 @@ def build_full_video():
     """Build full horizontal video using existing assembly script."""
     print("🎬 Building full video (16:9)...")
 
-    # Call existing video assembly script
+    # Call existing video assembly script with horizontal resolution
     result = subprocess.run(
-        ['python3', 'agents/5_assemble_video.py'],
+        ['python3', 'agents/5_assemble_video.py', '--resolution', '1920x1080'],
         capture_output=True,
         text=True
     )
