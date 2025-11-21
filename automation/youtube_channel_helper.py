@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/Users/ethantrokie/SoftwareDevProjects/MusicVideosAutomate/venv/bin/python3
 """
 YouTube channel selection helper.
 Lists channels and uploads to specific channel by handle.

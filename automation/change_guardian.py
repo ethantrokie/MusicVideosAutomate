@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/Users/ethantrokie/SoftwareDevProjects/MusicVideosAutomate/venv/bin/python3
 """
 Change guardian - validates proposed config changes against guardrails.
 Prevents unsafe or out-of-bounds modifications.

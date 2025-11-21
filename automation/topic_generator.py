@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/Users/ethantrokie/SoftwareDevProjects/MusicVideosAutomate/venv/bin/python3
 """
 Autonomous topic generator using Claude Code CLI.
 Generates educational science topics and writes to input/idea.txt.
@@ -47,23 +47,24 @@ def generate_topic_via_claude(config, recent_topics):
     """Generate topic using Claude Code CLI."""
     categories = ", ".join(config["topic_generation"]["categories"])
 
-    prompt = f"""Generate ONE educational science topic for a short-form video (60 seconds).
+    prompt = f"""You are a topic generator for educational science videos. Generate ONE topic and tone ONLY.
 
 REQUIREMENTS:
-- Must be from these categories: {categories}
+- Category: One of {categories}
 - K-12 appropriate (ages 10-18)
-- Visually interesting (can find stock footage/animations)
-- NOT these recent topics: {', '.join(recent_topics[-10:])}
+- Visually interesting (stock footage available)
+- Avoid these recent topics: {', '.join(recent_topics[-10:]) if recent_topics else 'none yet'}
 
-OUTPUT FORMAT (exactly this structure):
-Topic: [specific concept]
-Tone: [descriptive tone for music/pacing]
+CRITICAL OUTPUT FORMAT - Output EXACTLY these two lines with no other text:
+Topic: [specific educational science concept]
+Tone: [music/pacing style description]
 
-EXAMPLE:
+EXAMPLE OUTPUT:
 Topic: Explain how DNA replication works in cells
 Tone: energetic and fast-paced with moments of wonder
 
-Generate now:"""
+DO NOT ask questions. DO NOT offer choices. DO NOT use markdown formatting.
+Generate ONE topic and tone now:"""
 
     result = subprocess.run(
         ["claude", "-p", prompt, "--dangerously-skip-permissions"],
@@ -86,18 +87,32 @@ def parse_topic_output(output):
     tone = None
 
     for line in lines:
-        # Match lines that start with Topic: or **Topic:** (markdown bold)
-        if line.lower().startswith("topic:") or line.lower().startswith("**topic:"):
-            # Remove markdown formatting and prefix
-            cleaned = line.replace("**Topic:**", "").replace("Topic:", "").replace("**", "").strip()
-            topic = cleaned
-        elif line.lower().startswith("tone:") or line.lower().startswith("**tone:"):
-            # Remove markdown formatting and prefix
-            cleaned = line.replace("**Tone:**", "").replace("Tone:", "").replace("**", "").strip()
-            tone = cleaned
+        # Case-insensitive matching with various markdown formats
+        line_lower = line.lower()
+
+        if line_lower.startswith("topic:") or "**topic:**" in line_lower:
+            # Remove all possible formatting
+            cleaned = line
+            for prefix in ["**Topic:**", "Topic:", "**topic:**", "topic:", "**", "*"]:
+                cleaned = cleaned.replace(prefix, "")
+            topic = cleaned.strip()
+
+        elif line_lower.startswith("tone:") or "**tone:**" in line_lower:
+            # Remove all possible formatting
+            cleaned = line
+            for prefix in ["**Tone:**", "Tone:", "**tone:**", "tone:", "**", "*"]:
+                cleaned = cleaned.replace(prefix, "")
+            tone = cleaned.strip()
 
     if not topic or not tone:
-        raise ValueError(f"Could not parse topic/tone from output: {output}")
+        # Try to extract from first two non-empty lines as fallback
+        if len(lines) >= 2:
+            # Assume first line is topic, second is tone
+            topic = lines[0].split(":", 1)[-1].strip() if ":" in lines[0] else lines[0].strip()
+            tone = lines[1].split(":", 1)[-1].strip() if ":" in lines[1] else lines[1].strip()
+
+        if not topic or not tone:
+            raise ValueError(f"Could not parse topic/tone from output: {output}")
 
     return topic, tone
 

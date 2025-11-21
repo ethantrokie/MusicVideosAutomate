@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/Users/ethantrokie/SoftwareDevProjects/MusicVideosAutomate/venv/bin/python3
 """
 Weekly performance optimizer.
 Fetches YouTube Analytics, analyzes with Claude Code, applies safe changes.
