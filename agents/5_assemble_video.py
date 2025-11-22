@@ -33,6 +33,7 @@ from moviepy.editor import (
 import moviepy.video.fx.all as vfx
 import logging
 from typing import List, Dict
+from consolidate_clips import consolidate_phrase_groups
 
 
 def load_config():
@@ -156,6 +157,7 @@ def fetch_and_process_lyrics(music_metadata: dict, research_data: dict, sync_con
     """
     from suno_lyrics_sync import SunoLyricsSync
     from phrase_grouper import PhraseGrouper
+    import subprocess
 
     logger = logging.getLogger(__name__)
 
@@ -172,7 +174,47 @@ def fetch_and_process_lyrics(music_metadata: dict, research_data: dict, sync_con
         logger.info(f"Fetching aligned lyrics for audio {audio_id}...")
         aligned_data = sync.fetch_aligned_lyrics(task_id, audio_id)
 
-        # Save aligned lyrics
+        # Detect actual audio duration using ffprobe
+        audio_path = get_output_path("song.mp3")
+        if audio_path.exists():
+            try:
+                ffprobe_cmd = [
+                    'ffprobe', '-v', 'error',
+                    '-show_entries', 'format=duration',
+                    '-of', 'default=noprint_wrappers=1:nokey=1',
+                    str(audio_path)
+                ]
+                result = subprocess.run(ffprobe_cmd, capture_output=True, text=True, timeout=10)
+                if result.returncode == 0:
+                    actual_duration = float(result.stdout.strip())
+                    logger.info(f"Detected actual audio duration: {actual_duration:.2f}s")
+
+                    # Filter timestamps to actual audio duration
+                    aligned_words = aligned_data.get("alignedWords", [])
+                    original_count = len(aligned_words)
+
+                    # Filter words that start beyond audio duration
+                    filtered_words = [w for w in aligned_words if w["startS"] < actual_duration]
+
+                    # Clamp end times to audio duration
+                    for w in filtered_words:
+                        if w["endS"] > actual_duration:
+                            w["endS"] = actual_duration
+
+                    filtered_count = original_count - len(filtered_words)
+                    if filtered_count > 0:
+                        logger.warning(f"⚠️  Filtered {filtered_count} words with timestamps beyond audio duration ({actual_duration:.2f}s)")
+                        logger.warning(f"   Original word count: {original_count}, Filtered: {len(filtered_words)}")
+
+                    aligned_data["alignedWords"] = filtered_words
+                else:
+                    logger.warning("Could not detect audio duration with ffprobe, using all timestamps")
+            except Exception as e:
+                logger.warning(f"Could not detect audio duration: {e}, using all timestamps")
+        else:
+            logger.warning(f"Audio file not found at {audio_path}, cannot filter timestamps")
+
+        # Save aligned lyrics (with filtered timestamps if applied)
         aligned_path = get_output_path("lyrics_aligned.json")
         with open(aligned_path, 'w') as f:
             json.dump(aligned_data, f, indent=2)
@@ -216,12 +258,12 @@ def fetch_and_process_lyrics(music_metadata: dict, research_data: dict, sync_con
 
 def create_synchronized_plan(phrase_groups: List[Dict], approved_media: List[Dict], sync_config: dict) -> Dict:
     """
-    Create synchronized media plan using semantic matching.
+    Create synchronized media plan using semantic matching with clip consolidation.
 
     Args:
         phrase_groups: Phrase groups from AI
         approved_media: Available media from curator
-        sync_config: Sync configuration
+        sync_config: Sync configuration including clip consolidation settings
 
     Returns:
         Synchronized plan dict
@@ -230,35 +272,103 @@ def create_synchronized_plan(phrase_groups: List[Dict], approved_media: List[Dic
 
     logger = logging.getLogger(__name__)
 
-    # Match videos to phrase groups
-    matcher = SemanticMatcher(keyword_boost=sync_config["keyword_boost_multiplier"])
-    matched_groups = matcher.match_videos_to_groups(phrase_groups, approved_media)
+    # Check if consolidation is enabled
+    consolidation_config = sync_config.get("clip_consolidation", {})
+    if consolidation_config.get("enabled", False):
+        logger.info(f"Consolidating {len(phrase_groups)} phrase groups into longer clips...")
 
-    # Build shot list
-    shots = []
-    for group in matched_groups:
-        # Find media object
-        media = next((m for m in approved_media if m.get("url") == group["video_url"] or m.get("media_url") == group["video_url"]), None)
+        # Consolidate phrase groups into longer segments
+        consolidated_clips = consolidate_phrase_groups(phrase_groups, consolidation_config)
 
-        if not media or "local_path" not in media:
-            logger.warning(f"No local media found for {group['video_url']}, skipping")
-            continue
+        logger.info(f"Created {len(consolidated_clips)} consolidated clips (avg {sum(c['duration'] for c in consolidated_clips)/len(consolidated_clips):.1f}s each)")
 
-        shot = {
-            "shot_number": len(shots) + 1,
-            "local_path": media["local_path"],
-            "media_type": media.get("media_type", "video"),
-            "description": group["video_description"],
-            "start_time": group["start_time"],
-            "end_time": group["end_time"],
-            "duration": max(group["duration"], sync_config["min_phrase_duration"]),
-            "lyrics_match": " / ".join([p["text"] for p in group["phrases"]]),
-            "topic": group["topic"],
-            "key_terms": group["key_terms"],
-            "match_score": group["match_score"],
-            "transition": "crossfade"
-        }
-        shots.append(shot)
+        # Match videos to consolidated clips (not individual phrase groups)
+        matcher = SemanticMatcher(keyword_boost=sync_config["keyword_boost_multiplier"])
+
+        shots = []
+        for clip in consolidated_clips:
+            # Use combined key terms from all phrase groups in this clip
+            clip_description = f"{' / '.join(clip['topics'])}"
+            clip_key_terms = clip['key_terms']
+
+            # Create a temporary group for matching
+            temp_group = {
+                "topic": clip_description,
+                "key_terms": clip_key_terms,
+                "start_time": clip["start_time"],
+                "end_time": clip["end_time"],
+                "duration": clip["duration"],
+                "phrases": []
+            }
+
+            # Flatten all phrases from all phrase groups in this clip
+            for pg in clip["phrase_groups"]:
+                temp_group["phrases"].extend(pg.get("phrases", []))
+
+            # Match video to this consolidated clip
+            matched_groups = matcher.match_videos_to_groups([temp_group], approved_media)
+
+            if not matched_groups:
+                logger.warning(f"No match for consolidated clip {clip['clip_id']}")
+                continue
+
+            matched = matched_groups[0]
+
+            # Find media object
+            media = next((m for m in approved_media if m.get("url") == matched["video_url"] or m.get("media_url") == matched["video_url"]), None)
+
+            if not media or "local_path" not in media:
+                logger.warning(f"No local media found for {matched['video_url']}, skipping")
+                continue
+
+            shot = {
+                "shot_number": len(shots) + 1,
+                "local_path": media["local_path"],
+                "media_type": media.get("media_type", "video"),
+                "description": clip_description,
+                "start_time": clip["start_time"],
+                "end_time": clip["end_time"],
+                "duration": clip["duration"],
+                "lyrics_match": " / ".join([p["text"] for pg in clip["phrase_groups"] for p in pg.get("phrases", [])]),
+                "topic": clip_description,
+                "key_terms": clip_key_terms,
+                "match_score": matched["match_score"],
+                "transition": "crossfade",
+                "phrase_groups": clip["phrase_groups"]  # Preserve for subtitle timing
+            }
+            shots.append(shot)
+
+    else:
+        # Original behavior: match videos to individual phrase groups
+        logger.info(f"Using original phrase-level matching for {len(phrase_groups)} groups")
+
+        matcher = SemanticMatcher(keyword_boost=sync_config["keyword_boost_multiplier"])
+        matched_groups = matcher.match_videos_to_groups(phrase_groups, approved_media)
+
+        shots = []
+        for group in matched_groups:
+            media = next((m for m in approved_media if m.get("url") == group["video_url"] or m.get("media_url") == group["video_url"]), None)
+
+            if not media or "local_path" not in media:
+                logger.warning(f"No local media found for {group['video_url']}, skipping")
+                continue
+
+            shot = {
+                "shot_number": len(shots) + 1,
+                "local_path": media["local_path"],
+                "media_type": media.get("media_type", "video"),
+                "description": group["video_description"],
+                "start_time": group["start_time"],
+                "end_time": group["end_time"],
+                "duration": max(group["duration"], sync_config["min_phrase_duration"]),
+                "lyrics_match": " / ".join([p["text"] for p in group["phrases"]]),
+                "topic": group["topic"],
+                "key_terms": group["key_terms"],
+                "match_score": group["match_score"],
+                "transition": "crossfade",
+                "phrase_groups": [group]  # Single phrase group
+            }
+            shots.append(shot)
 
     # Set first and last transitions to fade
     if shots:
@@ -272,7 +382,7 @@ def create_synchronized_plan(phrase_groups: List[Dict], approved_media: List[Dic
         "total_duration": total_duration,
         "total_shots": len(shots),
         "transition_style": "smooth",
-        "pacing": "synchronized",
+        "pacing": "consolidated" if consolidation_config.get("enabled", False) else "synchronized",
         "sync_method": "suno_timestamps"
     }
 
@@ -379,6 +489,9 @@ def main():
     parser.add_argument('--no-sync',
                        action='store_true',
                        help='Disable synchronized assembly, use curator plan directly')
+    parser.add_argument('--no-consolidation',
+                       action='store_true',
+                       help='Disable clip consolidation, use phrase-level clips')
     args = parser.parse_args()
 
     # Parse resolution
@@ -393,6 +506,13 @@ def main():
     # Override resolution with command-line argument
     video_settings["resolution"] = (width, height)
     print(f"  Target resolution: {width}x{height}")
+
+    # Override consolidation if flag is set
+    if args.no_consolidation:
+        if "clip_consolidation" not in sync_config:
+            sync_config["clip_consolidation"] = {}
+        sync_config["clip_consolidation"]["enabled"] = False
+        print("  Clip consolidation: DISABLED (--no-consolidation flag)")
 
     # Load approved media
     approved_data = load_approved_media()
