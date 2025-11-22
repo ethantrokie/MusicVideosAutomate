@@ -34,8 +34,9 @@ def build_full_video():
     print("🎬 Building full video (16:9)...")
 
     # Call existing video assembly script with horizontal resolution
+    # Use --no-sync to force curator's media plan (not synchronized mode)
     result = subprocess.run(
-        ['python3', 'agents/5_assemble_video.py', '--resolution', '1920x1080'],
+        ['./venv/bin/python3', 'agents/5_assemble_video.py', '--resolution', '1920x1080', '--no-sync'],
         capture_output=True,
         text=True
     )

@@ -376,6 +376,9 @@ def main():
                        type=str,
                        default='1080x1920',
                        help='Output resolution WIDTHxHEIGHT (default: 1080x1920 for vertical)')
+    parser.add_argument('--no-sync',
+                       action='store_true',
+                       help='Disable synchronized assembly, use curator plan directly')
     args = parser.parse_args()
 
     # Parse resolution
@@ -401,8 +404,8 @@ def main():
         print("Run composer agent first: ./agents/3_compose.py")
         sys.exit(1)
 
-    # Attempt synchronized assembly if enabled
-    if sync_config.get("enabled", True):
+    # Attempt synchronized assembly if enabled and not disabled by flag
+    if sync_config.get("enabled", True) and not args.no_sync:
         try:
             # Load music metadata
             metadata_path = get_output_path("music_metadata.json")
