@@ -19,9 +19,38 @@ def load_config() -> Dict:
 
 def load_lyrics() -> Dict:
     """Load Suno lyrics with word-level timestamps."""
-    lyrics_file = Path(f"{os.environ['OUTPUT_DIR']}/suno_output.json")
+    # Try lyrics_aligned.json first (word-level timestamps from Suno API)
+    lyrics_file = Path(f"{os.environ['OUTPUT_DIR']}/lyrics_aligned.json")
+    if not lyrics_file.exists():
+        # Fallback to suno_output.json if aligned lyrics not available
+        lyrics_file = Path(f"{os.environ['OUTPUT_DIR']}/suno_output.json")
+
     with open(lyrics_file) as f:
         return json.load(f)
+
+
+def normalize_lyrics_format(lyrics: Dict) -> List[Dict]:
+    """
+    Normalize lyrics format to standard word list.
+    Handles both lyrics_aligned.json and suno_output.json formats.
+    """
+    # Check if this is lyrics_aligned.json format (alignedWords with startS/endS)
+    if 'alignedWords' in lyrics:
+        words = []
+        for w in lyrics['alignedWords']:
+            words.append({
+                'word': w['word'],
+                'start': w['startS'],
+                'end': w['endS']
+            })
+        return words
+
+    # Otherwise assume it's suno_output.json format (words with start/end)
+    elif 'words' in lyrics:
+        return lyrics['words']
+
+    else:
+        raise ValueError("Invalid lyrics format - missing 'alignedWords' or 'words' field")
 
 
 def format_srt_timestamp(seconds: float) -> str:
@@ -145,12 +174,11 @@ def apply_ffmpeg_subtitles(video_path: Path, srt_path: Path, output_path: Path, 
         raise Exception(f"FFmpeg SRT->ASS conversion failed: {result.stderr}")
 
     # Burn ASS subtitles into video
-    style = f"FontName={font},FontSize={font_size},PrimaryColour=&HFFFFFF&,OutlineColour=&H000000&,Outline=3,Shadow=2"
-
+    # Note: force_style doesn't work in newer FFmpeg, use subtitles filter instead
     cmd_burn = [
         'ffmpeg', '-y',
         '-i', str(video_path),
-        '-vf', f"ass={ass_path}:force_style='{style}'",
+        '-vf', f"subtitles={ass_path}:force_style='FontName={font},FontSize={font_size},PrimaryColour=&HFFFFFF&,OutlineColour=&H000000&,Outline=3,Shadow=2'",
         '-c:v', 'libx264',
         '-c:a', 'copy',
         str(output_path)
@@ -183,6 +211,9 @@ def main():
     config = load_config()
     lyrics = load_lyrics()
 
+    # Normalize lyrics format (handles both alignedWords and words formats)
+    all_words = normalize_lyrics_format(lyrics)
+
     output_dir = Path(os.environ['OUTPUT_DIR'])
     subtitles_dir = output_dir / 'subtitles'
     subtitles_dir.mkdir(exist_ok=True)
@@ -200,7 +231,7 @@ def main():
 
         # Filter words to segment timeframe
         words = [
-            w for w in lyrics['words']
+            w for w in all_words
             if segment_info['start'] <= w['start'] <= segment_info['end']
         ]
 
@@ -210,7 +241,7 @@ def main():
             w['start'] -= offset
             w['end'] -= offset
     else:
-        words = lyrics['words']
+        words = all_words
 
     # Generate appropriate SRT
     if args.type == 'karaoke':
