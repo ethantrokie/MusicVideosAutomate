@@ -75,7 +75,7 @@ def build_media_plan(format_type: FormatType, duration: int, output_file: str) -
             env=env,
             capture_output=True,
             text=True,
-            timeout=240  # Increased to accommodate 180s full video planning
+            timeout=600  # 10 minutes - max allowed, needed for 180s full video curation
         )
 
         if result.returncode != 0:
