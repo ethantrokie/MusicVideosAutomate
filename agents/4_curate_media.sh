@@ -4,6 +4,21 @@ set -e
 
 # Use OUTPUT_DIR from pipeline or default to outputs/
 OUTPUT_DIR="${OUTPUT_DIR:-outputs}"
+DURATION="${DURATION:-60}"  # Default to 60 for backward compatibility
+
+# Parse command-line arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --duration)
+            DURATION="$2"
+            shift 2
+            ;;
+        *)
+            echo "Unknown option: $1"
+            exit 1
+            ;;
+    esac
+done
 
 echo "🎨 Media Curator Agent: Selecting visuals..."
 
@@ -31,7 +46,9 @@ fi
 
 # Create temp file with substituted prompt
 TEMP_PROMPT=$(mktemp)
-sed "s|{{OUTPUT_PATH}}|${OUTPUT_DIR}/media_plan.json|g" agents/prompts/curator_prompt.md > "$TEMP_PROMPT"
+sed -e "s|{{OUTPUT_PATH}}|${OUTPUT_DIR}/media_plan.json|g" \
+    -e "s|{{VIDEO_DURATION}}|${DURATION}|g" \
+    agents/prompts/curator_prompt.md > "$TEMP_PROMPT"
 
 # Add data to the end
 echo "" >> "$TEMP_PROMPT"
@@ -72,6 +89,7 @@ if ! python3 -c "import json; json.load(open('${OUTPUT_DIR}/media_plan.json'))" 
 fi
 
 echo "✅ Media curation complete: ${OUTPUT_DIR}/media_plan.json"
+echo "  Target duration: ${DURATION}s"
 echo ""
 python3 -c "
 import json
