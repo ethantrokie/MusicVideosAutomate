@@ -210,12 +210,12 @@ EOF
 fi
 
 # Stage 5: Media Curation
+# Note: This creates initial media_plan.json for backwards compatibility.
+# Multi-format builds create format-specific plans (media_plan_full.json, etc.) in Stage 6.
 if [ $START_STAGE -le 5 ]; then
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo -e "${BLUE}Stage 5/6: Media Curation${NC}"
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    # TODO: Add multi-format media download with aspect ratio support
-    # For now, using standard media curation
     ./agents/4_curate_media.sh
     if [ $? -ne 0 ]; then
         echo -e "${RED}❌ Media curation failed${NC}"
@@ -336,7 +336,9 @@ EOF
                 else
                     TOPIC="$IDEA"
                 fi
-                TOPIC=$(echo "$TOPIC" | xargs)
+                # Trim whitespace without using xargs (which breaks with apostrophes)
+                TOPIC="${TOPIC#"${TOPIC%%[![:space:]]*}"}"  # Remove leading whitespace
+                TOPIC="${TOPIC%"${TOPIC##*[![:space:]]}"}"  # Remove trailing whitespace
 
                 # Create gap-fill prompt
                 TEMP_GAP_PROMPT=$(mktemp)
@@ -412,6 +414,11 @@ EOF
 fi
 
 # Stage 6: Video Assembly (Multi-Format)
+# Architecture: Each format (full, hook, educational) is built independently with:
+#   1. Format-specific media plans optimized for target duration
+#   2. Native resolution (16:9 for full, 9:16 for shorts)
+#   3. Media selections tailored to segment characteristics
+# This replaces the old extraction approach which caused duration mismatches.
 if [ $START_STAGE -le 6 ]; then
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo -e "${BLUE}Stage 6/9: Multi-Format Video Assembly${NC}"
@@ -419,7 +426,10 @@ if [ $START_STAGE -le 6 ]; then
 
     # Check if multi-format is enabled
     if python3 -c "import json; c=json.load(open('config/config.json')); print(c.get('video_formats',{}).get('full_video',{}).get('enabled',True))" | grep -q "True"; then
-        echo "🎬 Building multi-format videos..."
+        echo "🎬 Building multi-format videos with format-specific media plans..."
+        echo "  • Full video (16:9, 180s) - comprehensive coverage"
+        echo "  • Hook short (9:16, 30s) - most engaging segment"
+        echo "  • Educational short (9:16, 30s) - key teaching moments"
         python3 agents/build_multiformat_videos.py
         if [ $? -ne 0 ]; then
             echo -e "${RED}❌ Multi-format video assembly failed${NC}"
