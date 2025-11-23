@@ -16,6 +16,79 @@ sys.path.insert(0, str(Path(__file__).parent))
 from output_helper import get_output_path
 
 
+def build_video_with_format_plan(
+    format_type: str,
+    resolution: str,
+    output_name: str,
+    media_plan_file: str
+) -> bool:
+    """
+    Build a video using a format-specific media plan.
+
+    Args:
+        format_type: "full", "hook", or "educational"
+        resolution: Video resolution (e.g., "1920x1080")
+        output_name: Output filename (e.g., "full.mp4")
+        media_plan_file: Media plan JSON file (e.g., "media_plan_full.json")
+
+    Returns:
+        True if successful, False otherwise
+    """
+    print(f"🎬 Building {format_type} video from {media_plan_file}...")
+
+    output_dir = Path(os.getenv("OUTPUT_DIR", "outputs"))
+    media_plan_path = output_dir / media_plan_file
+
+    if not media_plan_path.exists():
+        print(f"  ❌ Media plan not found: {media_plan_path}")
+        return False
+
+    # Temporarily swap approved_media.json with format-specific plan
+    approved_media_path = output_dir / "approved_media.json"
+    backup_path = output_dir / "approved_media.json.backup"
+
+    # Backup original approved_media.json
+    if approved_media_path.exists():
+        approved_media_path.rename(backup_path)
+
+    try:
+        # Copy format-specific plan to approved_media.json
+        import shutil
+        shutil.copy(media_plan_path, approved_media_path)
+
+        # Call video assembly with appropriate resolution
+        result = subprocess.run(
+            ['./venv/bin/python3', 'agents/5_assemble_video.py', '--resolution', resolution],
+            capture_output=True,
+            text=True,
+            timeout=600
+        )
+
+        if result.returncode != 0:
+            print(f"  ❌ Video assembly failed")
+            print(f"  Error: {result.stderr[-500:]}")  # Last 500 chars
+            return False
+
+        # Rename final_video.mp4 to format-specific name
+        final_video = output_dir / "final_video.mp4"
+        if final_video.exists():
+            final_video.rename(output_dir / output_name)
+            print(f"  ✅ Created {output_name}")
+            return True
+        else:
+            print(f"  ❌ Video assembly didn't create final_video.mp4")
+            return False
+
+    finally:
+        # Restore original approved_media.json
+        if backup_path.exists():
+            if approved_media_path.exists():
+                approved_media_path.unlink()
+            backup_path.rename(approved_media_path)
+
+    return False
+
+
 def load_config() -> Dict:
     """Load configuration."""
     with open('config/config.json') as f:
@@ -29,125 +102,61 @@ def load_segments() -> Dict:
         return json.load(f)
 
 
-def build_full_video():
-    """Build full horizontal video using existing assembly script."""
-    print("🎬 Building full video (16:9)...")
+def build_full_video() -> Path:
+    """Build full horizontal video using format-specific media plan."""
+    print("🎬 Building full video (16:9) with 180s media plan...")
 
-    # Call existing video assembly script with horizontal resolution
-    result = subprocess.run(
-        ['./venv/bin/python3', 'agents/5_assemble_video.py', '--resolution', '1920x1080'],
-        capture_output=True,
-        text=True
+    success = build_video_with_format_plan(
+        format_type="full",
+        resolution="1920x1080",
+        output_name="full.mp4",
+        media_plan_file="media_plan_full.json"
     )
 
-    if result.returncode != 0:
-        raise Exception(f"Full video assembly failed: {result.stderr}")
+    if not success:
+        print("❌ Failed to build full video")
+        sys.exit(1)
 
-    print(result.stdout)
-
-    # Rename output to full.mp4
-    output_dir = Path(os.environ.get('OUTPUT_DIR', 'outputs/current'))
-    final_video = output_dir / 'final_video.mp4'
-    full_video = output_dir / 'full.mp4'
-
-    if final_video.exists():
-        final_video.rename(full_video)
-        print(f"✅ Full video saved: {full_video}")
-        return full_video
-    else:
-        raise Exception("Final video not found after assembly")
+    output_dir = Path(os.getenv("OUTPUT_DIR", "outputs"))
+    return output_dir / "full.mp4"
 
 
-def extract_short_from_full(full_video: Path, segment_name: str, segments: Dict, output_name: str):
-    """
-    Extract a short segment from the full video using FFmpeg.
+def build_hook_short() -> Path:
+    """Build hook short using format-specific media plan."""
+    print("🎬 Building hook short (9:16) with 30s media plan...")
 
-    Args:
-        full_video: Path to full video
-        segment_name: 'hook' or 'educational'
-        segments: Segment analysis results
-        output_name: Output filename (e.g., 'short_hook.mp4')
-    """
-    print(f"✂️  Extracting {segment_name} short...")
+    success = build_video_with_format_plan(
+        format_type="hook",
+        resolution="1080x1920",
+        output_name="short_hook.mp4",
+        media_plan_file="media_plan_hook.json"
+    )
 
-    segment = segments[segment_name]
-    start = segment['start']
-    duration = segment['duration']
+    if not success:
+        print("❌ Failed to build hook short")
+        sys.exit(1)
 
-    output_dir = Path(os.environ.get('OUTPUT_DIR', 'outputs/current'))
-    output_path = output_dir / output_name
-
-    # Extract segment with FFmpeg (crop to 9:16 and extract time range)
-    # For now, just extract the time range - cropping to 9:16 would require
-    # knowing the full video's dimensions and calculating center crop
-    cmd = [
-        'ffmpeg', '-y',
-        '-i', str(full_video),
-        '-ss', str(start),
-        '-t', str(duration),
-        '-c:v', 'libx264',
-        '-c:a', 'aac',
-        '-preset', 'fast',
-        str(output_path)
-    ]
-
-    result = subprocess.run(cmd, capture_output=True, text=True)
-
-    if result.returncode != 0:
-        raise Exception(f"FFmpeg extraction failed: {result.stderr}")
-
-    print(f"✅ Short saved: {output_path}")
-    return output_path
+    output_dir = Path(os.getenv("OUTPUT_DIR", "outputs"))
+    return output_dir / "short_hook.mp4"
 
 
-def crop_to_vertical(video_path: Path, output_path: Path):
-    """
-    Crop horizontal video to vertical 9:16 format.
+def build_educational_short() -> Path:
+    """Build educational short using format-specific media plan."""
+    print("🎬 Building educational short (9:16) with 30s media plan...")
 
-    Args:
-        video_path: Input video path
-        output_path: Output video path
-    """
-    print(f"  Cropping to 9:16...")
+    success = build_video_with_format_plan(
+        format_type="educational",
+        resolution="1080x1920",
+        output_name="short_educational.mp4",
+        media_plan_file="media_plan_educational.json"
+    )
 
-    # Get video dimensions first
-    probe_cmd = [
-        'ffprobe', '-v', 'error',
-        '-select_streams', 'v:0',
-        '-show_entries', 'stream=width,height',
-        '-of', 'json',
-        str(video_path)
-    ]
+    if not success:
+        print("❌ Failed to build educational short")
+        sys.exit(1)
 
-    result = subprocess.run(probe_cmd, capture_output=True, text=True)
-    if result.returncode != 0:
-        raise Exception("Could not probe video dimensions")
-
-    info = json.loads(result.stdout)
-    width = info['streams'][0]['width']
-    height = info['streams'][0]['height']
-
-    # Calculate 9:16 crop (center crop)
-    target_width = int(height * 9 / 16)
-    x_offset = (width - target_width) // 2
-
-    # Crop with FFmpeg
-    temp_path = video_path.with_suffix('.temp.mp4')
-    cmd = [
-        'ffmpeg', '-y',
-        '-i', str(video_path),
-        '-filter:v', f'crop={target_width}:{height}:{x_offset}:0',
-        '-c:a', 'copy',
-        str(temp_path)
-    ]
-
-    result = subprocess.run(cmd, capture_output=True, text=True)
-
-    if result.returncode != 0:
-        raise Exception(f"Cropping failed: {result.stderr}")
-
-    # Replace original with cropped
-    temp_path.rename(output_path)
+    output_dir = Path(os.getenv("OUTPUT_DIR", "outputs"))
+    return output_dir / "short_educational.mp4"
 
 
 def main():
@@ -172,7 +181,19 @@ def main():
         print(f"  Educational: {segments['educational']['start']:.1f}-{segments['educational']['end']:.1f}s")
         print()
 
-        # Build full video using existing assembly
+        # Build format-specific media plans based on segments
+        print("\n📋 Creating format-specific media plans...")
+        result = subprocess.run(
+            ['./venv/bin/python3', 'agents/build_format_media_plan.py'],
+            env=os.environ.copy()
+        )
+
+        if result.returncode != 0:
+            print("❌ Failed to create format-specific media plans")
+            sys.exit(1)
+        print()
+
+        # Build full video using format-specific media plan
         full_video = build_full_video()
         print()
 
@@ -181,14 +202,11 @@ def main():
             print("⚠️  Shorts disabled in config, skipping")
             return
 
-        # Extract and crop shorts
-        for segment_name, output_name in [('hook', 'short_hook.mp4'), ('educational', 'short_educational.mp4')]:
-            # Extract segment
-            short_path = extract_short_from_full(full_video, segment_name, segments, output_name)
-
-            # Crop to vertical
-            crop_to_vertical(short_path, short_path)
-            print()
+        # Build shorts using format-specific media plans
+        build_hook_short()
+        print()
+        build_educational_short()
+        print()
 
         print("✅ All videos built successfully!")
         print()
