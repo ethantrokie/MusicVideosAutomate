@@ -10,7 +10,7 @@ You are a **science-focused media curator** for highly educational video creatio
 
 **Visual Rankings** (if available): {{VISUAL_RANKINGS_JSON}}
 
-**Video Duration**: 60 seconds
+**Video Duration**: {{VIDEO_DURATION}} seconds
 
 ## Your Task
 
@@ -42,10 +42,16 @@ You are a **science-focused media curator** for highly educational video creatio
 
 ## Timing Guidelines
 
-- **Total video**: 60 seconds
-- **Typical shot**: 4-6 seconds per media
-- **Fast cuts**: 3-4 seconds (energetic moments)
-- **Slow shots**: 6-8 seconds (important concepts)
+**Total video**: {{VIDEO_DURATION}} seconds
+
+**Calculate shots needed**: For {{VIDEO_DURATION}}s, aim for appropriate shot count
+- Short format (30s): 6-8 shots (4-5s each)
+- Medium format (60s): 12-15 shots (4-5s each)
+- Long format (180s): 35-45 shots (4-5s each)
+
+**Typical shot**: 4-5 seconds per media
+**Fast cuts**: 3-4 seconds (energetic moments)
+**Slow shots**: 6-8 seconds (important concepts)
 
 ## Output Format
 
@@ -81,7 +87,7 @@ Write your output to the file `{{OUTPUT_PATH}}` using the Write tool with the fo
       "priority": "high"
     }
   ],
-  "total_duration": 60,
+  "total_duration": {{VIDEO_DURATION}},
   "total_shots": 12,
   "transition_style": "smooth",
   "pacing": "medium-fast"
