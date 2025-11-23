@@ -75,7 +75,7 @@ def build_media_plan(format_type: FormatType, duration: int, output_file: str) -
             env=env,
             capture_output=True,
             text=True,
-            timeout=120
+            timeout=240  # Increased to accommodate 180s full video planning
         )
 
         if result.returncode != 0:
