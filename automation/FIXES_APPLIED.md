@@ -2,6 +2,49 @@
 
 ## Issues Found and Fixed
 
+### ✅ FIXED: Incorrect video durations in multi-format builds
+
+**Issue:** Videos had incorrect durations:
+```
+Expected:
+- Full video: 180s
+- Hook short: 30s
+- Educational short: 30s
+
+Got:
+- Full video: 36s
+- Hook short: 6s
+- Educational short: 26s
+```
+
+**Root Cause:**
+1. Media curator was hardcoded to 60s duration, creating media plans with too few clips
+2. Multi-format system was extracting shorts from the truncated full video
+3. This caused cascading duration errors across all formats
+
+**Fix:** Implemented format-aware curator architecture:
+1. Made curator accept duration parameter via environment variable
+2. Updated curator prompt to use `{{VIDEO_DURATION}}` template variable
+3. Created `build_format_media_plan.py` to generate three separate media plans:
+   - `media_plan_full.json` (180s) - comprehensive coverage
+   - `media_plan_hook.json` (30s) - most engaging segment
+   - `media_plan_educational.json` (30s) - key teaching moments
+4. Refactored `build_multiformat_videos.py` to build each format independently:
+   - Each format uses its own media plan with optimal media selection
+   - Videos built at native resolution (16:9 for full, 9:16 for shorts)
+   - Removed extraction/cropping logic that caused duration mismatches
+
+**Files affected:**
+- `agents/4_curate_media.sh` - Accept duration parameter
+- `agents/prompts/curator_prompt.md` - Template duration variable
+- `agents/build_format_media_plan.py` - NEW: Format-specific plan builder
+- `agents/build_multiformat_videos.py` - Independent format builds
+- `pipeline.sh` - Updated documentation
+
+**Result:** Each format now built with correct duration and optimal media selection for its segment characteristics.
+
+---
+
 ### ✅ FIXED: ModuleNotFoundError for googleapiclient
 
 **Issue:** Scripts were using system Python instead of venv Python
@@ -250,6 +293,58 @@ if not concepts:
 **Files affected:** `pipeline.sh`
 
 **Commit:** `7826e64`
+
+---
+
+### ✅ FIXED: YouTube channel handle case sensitivity causing upload failures
+
+**Issue:** Daily pipeline failed during YouTube upload with:
+```
+ValueError: Channel with handle '@LearningScienceMusic' not found. Available: [{'id': 'UCzpO9KaCvSKA_Lrm0orMVrw', 'title': 'Learning Science Music', 'handle': '@learningsciencemusic'}]
+```
+
+**Root Cause:** Config file had channel handle with incorrect casing `@LearningScienceMusic` but YouTube API returns lowercase handle `@learningsciencemusic`.
+
+**Fix:** Updated `automation/config/automation_config.json`:
+```json
+"youtube": {
+    "channel_handle": "@learningsciencemusic",  // Changed from @LearningScienceMusic
+    "privacy_status": "private",
+    ...
+}
+```
+
+**Result:** Pipeline successfully uploaded videos to the correct channel.
+
+**Files affected:** `automation/config/automation_config.json`
+
+**Date:** 2025-11-23
+
+---
+
+### ✅ FIXED: Video ID not extracted correctly in notification message
+
+**Issue:** Success notification sent empty video link:
+```
+Video: https://youtube.com/watch?v=
+```
+
+**Root Cause:** Script was looking at the last line of the log file with `tail -1`, but the last line is the success message. The actual video upload line with the ID is earlier in the log.
+
+**Fix:** Updated video ID extraction in `automation/daily_pipeline.sh`:
+```bash
+# BEFORE (looked at last line only):
+VIDEO_ID=$(tail -1 "$LOG_FILE" | grep -o 'watch?v=.*' | cut -d'=' -f2 || echo "unknown")
+
+# AFTER (searches for upload line):
+VIDEO_ID=$(grep "Video uploaded:" "$LOG_FILE" | tail -1 | grep -oE 'watch\?v=([A-Za-z0-9_-]+)' | cut -d'=' -f2 || echo "unknown")
+```
+
+**Result:** Notification now includes correct video link.
+
+**Files affected:** `automation/daily_pipeline.sh`
+
+**Date:** 2025-11-23
 
 ---
 
