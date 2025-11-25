@@ -9,6 +9,16 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
+# Load config for privacy setting (used in express mode)
+CONFIG_FILE="automation/config/automation_config.json"
+if [ -f "$CONFIG_FILE" ]; then
+    YOUTUBE_PRIVACY=$(jq -r '.youtube.privacy_status' "$CONFIG_FILE" 2>/dev/null || echo "unlisted")
+    YOUTUBE_CHANNEL=$(jq -r '.youtube.channel_handle' "$CONFIG_FILE" 2>/dev/null || echo "")
+else
+    YOUTUBE_PRIVACY="unlisted"
+    YOUTUBE_CHANNEL=""
+fi
+
 # Parse arguments
 EXPRESS_MODE=false
 START_STAGE=1
@@ -522,28 +532,68 @@ if [ $START_STAGE -le 8 ]; then
     if [ $START_STAGE -le 8 ]; then
         echo "📤 Uploading all videos..."
 
+        # Build upload args
+        UPLOAD_ARGS="--privacy=${YOUTUBE_PRIVACY}"
+        if [ -n "$YOUTUBE_CHANNEL" ]; then
+            UPLOAD_ARGS="$UPLOAD_ARGS --channel=${YOUTUBE_CHANNEL}"
+        fi
+
         # Upload full video
         if [ -f "${RUN_DIR}/full.mp4" ]; then
             echo "  Uploading full video..."
-            ./upload_to_youtube.sh --run="${RUN_TIMESTAMP}" --type=full --privacy=unlisted
+            ./upload_to_youtube.sh --run="${RUN_TIMESTAMP}" --type=full $UPLOAD_ARGS
             FULL_ID=$(cat "${RUN_DIR}/video_id_full.txt" 2>/dev/null || echo "")
         fi
 
         # Upload hook short
         if [ -f "${RUN_DIR}/short_hook.mp4" ]; then
             echo "  Uploading hook short..."
-            ./upload_to_youtube.sh --run="${RUN_TIMESTAMP}" --type=short_hook --privacy=unlisted
+            ./upload_to_youtube.sh --run="${RUN_TIMESTAMP}" --type=short_hook $UPLOAD_ARGS
             HOOK_ID=$(cat "${RUN_DIR}/video_id_short_hook.txt" 2>/dev/null || echo "")
         fi
 
         # Upload educational short
         if [ -f "${RUN_DIR}/short_educational.mp4" ]; then
             echo "  Uploading educational short..."
-            ./upload_to_youtube.sh --run="${RUN_TIMESTAMP}" --type=short_educational --privacy=unlisted
+            ./upload_to_youtube.sh --run="${RUN_TIMESTAMP}" --type=short_educational $UPLOAD_ARGS
             EDU_ID=$(cat "${RUN_DIR}/video_id_short_educational.txt" 2>/dev/null || echo "")
         fi
 
-        echo "✅ All uploads complete"
+        echo "✅ YouTube uploads complete"
+        echo ""
+
+        # Upload to TikTok (if enabled)
+        TIKTOK_ENABLED=$(jq -r '.tiktok.enabled // false' "$CONFIG_FILE" 2>/dev/null)
+        if [ "$TIKTOK_ENABLED" = "true" ]; then
+            echo "📤 Uploading to TikTok..."
+            TIKTOK_PRIVACY=$(jq -r '.tiktok.privacy_status // "public_to_everyone"' "$CONFIG_FILE" 2>/dev/null)
+
+            # Upload full video to TikTok
+            if [ -f "${RUN_DIR}/full.mp4" ]; then
+                echo "  Uploading full video to TikTok..."
+                if ./upload_to_tiktok.sh --run="${RUN_TIMESTAMP}" --type=full --privacy="${TIKTOK_PRIVACY}"; then
+                    TIKTOK_FULL_ID=$(cat "${RUN_DIR}/tiktok_video_id_full.txt" 2>/dev/null || echo "")
+                    echo "    ✅ TikTok full video uploaded"
+                else
+                    echo -e "    ${YELLOW}⚠️  TikTok full video upload failed (non-fatal)${NC}"
+                fi
+            fi
+
+            # Upload hook short to TikTok
+            if [ -f "${RUN_DIR}/short_hook.mp4" ]; then
+                echo "  Uploading hook short to TikTok..."
+                if ./upload_to_tiktok.sh --run="${RUN_TIMESTAMP}" --type=short_hook --privacy="${TIKTOK_PRIVACY}"; then
+                    TIKTOK_HOOK_ID=$(cat "${RUN_DIR}/tiktok_video_id_short_hook.txt" 2>/dev/null || echo "")
+                    echo "    ✅ TikTok hook short uploaded"
+                else
+                    echo -e "    ${YELLOW}⚠️  TikTok hook short upload failed (non-fatal)${NC}"
+                fi
+            fi
+
+            echo "✅ TikTok uploads complete"
+        else
+            echo "⏭️  TikTok uploads disabled in config"
+        fi
         echo ""
     fi
 fi
