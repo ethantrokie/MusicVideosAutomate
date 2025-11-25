@@ -1,0 +1,26 @@
+{
+  "youtube": {
+    "full_video": {
+      "id": "abc123xyz",
+      "url": "https://youtube.com/watch?v=abc123xyz"
+    },
+    "hook_short": {
+      "id": "def456uvw",
+      "url": "https://youtube.com/shorts/def456uvw"
+    },
+    "educational_short": {
+      "id": "ghi789rst",
+      "url": "https://youtube.com/shorts/ghi789rst"
+    }
+  },
+  "tiktok": {
+    "full_video": {
+      "id": "7123456789012345678",
+      "url": "https://tiktok.com/@learningsciencemusic/video/7123456789012345678"
+    },
+    "hook_short": {
+      "id": "7456789012345678901",
+      "url": "https://tiktok.com/@learningsciencemusic/video/7456789012345678901"
+    }
+  }
+}
