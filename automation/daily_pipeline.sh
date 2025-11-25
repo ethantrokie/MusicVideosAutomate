@@ -45,13 +45,8 @@ run_pipeline() {
         return 1
     fi
 
-    log "Uploading to YouTube ($CHANNEL, $PRIVACY)..."
-    if ! ./upload_to_youtube.sh --channel="$CHANNEL" --privacy="$PRIVACY" >> "$LOG_FILE" 2>&1; then
-        log "❌ Upload failed"
-        return 1
-    fi
-
-    log "✅ Pipeline complete"
+    # Pipeline already uploads videos in Stage 8 and cross-links in Stage 9
+    log "✅ Pipeline complete (uploads and cross-linking done in pipeline)"
     return 0
 }
 
@@ -68,15 +63,43 @@ main() {
         if run_pipeline $attempt; then
             # Success!
             TOPIC=$(head -1 input/idea.txt | cut -d'.' -f1)
-            VIDEO_ID=$(tail -1 "$LOG_FILE" | grep -o 'watch?v=.*' | cut -d'=' -f2 || echo "unknown")
 
-            log "✅ Daily video published successfully"
+            # Extract video IDs from upload_results.json created by cross-linking
+            LATEST_RUN=$(ls -td outputs/runs/* | head -1)
+            UPLOAD_RESULTS="$LATEST_RUN/upload_results.json"
+
+            if [ -f "$UPLOAD_RESULTS" ]; then
+                FULL_VIDEO_ID=$(jq -r '.youtube.full_video.id' "$UPLOAD_RESULTS" 2>/dev/null || echo "unknown")
+                TIKTOK_FULL_URL=$(jq -r '.tiktok.full_video.url // empty' "$UPLOAD_RESULTS" 2>/dev/null)
+                TIKTOK_HOOK_URL=$(jq -r '.tiktok.hook_short.url // empty' "$UPLOAD_RESULTS" 2>/dev/null)
+            else
+                # Fallback to log parsing
+                FULL_VIDEO_ID=$(grep "Video uploaded:.*full" "$LOG_FILE" | head -1 | grep -oE 'watch\?v=([A-Za-z0-9_-]+)' | cut -d'=' -f2 || echo "unknown")
+                TIKTOK_FULL_URL=""
+                TIKTOK_HOOK_URL=""
+            fi
+
+            log "✅ Daily videos published successfully with cross-linking"
 
             if [ "$NOTIFY_SUCCESS" = "true" ]; then
-                send_notification "✅ Daily video published!
+                NOTIFICATION="✅ Daily videos published!
 Topic: $TOPIC
-Video: https://youtube.com/watch?v=$VIDEO_ID
-Status: $PRIVACY"
+YouTube: https://youtube.com/watch?v=$FULL_VIDEO_ID"
+
+                # Add TikTok URLs if available
+                if [ -n "$TIKTOK_FULL_URL" ] || [ -n "$TIKTOK_HOOK_URL" ]; then
+                    NOTIFICATION="$NOTIFICATION
+"
+                    [ -n "$TIKTOK_FULL_URL" ] && NOTIFICATION="$NOTIFICATION
+TikTok (full): $TIKTOK_FULL_URL"
+                    [ -n "$TIKTOK_HOOK_URL" ] && NOTIFICATION="$NOTIFICATION
+TikTok (hook): $TIKTOK_HOOK_URL"
+                fi
+
+                NOTIFICATION="$NOTIFICATION
+Status: $PRIVACY (multi-platform with cross-linking)"
+
+                send_notification "$NOTIFICATION"
             fi
 
             exit 0
