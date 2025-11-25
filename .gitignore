@@ -3,6 +3,7 @@ config/config.json
 config/youtube_credentials.json
 config/*_credentials.json
 config/youtube_token.pickle
+config/tiktok_token.pickle
 
 # Outputs
 outputs/
