@@ -6,10 +6,16 @@
     "weekly_analysis_time": "10:00"
   },
   "youtube": {
-    "channel_handle": "@LearningScienceMusic",
-    "privacy_status": "private",
+    "channel_handle": "@learningsciencemusic",
+    "privacy_status": "public",
     "default_category": "Education",
     "credentials_path": "config/youtube_credentials.json"
+  },
+  "tiktok": {
+    "enabled": true,
+    "username": "@learningsciencemusic",
+    "privacy_status": "public_to_everyone",
+    "credentials_path": "config/tiktok_credentials.json"
   },
   "notifications": {
     "phone": "914-844-4402",
@@ -26,7 +32,7 @@
   },
   "topic_generation": {
     "avoid_repeat_days": 30,
-    "categories": ["biology", "chemistry", "physics", "earth_science"],
+    "categories": ["engineering", "biology", "computer science", "chemistry", "physics", "earth_science", "civil engineering"],
     "prefer_trending": false
   }
 }
