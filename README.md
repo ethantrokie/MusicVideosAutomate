@@ -1,6 +1,6 @@
 # Educational Video Automation System
 
-> Transform ideas into educational TikTok/Instagram Reels videos automatically with AI-generated music and curated visuals.
+> Transform ideas into educational videos automatically with AI-generated music and curated visuals. Publish to YouTube and TikTok with automatic cross-platform linking.
 
 ## Quick Start
 
@@ -110,6 +110,14 @@ Examples:
 
 The script will guide you through OAuth authentication on first upload.
 
+### TikTok Upload
+
+The pipeline supports automatic TikTok uploads with cross-platform linking. See the [TikTok Setup Guide](docs/TIKTOK_SETUP.md) for:
+- TikTok Developer account and API credentials setup
+- OAuth authentication configuration
+- Multi-platform upload workflow
+- Cross-linking videos across YouTube and TikTok
+
 ### Optional: Lyric Synchronization
 
 The synchronized video-lyric system uses:
@@ -127,6 +135,7 @@ The lyric sync will work automatically. Without these, the system falls back to 
 - [Setup Guide](docs/SETUP_GUIDE.md) - Detailed installation and configuration
 - [Testing Guide](docs/TESTING_GUIDE.md) - Complete pipeline testing and validation
 - [Multi-Format Usage](docs/MULTI_FORMAT_USAGE.md) - Multi-format video generation guide
+- [TikTok Setup](docs/TIKTOK_SETUP.md) - TikTok integration and multi-platform uploads
 - [Troubleshooting](docs/TROUBLESHOOTING.md) - Common issues and solutions
 
 ---
