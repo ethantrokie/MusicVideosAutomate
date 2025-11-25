@@ -605,7 +605,17 @@ if [ $START_STAGE -le 9 ] && [ -n "$FULL_ID" ] && [ -n "$HOOK_ID" ] && [ -n "$ED
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 
     echo "🔗 Cross-linking video descriptions..."
-    if python3 agents/crosslink_videos.py "$FULL_ID" "$HOOK_ID" "$EDU_ID"; then
+
+    # Build command with optional TikTok IDs
+    CROSSLINK_CMD="python3 agents/crosslink_videos.py \"$FULL_ID\" \"$HOOK_ID\" \"$EDU_ID\""
+    if [ -n "$TIKTOK_FULL_ID" ]; then
+        CROSSLINK_CMD="$CROSSLINK_CMD \"$TIKTOK_FULL_ID\""
+    fi
+    if [ -n "$TIKTOK_HOOK_ID" ]; then
+        CROSSLINK_CMD="$CROSSLINK_CMD \"$TIKTOK_HOOK_ID\""
+    fi
+
+    if eval "$CROSSLINK_CMD"; then
         echo "✅ Cross-linking complete"
     else
         echo -e "${YELLOW}⚠️  Cross-linking failed${NC}"

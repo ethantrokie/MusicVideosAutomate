@@ -47,13 +47,13 @@ def update_video_description(youtube, video_id: str, new_description: str):
     ).execute()
 
 
-def main(full_id: str, hook_id: str, edu_id: str):
-    """Cross-link three videos."""
+def main(full_id: str, hook_id: str, edu_id: str, tiktok_full_id: str = None, tiktok_hook_id: str = None):
+    """Cross-link videos across YouTube and TikTok."""
     print("🔗 Cross-linking videos...")
 
     youtube = get_youtube_service()
 
-    # Build URLs
+    # Build YouTube URLs
     full_url = f"https://youtube.com/watch?v={full_id}"
     hook_url = f"https://youtube.com/shorts/{hook_id}"
     edu_url = f"https://youtube.com/shorts/{edu_id}"
@@ -61,12 +61,39 @@ def main(full_id: str, hook_id: str, edu_id: str):
     # Load topic
     topic = Path('input/idea.txt').read_text().strip().split('.')[0]
 
+    # Build TikTok URLs if IDs provided
+    tiktok_full_url = None
+    tiktok_hook_url = None
+    if tiktok_full_id or tiktok_hook_id:
+        # Load TikTok username from config
+        config_path = Path('automation/config/automation_config.json')
+        if config_path.exists():
+            with open(config_path) as f:
+                config = json.load(f)
+                tiktok_username = config.get('tiktok', {}).get('username', '@learningsciencemusic')
+        else:
+            tiktok_username = '@learningsciencemusic'
+
+        if tiktok_full_id:
+            tiktok_full_url = f"https://tiktok.com/{tiktok_username}/video/{tiktok_full_id}"
+        if tiktok_hook_id:
+            tiktok_hook_url = f"https://tiktok.com/{tiktok_username}/video/{tiktok_hook_id}"
+
+    # Build cross-platform links section
+    tiktok_section = ""
+    if tiktok_full_url or tiktok_hook_url:
+        tiktok_section = "\n\nAlso on TikTok:"
+        if tiktok_full_url:
+            tiktok_section += f"\n- Full version: {tiktok_full_url}"
+        if tiktok_hook_url:
+            tiktok_section += f"\n- Musical hook: {tiktok_hook_url}"
+
     # Update full video description
     full_desc = f"""Learn about {topic} through music! Full version.
 
 Watch the Shorts versions:
 - Musical Hook: {hook_url}
-- Educational Highlight: {edu_url}
+- Educational Highlight: {edu_url}{tiktok_section}
 
 #education #learning #science"""
 
@@ -77,7 +104,7 @@ Watch the Shorts versions:
     hook_desc = f"""{topic} 🎵
 
 Watch the full version: {full_url}
-See the educational highlight: {edu_url}
+See the educational highlight: {edu_url}{tiktok_section if tiktok_full_url or tiktok_hook_url else ''}
 
 #shorts #education #learning"""
 
@@ -88,7 +115,7 @@ See the educational highlight: {edu_url}
     edu_desc = f"""{topic} - Key concept explained! 📚
 
 Watch the full version: {full_url}
-See the musical hook: {hook_url}
+See the musical hook: {hook_url}{tiktok_section if tiktok_full_url or tiktok_hook_url else ''}
 
 #shorts #education #learning"""
 
@@ -100,22 +127,39 @@ See the musical hook: {hook_url}
     # Save results
     output_dir = Path(os.environ.get('OUTPUT_DIR', 'outputs/current'))
     results = {
-        'full_video': {'id': full_id, 'url': full_url},
-        'hook_short': {'id': hook_id, 'url': hook_url},
-        'educational_short': {'id': edu_id, 'url': edu_url}
+        'youtube': {
+            'full_video': {'id': full_id, 'url': full_url},
+            'hook_short': {'id': hook_id, 'url': hook_url},
+            'educational_short': {'id': edu_id, 'url': edu_url}
+        }
     }
+
+    # Add TikTok results if available
+    if tiktok_full_id or tiktok_hook_id:
+        results['tiktok'] = {}
+        if tiktok_full_id:
+            results['tiktok']['full_video'] = {'id': tiktok_full_id, 'url': tiktok_full_url}
+        if tiktok_hook_id:
+            results['tiktok']['hook_short'] = {'id': tiktok_hook_id, 'url': tiktok_hook_url}
 
     with open(output_dir / 'upload_results.json', 'w') as f:
         json.dump(results, f, indent=2)
 
 
 if __name__ == '__main__':
-    if len(sys.argv) != 4:
-        print("Usage: crosslink_videos.py <full_video_id> <hook_short_id> <edu_short_id>")
+    if len(sys.argv) < 4 or len(sys.argv) > 6:
+        print("Usage: crosslink_videos.py <full_video_id> <hook_short_id> <edu_short_id> [tiktok_full_id] [tiktok_hook_id]")
         sys.exit(1)
 
     try:
-        main(sys.argv[1], sys.argv[2], sys.argv[3])
+        # Extract arguments
+        full_id = sys.argv[1]
+        hook_id = sys.argv[2]
+        edu_id = sys.argv[3]
+        tiktok_full_id = sys.argv[4] if len(sys.argv) > 4 else None
+        tiktok_hook_id = sys.argv[5] if len(sys.argv) > 5 else None
+
+        main(full_id, hook_id, edu_id, tiktok_full_id, tiktok_hook_id)
     except Exception as e:
         print(f"❌ Error: {e}", file=sys.stderr)
         import traceback
