@@ -67,7 +67,14 @@ def load_approved_media():
         sys.exit(1)
 
     with open(media_path) as f:
-        return json.load(f)
+        data = json.load(f)
+        # Normalize field names for semantic matcher compatibility
+        # Matcher expects "url" but approved_media has "media_url"
+        if "shot_list" in data:
+            for shot in data["shot_list"]:
+                if "media_url" in shot and "url" not in shot:
+                    shot["url"] = shot["media_url"]
+        return data
 
 
 def create_clip_from_shot(shot: dict, video_settings: dict):
@@ -315,10 +322,10 @@ def create_synchronized_plan(phrase_groups: List[Dict], approved_media: List[Dic
             matched = matched_groups[0]
 
             # Find media object
-            media = next((m for m in approved_media if m.get("url") == matched["video_url"] or m.get("media_url") == matched["video_url"]), None)
+            media = next((m for m in approved_media if m.get("media_url") == matched.get("video_url")), None)
 
             if not media or "local_path" not in media:
-                logger.warning(f"No local media found for {matched['video_url']}, skipping")
+                logger.warning(f"No local media found for {matched.get('video_url', 'unknown')}, skipping")
                 continue
 
             shot = {
@@ -347,10 +354,10 @@ def create_synchronized_plan(phrase_groups: List[Dict], approved_media: List[Dic
 
         shots = []
         for group in matched_groups:
-            media = next((m for m in approved_media if m.get("url") == group["video_url"] or m.get("media_url") == group["video_url"]), None)
+            media = next((m for m in approved_media if m.get("media_url") == group.get("video_url")), None)
 
             if not media or "local_path" not in media:
-                logger.warning(f"No local media found for {group['video_url']}, skipping")
+                logger.warning(f"No local media found for {group.get('video_url', 'unknown')}, skipping")
                 continue
 
             shot = {
@@ -395,7 +402,7 @@ def create_synchronized_plan(phrase_groups: List[Dict], approved_media: List[Dic
     return plan
 
 
-def assemble_video(approved_data: dict, video_settings: dict, audio_path: str):
+def assemble_video(approved_data: dict, video_settings: dict, audio_path: str, audio_start: float = 0.0):
     """
     Assemble final video from approved media and audio.
 
@@ -403,6 +410,7 @@ def assemble_video(approved_data: dict, video_settings: dict, audio_path: str):
         approved_data: Approved media JSON
         video_settings: Video config
         audio_path: Path to music file
+        audio_start: Start time in seconds for audio slicing
 
     Returns:
         Path to final video
@@ -442,8 +450,12 @@ def assemble_video(approved_data: dict, video_settings: dict, audio_path: str):
         final_video = concatenate_videoclips(clips)
 
     # Load and attach audio
-    print("  Adding audio track...")
+    print(f"  Adding audio track (starting at {audio_start}s)...")
     audio = AudioFileClip(audio_path)
+
+    # Slice audio if start time is provided
+    if audio_start > 0:
+        audio = audio.subclip(audio_start)
 
     # Trim audio if longer than video
     if audio.duration > final_video.duration:
@@ -492,6 +504,10 @@ def main():
     parser.add_argument('--no-consolidation',
                        action='store_true',
                        help='Disable clip consolidation, use phrase-level clips')
+    parser.add_argument('--audio-start',
+                       type=float,
+                       default=0.0,
+                       help='Start time in seconds for audio slicing (default: 0.0)')
     args = parser.parse_args()
 
     # Parse resolution
@@ -568,7 +584,7 @@ def main():
                         print("\n🎬 Assembling synchronized video...")
 
                         # Use synchronized plan instead of approved_data
-                        output_path = assemble_video(synchronized_plan, video_settings, str(audio_path))
+                        output_path = assemble_video(synchronized_plan, video_settings, str(audio_path), audio_start=args.audio_start)
 
                         print(f"\n✅ Synchronized video assembly complete!")
                         print(f"📹 Final video: {output_path}")
@@ -584,7 +600,9 @@ def main():
 
     # Fallback to original assembly
     print("\n🎬 Assembling video with curator's timing...")
-    output_path = assemble_video(approved_data, video_settings, str(audio_path))
+    # Fallback to original assembly
+    print("\n🎬 Assembling video with curator's timing...")
+    output_path = assemble_video(approved_data, video_settings, str(audio_path), audio_start=args.audio_start)
 
     print(f"\n✅ Video assembly complete!")
     print(f"📹 Final video: {output_path}")

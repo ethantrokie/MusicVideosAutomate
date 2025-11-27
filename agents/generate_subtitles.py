@@ -130,6 +130,108 @@ def generate_karaoke_srt(words: List[Dict], output_file: Path) -> None:
             f.write("\n")
 
 
+def convert_srt_to_pycaps_format(srt_path: Path) -> Dict:
+    """
+    Convert SRT word-level timestamps to pycaps Document JSON format.
+
+    pycaps expects:
+    {
+      "segments": [
+        {
+          "lines": [
+            {
+              "words": [
+                {
+                  "text": "word",
+                  "time": {"start": 0.0, "end": 1.0},
+                  "clips": [],
+                  "semantic_tags": [],
+                  "structure_tags": [],
+                  "max_layout": {"position": {"x": 0, "y": 0}, "size": {"width": 0, "height": 0}}
+                }
+              ],
+              "time": {"start": 0.0, "end": 1.0},
+              "structure_tags": [],
+              "max_layout": {"position": {"x": 0, "y": 0}, "size": {"width": 0, "height": 0}}
+            }
+          ],
+          "time": {"start": 0.0, "end": 1.0},
+          "structure_tags": [],
+          "max_layout": {"position": {"x": 0, "y": 0}, "size": {"width": 0, "height": 0}}
+        }
+      ]
+    }
+    """
+    import re
+
+    words = []
+
+    # Parse SRT file
+    with open(srt_path, 'r') as f:
+        content = f.read()
+
+    # SRT format: index, timestamp, text, blank line
+    entries = content.strip().split('\n\n')
+
+    for entry in entries:
+        lines_in_entry = entry.split('\n')
+        if len(lines_in_entry) < 3:
+            continue
+
+        # Parse timestamp line (format: HH:MM:SS,mmm --> HH:MM:SS,mmm)
+        timestamp_line = lines_in_entry[1]
+        match = re.match(r'(\d+):(\d+):(\d+),(\d+) --> (\d+):(\d+):(\d+),(\d+)', timestamp_line)
+        if not match:
+            continue
+
+        # Convert to seconds
+        start_h, start_m, start_s, start_ms, end_h, end_m, end_s, end_ms = map(int, match.groups())
+        start_time = start_h * 3600 + start_m * 60 + start_s + start_ms / 1000
+        end_time = end_h * 3600 + end_m * 60 + end_s + end_ms / 1000
+
+        # Get word text
+        text = lines_in_entry[2]
+
+        # Create word entry
+        words.append({
+            "text": text,
+            "time": {"start": start_time, "end": end_time},
+            "clips": [],
+            "semantic_tags": [],
+            "structure_tags": [],
+            "max_layout": {
+                "position": {"x": 0, "y": 0},
+                "size": {"width": 0, "height": 0}
+            }
+        })
+
+    # Group all words into one line and one segment
+    if not words:
+        raise ValueError("No words found in SRT file")
+
+    line = {
+        "words": words,
+        "time": {"start": words[0]["time"]["start"], "end": words[-1]["time"]["end"]},
+        "structure_tags": [],
+        "max_layout": {
+            "position": {"x": 0, "y": 0},
+            "size": {"width": 0, "height": 0}
+        }
+    }
+
+    segment = {
+        "lines": [line],
+        "time": {"start": words[0]["time"]["start"], "end": words[-1]["time"]["end"]},
+        "structure_tags": [],
+        "max_layout": {
+            "position": {"x": 0, "y": 0},
+            "size": {"width": 0, "height": 0}
+        }
+    }
+
+    return {"segments": [segment]}
+
+
 def apply_pycaps_subtitles(video_path: Path, srt_path: Path, output_path: Path, css_template: Path) -> None:
     """Apply karaoke subtitles using pycaps."""
     from pycaps import CapsPipelineBuilder
@@ -139,23 +241,35 @@ def apply_pycaps_subtitles(video_path: Path, srt_path: Path, output_path: Path, 
     print(f"  SRT: {srt_path}")
     print(f"  CSS: {css_template}")
 
+    # Convert SRT to pycaps Document format
+    pycaps_data = convert_srt_to_pycaps_format(srt_path)
+
+    # Save as JSON for pycaps to load
+    json_path = srt_path.with_suffix('.json')
+    with open(json_path, 'w') as f:
+        json.dump(pycaps_data, f)
+
+    print(f"  Converted SRT to pycaps format: {json_path}")
+
+    # Build pipeline with subtitle data and output path
     pipeline = (CapsPipelineBuilder()
         .with_input_video(str(video_path))
-        .with_srt_file(str(srt_path))
+        .with_output_video(str(output_path))
+        .with_subtitle_data_path(str(json_path))
         .add_css(str(css_template))
         .build())
 
-    pipeline.run(output=str(output_path))
+    pipeline.run()
     print(f"  ✅ Karaoke subtitles applied")
 
 
-def apply_ffmpeg_subtitles(video_path: Path, srt_path: Path, output_path: Path, config: Dict) -> None:
-    """Apply traditional subtitles using FFmpeg."""
-    subtitle_config = config['subtitle_settings']['traditional']
+def apply_ffmpeg_subtitles(video_path: Path, srt_path: Path, output_path: Path, config: Dict, subtitle_type: str = 'traditional') -> None:
+    """Apply subtitles using FFmpeg."""
+    subtitle_config = config['subtitle_settings'][subtitle_type]
     font = subtitle_config['font']
     font_size = subtitle_config['font_size']
 
-    print(f"  Burning subtitles with FFmpeg...")
+    print(f"  Burning {subtitle_type} subtitles with FFmpeg...")
     print(f"  Font: {font}, Size: {font_size}")
 
     # Convert SRT to ASS for better styling control
@@ -260,10 +374,16 @@ def main():
     output_file = output_dir / f"{args.video}_subtitled.mp4"
 
     if args.engine == 'pycaps':
-        css_template = Path(config['subtitle_settings']['karaoke']['css_template'])
-        apply_pycaps_subtitles(video_file, srt_file, output_file, css_template)
+        # Check if css_template is configured for pycaps
+        karaoke_config = config.get('subtitle_settings', {}).get('karaoke', {})
+        if 'css_template' in karaoke_config:
+            css_template = Path(karaoke_config['css_template'])
+            apply_pycaps_subtitles(video_file, srt_file, output_file, css_template)
+        else:
+            print("  ⚠️  pycaps requested but css_template not configured, falling back to ffmpeg")
+            apply_ffmpeg_subtitles(video_file, srt_file, output_file, config, args.type)
     else:
-        apply_ffmpeg_subtitles(video_file, srt_file, output_file, config)
+        apply_ffmpeg_subtitles(video_file, srt_file, output_file, config, args.type)
 
     # Replace original with subtitled version
     video_file.unlink()

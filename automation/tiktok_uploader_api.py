@@ -11,9 +11,12 @@ Usage:
 """
 
 import argparse
+import base64
+import hashlib
 import json
 import os
 import pickle
+import secrets
 import time
 import urllib.parse
 import webbrowser
@@ -72,6 +75,11 @@ class TikTokUploader:
         self.access_token = None
         self.refresh_token = None
         self.token_expiry = None
+        self.code_verifier = None
+        self.code_challenge = None
+
+        # Try to load saved tokens
+        self._load_tokens()
 
     def _load_credentials(self):
         """Load OAuth credentials from JSON file"""
@@ -119,6 +127,20 @@ class TikTokUploader:
             return True
         return time.time() >= self.token_expiry
 
+    def _generate_pkce_params(self):
+        """Generate PKCE parameters for TikTok OAuth 2.0
+
+        NOTE: TikTok uses NON-STANDARD PKCE implementation!
+        They require hex encoding instead of base64url encoding for code_challenge.
+        Standard: code_challenge = base64url(SHA256(code_verifier))
+        TikTok:   code_challenge = hex(SHA256(code_verifier))
+        """
+        # Generate random code verifier (43-128 characters)
+        self.code_verifier = base64.urlsafe_b64encode(secrets.token_bytes(32)).decode('utf-8').rstrip('=')
+
+        # Generate code challenge - TikTok requires HEX encoding (not base64url!)
+        self.code_challenge = hashlib.sha256(self.code_verifier.encode('utf-8')).hexdigest()
+
     def _refresh_access_token(self):
         """Refresh expired access token"""
         print("🔄 Refreshing access token...")
@@ -134,6 +156,14 @@ class TikTokUploader:
         response.raise_for_status()
 
         token_data = response.json()
+
+        # Check for errors in response
+        if 'error' in token_data:
+            raise Exception(f"TikTok API error during refresh: {token_data.get('error')} - {token_data.get('error_description', 'No description')}")
+
+        if 'access_token' not in token_data:
+            raise Exception(f"No access_token in refresh response. Full response: {token_data}")
+
         self.access_token = token_data['access_token']
         self.refresh_token = token_data.get('refresh_token', self.refresh_token)
         self.token_expiry = time.time() + token_data['expires_in']
@@ -162,16 +192,23 @@ class TikTokUploader:
         # Start OAuth flow
         print("🔐 Starting OAuth 2.0 authorization flow...")
 
-        # Build authorization URL
+        # Generate PKCE parameters
+        self._generate_pkce_params()
+
+        # Build authorization URL with PKCE
         params = {
             'client_key': self.credentials['client_key'],
             'scope': 'video.publish',
             'response_type': 'code',
-            'redirect_uri': self.credentials['redirect_uri']
+            'redirect_uri': self.credentials['redirect_uri'],
+            'code_challenge': self.code_challenge,
+            'code_challenge_method': 'S256'
         }
         auth_url = f"{TIKTOK_AUTH_URL}?{urllib.parse.urlencode(params)}"
 
         print(f"Opening browser for authorization: {auth_url}")
+        print(f"Redirect URI: {self.credentials['redirect_uri']}")
+        print("ℹ️  If you see a 'redirect_uri' error, ensure this URI exactly matches your TikTok App settings.")
         webbrowser.open(auth_url)
 
         # Start local callback server
@@ -195,13 +232,22 @@ class TikTokUploader:
             'client_secret': self.credentials['client_secret'],
             'code': authorization_code,
             'grant_type': 'authorization_code',
-            'redirect_uri': self.credentials['redirect_uri']
+            'redirect_uri': self.credentials['redirect_uri'],
+            'code_verifier': self.code_verifier
         }
 
         response = requests.post(TIKTOK_TOKEN_URL, data=data)
         response.raise_for_status()
 
         token_data = response.json()
+
+        # Check for errors in response
+        if 'error' in token_data:
+            raise Exception(f"TikTok API error: {token_data.get('error')} - {token_data.get('error_description', 'No description')}")
+
+        if 'access_token' not in token_data:
+            raise Exception(f"No access_token in response. Full response: {token_data}")
+
         self.access_token = token_data['access_token']
         self.refresh_token = token_data['refresh_token']
         self.token_expiry = time.time() + token_data['expires_in']
@@ -262,6 +308,34 @@ class TikTokUploader:
             headers=headers,
             json=init_data
         )
+
+        # Check for specific errors
+        if response.status_code == 403:
+            try:
+                error_data = response.json()
+                error_code = error_data.get('error', {}).get('code', '')
+
+                if error_code == 'unaudited_client_can_only_post_to_private_accounts':
+                    raise Exception(
+                        "\n❌ SANDBOX MODE ERROR: Your TikTok app can only post to private accounts.\n"
+                        "\n"
+                        "Required steps to fix:\n"
+                        "1. Open TikTok mobile app → Settings → Privacy\n"
+                        "2. Set your account to 'Private Account' (toggle ON)\n"
+                        "3. Go to developers.tiktok.com → Your App → 'Test Users'\n"
+                        "4. Add your TikTok account as a test user\n"
+                        "5. Re-run authentication: ./automation/tiktok_uploader.py --auth\n"
+                        "6. Try upload again with --privacy=self_only\n"
+                        "\n"
+                        "Note: In sandbox mode, videos can only be posted with SELF_ONLY privacy.\n"
+                        "To post publicly, you must submit your app for TikTok's review.\n"
+                    )
+            except Exception as e:
+                # Re-raise our custom exception
+                if "SANDBOX MODE ERROR" in str(e):
+                    raise
+                # Otherwise continue to generic error
+
         response.raise_for_status()
 
         init_result = response.json()

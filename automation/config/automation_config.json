@@ -13,9 +13,11 @@
   },
   "tiktok": {
     "enabled": true,
+    "method": "browser",
     "username": "@learningsciencemusic",
     "privacy_status": "public_to_everyone",
-    "credentials_path": "config/tiktok_credentials.json"
+    "credentials_path": "config/tiktok_credentials.json",
+    "cookies_path": "config/tiktok_cookies.txt"
   },
   "notifications": {
     "phone": "914-844-4402",

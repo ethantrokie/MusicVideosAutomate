@@ -16,6 +16,55 @@ from stock_photo_api import StockPhotoResolver
 from output_helper import get_output_path, ensure_output_dir
 
 
+def is_slideshow_gif(file_path: str, fps_threshold: float = 10.0) -> bool:
+    """
+    Detect if a GIF is a slideshow (low frame rate).
+
+    Args:
+        file_path: Path to the file
+        fps_threshold: Minimum FPS to be considered video (default: 10)
+
+    Returns:
+        bool: True if it's a slideshow GIF, False otherwise
+    """
+    import subprocess
+    import json
+
+    # Only check GIF files
+    if not file_path.lower().endswith('.gif'):
+        return False
+
+    try:
+        # Get frame rate using ffprobe
+        result = subprocess.run([
+            'ffprobe', '-v', 'error',
+            '-select_streams', 'v:0',
+            '-show_entries', 'stream=avg_frame_rate',
+            '-of', 'json',
+            file_path
+        ], capture_output=True, text=True, timeout=10)
+
+        if result.returncode != 0:
+            return False
+
+        data = json.loads(result.stdout)
+        streams = data.get('streams', [])
+        if not streams:
+            return False
+
+        # Parse frame rate (format: "num/den")
+        fps_str = streams[0].get('avg_frame_rate', '0/1')
+        num, den = map(int, fps_str.split('/'))
+        fps = num / den if den != 0 else 0
+
+        # Consider it a slideshow if FPS is below threshold
+        return fps < fps_threshold
+
+    except Exception:
+        # If we can't determine, assume it's okay
+        return False
+
+
 def download_file(url: str, output_path: str, max_retries: int = 3) -> bool:
     """
     Download file with retry logic.
@@ -109,12 +158,22 @@ def main():
         print(f"  [{shot_num}/{len(shots)}] {filename}... ", end="", flush=True)
 
         if download_file(url, str(output_path)):
-            print("✅")
-            downloaded.append({
-                "shot_number": shot_num,
-                "local_path": str(output_path),
-                "url": url
-            })
+            # Check if it's a slideshow GIF (low FPS)
+            if is_slideshow_gif(str(output_path)):
+                print("⏭️  (slideshow GIF rejected)")
+                output_path.unlink()  # Delete the file
+                failed.append({
+                    "shot_number": shot_num,
+                    "url": url,
+                    "reason": "slideshow_gif_rejected"
+                })
+            else:
+                print("✅")
+                downloaded.append({
+                    "shot_number": shot_num,
+                    "local_path": str(output_path),
+                    "url": url
+                })
         else:
             print("❌")
             failed.append({

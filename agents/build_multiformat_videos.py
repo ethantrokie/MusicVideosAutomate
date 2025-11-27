@@ -20,7 +20,8 @@ def build_video_with_format_plan(
     format_type: str,
     resolution: str,
     output_name: str,
-    media_plan_file: str
+    media_plan_file: str,
+    start_time: float = 0.0
 ) -> bool:
     """
     Build a video using a format-specific media plan.
@@ -30,11 +31,12 @@ def build_video_with_format_plan(
         resolution: Video resolution (e.g., "1920x1080")
         output_name: Output filename (e.g., "full.mp4")
         media_plan_file: Media plan JSON file (e.g., "media_plan_full.json")
+        start_time: Start time in seconds for audio slicing
 
     Returns:
         True if successful, False otherwise
     """
-    print(f"🎬 Building {format_type} video from {media_plan_file}...")
+    print(f"🎬 Building {format_type} video from {media_plan_file} (audio start: {start_time}s)...")
 
     output_dir = Path(os.getenv("OUTPUT_DIR", "outputs"))
     media_plan_path = output_dir / media_plan_file
@@ -56,9 +58,16 @@ def build_video_with_format_plan(
         import shutil
         shutil.copy(media_plan_path, approved_media_path)
 
-        # Call video assembly with appropriate resolution
+        # Call video assembly with appropriate resolution and audio start time
+        cmd = [
+            './venv/bin/python3', 
+            'agents/5_assemble_video.py', 
+            '--resolution', resolution,
+            '--audio-start', str(start_time)
+        ]
+        
         result = subprocess.run(
-            ['./venv/bin/python3', 'agents/5_assemble_video.py', '--resolution', resolution],
+            cmd,
             capture_output=True,
             text=True,
             timeout=600
@@ -110,7 +119,8 @@ def build_full_video() -> Path:
         format_type="full",
         resolution="1920x1080",
         output_name="full.mp4",
-        media_plan_file="media_plan_full.json"
+        media_plan_file="media_plan_full.json",
+        start_time=0.0
     )
 
     if not success:
@@ -121,15 +131,16 @@ def build_full_video() -> Path:
     return output_dir / "full.mp4"
 
 
-def build_hook_short() -> Path:
+def build_hook_short(start_time: float) -> Path:
     """Build hook short using format-specific media plan."""
-    print("🎬 Building hook short (9:16) with 30s media plan...")
+    print(f"🎬 Building hook short (9:16) with 30s media plan (start: {start_time}s)...")
 
     success = build_video_with_format_plan(
         format_type="hook",
         resolution="1080x1920",
         output_name="short_hook.mp4",
-        media_plan_file="media_plan_hook.json"
+        media_plan_file="media_plan_hook.json",
+        start_time=start_time
     )
 
     if not success:
@@ -140,15 +151,16 @@ def build_hook_short() -> Path:
     return output_dir / "short_hook.mp4"
 
 
-def build_educational_short() -> Path:
+def build_educational_short(start_time: float) -> Path:
     """Build educational short using format-specific media plan."""
-    print("🎬 Building educational short (9:16) with 30s media plan...")
+    print(f"🎬 Building educational short (9:16) with 30s media plan (start: {start_time}s)...")
 
     success = build_video_with_format_plan(
         format_type="educational",
         resolution="1080x1920",
         output_name="short_educational.mp4",
-        media_plan_file="media_plan_educational.json"
+        media_plan_file="media_plan_educational.json",
+        start_time=start_time
     )
 
     if not success:
@@ -203,9 +215,9 @@ def main():
             return
 
         # Build shorts using format-specific media plans
-        build_hook_short()
+        build_hook_short(segments['hook']['start'])
         print()
-        build_educational_short()
+        build_educational_short(segments['educational']['start'])
         print()
 
         print("✅ All videos built successfully!")

@@ -47,24 +47,25 @@ def generate_topic_via_claude(config, recent_topics):
     """Generate topic using Claude Code CLI."""
     categories = ", ".join(config["topic_generation"]["categories"])
 
-    prompt = f"""You are a topic generator for educational science videos. Generate ONE topic and tone ONLY.
+    prompt = f"""You are a topic generator for educational science videos. Generate ONE topic ONLY.
 
 REQUIREMENTS:
 - Category: One of {categories}
 - K-12 appropriate (ages 10-18)
 - Visually interesting (stock footage available)
+- Specific educational science concept (no broad topics) focused on everyday phenomena
 - Avoid these recent topics: {', '.join(recent_topics[-10:]) if recent_topics else 'none yet'}
 
 CRITICAL OUTPUT FORMAT - Output EXACTLY these two lines with no other text:
 Topic: [specific educational science concept]
-Tone: [music/pacing style description]
+Tone: energetic pop punk with driving guitars, fast tempo, and rebellious educational energy
 
 EXAMPLE OUTPUT:
 Topic: Explain how DNA replication works in cells
-Tone: energetic and fast-paced with moments of wonder
+Tone: energetic pop punk with driving guitars, fast tempo, and rebellious educational energy
 
-DO NOT ask questions. DO NOT offer choices. DO NOT use markdown formatting.
-Generate ONE topic and tone now:"""
+DO NOT ask questions. DO NOT offer choices. DO NOT use markdown formatting. ALWAYS use the exact tone specified above.
+Generate ONE topic now:"""
 
     result = subprocess.run(
         ["claude", "-p", prompt, "--dangerously-skip-permissions"],

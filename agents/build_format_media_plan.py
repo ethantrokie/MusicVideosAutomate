@@ -86,6 +86,31 @@ def build_media_plan(format_type: FormatType, duration: int, output_file: str) -
         # Rename media_plan.json to format-specific file
         if original_output.exists():
             original_output.rename(format_output)
+
+            # Enrich format-specific plan with local_path fields from approved_media.json
+            approved_media_path = get_output_path("approved_media.json")
+            if approved_media_path.exists():
+                with open(approved_media_path) as f:
+                    approved_data = json.load(f)
+
+                # Build lookup from media_url to local_path
+                url_to_path = {}
+                for shot in approved_data.get("shot_list", []):
+                    if "media_url" in shot and "local_path" in shot:
+                        url_to_path[shot["media_url"]] = shot["local_path"]
+
+                # Add local_path to format-specific plan
+                with open(format_output) as f:
+                    format_data = json.load(f)
+
+                for shot in format_data.get("shot_list", []):
+                    if "media_url" in shot and shot["media_url"] in url_to_path:
+                        shot["local_path"] = url_to_path[shot["media_url"]]
+
+                # Save enriched plan
+                with open(format_output, 'w') as f:
+                    json.dump(format_data, f, indent=2)
+
             print(f"    ✅ Created {output_file}")
             return True
         else:

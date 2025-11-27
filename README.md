@@ -112,11 +112,21 @@ The script will guide you through OAuth authentication on first upload.
 
 ### TikTok Upload
 
-The pipeline supports automatic TikTok uploads with cross-platform linking. See the [TikTok Setup Guide](docs/TIKTOK_SETUP.md) for:
-- TikTok Developer account and API credentials setup
-- OAuth authentication configuration
+The pipeline supports automatic TikTok uploads with **two methods**:
+
+**Browser Automation (Recommended)**:
+- ✅ Works immediately - no API approval needed
+- ✅ Post publicly right away
+- See [Browser Upload Guide](docs/TIKTOK_BROWSER_SETUP.md)
+
+**Official API**:
+- Requires developer account and app approval
+- See [API Setup Guide](docs/TIKTOK_SETUP.md)
+
+Both methods support:
 - Multi-platform upload workflow
 - Cross-linking videos across YouTube and TikTok
+- Full videos and shorts
 
 ### Optional: Lyric Synchronization
 

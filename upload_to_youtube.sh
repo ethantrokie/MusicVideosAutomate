@@ -45,10 +45,38 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+# Function to generate topic-based hashtags
+generate_hashtags() {
+    local topic=$1
+    local video_type=$2
+
+    # Extract keywords from topic (words 4+ letters, lowercase, no special chars)
+    local keywords=$(echo "$topic" | tr '[:upper:]' '[:lower:]' | grep -oE '\b[a-z]{4,}\b' | head -5)
+
+    # Build topic-specific hashtags
+    local topic_tags=""
+    for word in $keywords; do
+        # Skip common words
+        if [[ ! "$word" =~ ^(through|about|with|from|into|that|this|have|will|your|their)$ ]]; then
+            topic_tags="${topic_tags}#${word} "
+        fi
+    done
+
+    # Base hashtags depending on video type
+    if [ "$video_type" = "full" ]; then
+        echo "${topic_tags}#education #learning #science #stem #edutok #musicvideo"
+    else
+        echo "${topic_tags}#shorts #education #learning #science #stem #edutok"
+    fi
+}
+
 # Function to generate metadata based on video type
 generate_metadata() {
     local video_type=$1
     local topic=$2
+
+    # Generate hashtags
+    local hashtags=$(generate_hashtags "$topic" "$video_type")
 
     case $video_type in
         full)
@@ -59,7 +87,7 @@ Watch the Shorts versions:
 - Musical Hook: [PLACEHOLDER_HOOK]
 - Educational Highlight: [PLACEHOLDER_EDU]
 
-#education #learning #science"
+${hashtags}"
             VIDEO_FILE="full.mp4"
             ;;
         short_hook)
@@ -68,7 +96,7 @@ Watch the Shorts versions:
 
 Watch the full version: [PLACEHOLDER_FULL]
 
-#shorts #education #learning"
+${hashtags}"
             VIDEO_FILE="short_hook.mp4"
             ;;
         short_educational)
@@ -77,7 +105,7 @@ Watch the full version: [PLACEHOLDER_FULL]
 
 Watch the full version: [PLACEHOLDER_FULL]
 
-#shorts #education #learning"
+${hashtags}"
             VIDEO_FILE="short_educational.mp4"
             ;;
         *)
@@ -85,7 +113,7 @@ Watch the full version: [PLACEHOLDER_FULL]
             TITLE="${topic} | Educational Video"
             DESCRIPTION="Learn about ${topic}!
 
-#education #learning"
+${hashtags}"
             VIDEO_FILE="final_video.mp4"
             ;;
     esac

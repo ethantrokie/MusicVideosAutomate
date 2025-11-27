@@ -9,4 +9,4 @@ google-api-python-client
 google-auth-httplib2
 google-auth-oauthlib
 pycaps @ git+https://github.com/francozanardi/pycaps.git#egg=pycaps[all]
-requests>=2.31.0
+tiktok-uploader>=1.1.5

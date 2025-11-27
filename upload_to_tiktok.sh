@@ -1,5 +1,5 @@
 #!/bin/bash
-# Upload video to TikTok using TikTok Content Posting API
+# Upload video to TikTok using browser automation or official API
 
 set -e
 
@@ -7,6 +7,7 @@ set -e
 PRIVACY="public_to_everyone"
 RUN_DIR=""
 VIDEO_TYPE="full"  # full, short_hook
+METHOD="browser"   # browser or api
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
@@ -23,6 +24,10 @@ while [[ $# -gt 0 ]]; do
             VIDEO_TYPE="${1#*=}"
             shift
             ;;
+        --method=*)
+            METHOD="${1#*=}"
+            shift
+            ;;
         --help)
             echo "Usage: $0 [OPTIONS]"
             echo ""
@@ -30,7 +35,12 @@ while [[ $# -gt 0 ]]; do
             echo "  --run=TIMESTAMP        Upload specific run"
             echo "  --type=TYPE            Video type: full, short_hook (default: full)"
             echo "  --privacy=LEVEL        Privacy: public_to_everyone, mutual_follow_friends, self_only (default: public_to_everyone)"
+            echo "  --method=METHOD        Upload method: browser, api (default: browser)"
             echo "  --help                 Show this help"
+            echo ""
+            echo "Methods:"
+            echo "  browser - Browser automation (no API approval needed, works immediately)"
+            echo "  api     - Official TikTok API (requires app approval, sandbox restrictions)"
             exit 0
             ;;
         *)
@@ -122,17 +132,36 @@ if [ ! -f "$VIDEO_PATH" ]; then
 fi
 
 echo "📤 Uploading to TikTok..."
+echo "  Method: $METHOD"
 echo "  Type: $VIDEO_TYPE"
 echo "  Video: $VIDEO_PATH"
 echo "  Title: $TITLE"
 echo "  Privacy: $PRIVACY"
 
-# Upload using Python helper
-UPLOAD_OUTPUT=$(./automation/tiktok_uploader.py \
-    --video "$VIDEO_PATH" \
-    --title "$TITLE" \
-    --caption "$CAPTION" \
-    --privacy "$PRIVACY")
+# Choose upload method
+if [ "$METHOD" = "browser" ]; then
+    # Browser automation method (tiktok-uploader package)
+    echo "  Using browser automation (no API restrictions)"
+
+    UPLOAD_OUTPUT=$(./venv/bin/python3 automation/tiktok_uploader_browser.py \
+        --video "$VIDEO_PATH" \
+        --title "$TITLE" \
+        --caption "$CAPTION" \
+        --privacy "$PRIVACY")
+
+elif [ "$METHOD" = "api" ]; then
+    # Official API method (requires sandbox setup)
+    echo "  Using official TikTok API"
+
+    UPLOAD_OUTPUT=$(./venv/bin/python3 automation/tiktok_uploader_api.py \
+        --video "$VIDEO_PATH" \
+        --title "$TITLE" \
+        --caption "$CAPTION" \
+        --privacy "$PRIVACY")
+else
+    echo "❌ Error: Unknown method '$METHOD'. Use 'browser' or 'api'."
+    exit 1
+fi
 
 echo "$UPLOAD_OUTPUT"
 

@@ -14,6 +14,7 @@ from pathlib import Path
 # Add agents directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent))
 from output_helper import get_output_path, ensure_output_dir
+from suno_lyrics_sync import SunoLyricsSync
 
 # Force unbuffered output
 sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', buffering=1)
@@ -221,46 +222,6 @@ def main():
     print(f"  Downloading audio from: {audio_url}")
     client.download_audio(audio_url, output_path)
 
-    # Trim audio to target duration (video duration + 5s outro for fade)
-    target_duration = config.get("video_settings", {}).get("duration", 60) + 5
-    print(f"  Trimming audio to {target_duration} seconds...")
-
-    # Use ffmpeg directly (Python 3.13 compatible)
-    try:
-        import subprocess
-        temp_output = output_path + ".trimmed.mp3"
-
-        # Use ffmpeg to trim audio
-        result = subprocess.run([
-            'ffmpeg', '-i', output_path,
-            '-t', str(target_duration),
-            '-c', 'copy',  # Copy codec for faster processing
-            '-y',  # Overwrite output file
-            temp_output
-        ], capture_output=True, text=True, timeout=30)
-
-        if result.returncode == 0:
-            # Get original duration
-            probe_result = subprocess.run([
-                'ffprobe', '-v', 'error',
-                '-show_entries', 'format=duration',
-                '-of', 'default=noprint_wrappers=1:nokey=1',
-                output_path
-            ], capture_output=True, text=True)
-
-            original_duration = float(probe_result.stdout.strip()) if probe_result.returncode == 0 else 0
-
-            # Replace original with trimmed
-            import shutil
-            shutil.move(temp_output, output_path)
-            print(f"  ✓ Trimmed from {original_duration:.1f}s to {target_duration}s")
-        else:
-            print(f"  ⚠️  ffmpeg trim failed: {result.stderr[:100]}")
-    except FileNotFoundError:
-        print(f"  ⚠️  ffmpeg not available, skipping trim (song will be full length)")
-    except Exception as e:
-        print(f"  ⚠️  Could not trim audio: {e}")
-
     print(f"✅ Music generation complete: {output_path}")
 
     # Save metadata
@@ -299,6 +260,25 @@ def main():
         suno_data['segments'] = first_audio.get('segments', [])
     if 'words' in first_audio:
         suno_data['words'] = first_audio.get('words', [])
+
+    # Fetch word-level timestamps from separate endpoint
+    print("  Fetching word-level timestamps from Suno API...")
+    try:
+        lyrics_sync = SunoLyricsSync(api_key=api_key)
+        aligned_data = lyrics_sync.fetch_aligned_lyrics(
+            task_id=task_id,
+            audio_id=first_audio.get('id')
+        )
+
+        # Add aligned lyrics to suno_data if successful
+        if aligned_data and 'alignedWords' in aligned_data:
+            suno_data['alignedWords'] = aligned_data['alignedWords']
+            print(f"  ✓ Got {len(aligned_data['alignedWords'])} aligned words from Suno")
+        else:
+            print("  ⚠️  No aligned words in Suno response, will use Hoot alignment as fallback")
+    except Exception as e:
+        print(f"  ⚠️  Failed to fetch Suno timestamps: {e}")
+        print("  Will use Hoot alignment as fallback")
 
     with open(suno_output_path, 'w') as f:
         json.dump(suno_data, f, indent=2)

@@ -76,6 +76,11 @@ def get_channel_id_by_handle(youtube, handle):
 
 def upload_video(youtube, video_path, title, description, category, privacy, channel_id=None):
     """Upload video to YouTube."""
+    # YouTube title limit is 100 characters
+    if len(title) > 100:
+        print(f"  ⚠️  Title too long ({len(title)} chars), truncating to 100...")
+        title = title[:97] + "..."
+
     body = {
         'snippet': {
             'title': title,

@@ -2,9 +2,19 @@
 
 This guide walks you through setting up TikTok uploads for the automated video pipeline.
 
+## Quick Start (Recommended: Browser Method)
+
+**Want to start uploading immediately without API approval?** Use the browser automation method:
+
+1. Extract your TikTok cookies (takes 2 minutes)
+2. Save to `config/tiktok_cookies.txt`
+3. Run `./upload_to_tiktok.sh --method=browser`
+
+See [Browser Upload Setup Guide](TIKTOK_BROWSER_SETUP.md) for detailed instructions.
+
 ## Overview
 
-The pipeline now supports uploading videos to both YouTube and TikTok simultaneously:
+The pipeline supports **two methods** for uploading to TikTok:
 - **Full video** (16:9, ~180s) → YouTube + TikTok
 - **Hook short** (9:16, ~30s) → YouTube Shorts + TikTok
 - **Educational short** (9:16, ~30s) → YouTube Shorts only
@@ -47,7 +57,29 @@ Videos are cross-linked across platforms in their descriptions.
 
    **Note**: The redirect URI must match exactly what you configured in the TikTok developer portal.
 
-## Step 3: Authenticate
+## Step 3: Configure for Sandbox Mode
+
+**IMPORTANT**: Since your app is in sandbox/development mode, you must:
+
+1. **Set your TikTok account to private**:
+   - Open TikTok mobile app
+   - Go to Settings → Privacy
+   - Toggle on "Private Account"
+
+2. **Add your account as a test user**:
+   - Go to https://developers.tiktok.com/apps
+   - Select your app → "Test Users"
+   - Add your TikTok account
+
+**Sandbox Limitations**:
+- Can only post to accounts registered as test users (max 10 accounts)
+- Videos must use `SELF_ONLY` privacy (private viewing only)
+- TikTok account must be set to private in the mobile app
+- Maximum 5 users can post in a 24-hour window
+
+To post publicly, you must submit your app for TikTok's review.
+
+## Step 4: Authenticate
 
 Run the authentication flow to obtain OAuth tokens:
 
@@ -62,7 +94,7 @@ This will:
 
 **Important**: You only need to do this once. Tokens are automatically refreshed when they expire.
 
-## Step 4: Configure Platform Settings
+## Step 5: Configure Platform Settings
 
 Edit `automation/config/automation_config.json` to enable TikTok uploads:
 
@@ -82,7 +114,7 @@ Edit `automation/config/automation_config.json` to enable TikTok uploads:
 - `mutual_follow_friends` - Friends only
 - `self_only` - Private (only you can see)
 
-## Step 5: Test Upload
+## Step 6: Test Upload
 
 Test the TikTok upload manually:
 

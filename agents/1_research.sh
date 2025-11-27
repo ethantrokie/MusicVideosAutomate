@@ -25,9 +25,11 @@ else
     TONE="educational and clear"
 fi
 
-# Clean up whitespace
-TOPIC=$(echo "$TOPIC" | xargs)
-TONE=$(echo "$TONE" | xargs)
+# Clean up whitespace (without using xargs which breaks with apostrophes)
+TOPIC="${TOPIC#"${TOPIC%%[![:space:]]*}"}"  # Remove leading whitespace
+TOPIC="${TOPIC%"${TOPIC##*[![:space:]]}"}"  # Remove trailing whitespace
+TONE="${TONE#"${TONE%%[![:space:]]*}"}"     # Remove leading whitespace
+TONE="${TONE%"${TONE##*[![:space:]]}"}"     # Remove trailing whitespace
 
 echo "  Topic: $TOPIC"
 echo "  Tone: $TONE"
