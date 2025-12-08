@@ -179,7 +179,7 @@ RULES:
 Respond with ONLY valid JSON, no markdown or explanation:"""
 
     result = subprocess.run(
-        ["claude", "-p", prompt, "--dangerously-skip-permissions"],
+        ["/Users/ethantrokie/.npm-global/bin/claude", "-p", prompt, "--model", "claude-sonnet-4-5", "--dangerously-skip-permissions"],
         capture_output=True,
         text=True,
         timeout=60

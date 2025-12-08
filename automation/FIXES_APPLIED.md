@@ -1,6 +1,93 @@
 # Fixes Applied After Initial Testing
 
+## ✅ FIXED: Video Format Swap Bug (2025-11-30)
+
+### Problem
+Videos were being created with swapped/incorrect durations:
+- `full.mp4` was shorter than expected (e.g., 89s instead of 149s)
+- `short_hook.mp4` was longer than expected (e.g., 138s instead of 60s)
+- `short_educational.mp4` had incorrect duration (e.g., 38s instead of 60s)
+
+### Root Cause
+The video assembly script (`agents/5_assemble_video.py`) creates a `synchronized_plan.json` file that consolidates the media plan into final shot timings. This file was being **cached and reused** across all three video builds (full, hook, educational).
+
+When `build_multiformat_videos.py` sequentially built the three videos:
+1. First video (full.mp4) created `synchronized_plan.json` with duration 138s
+2. Second video (short_hook.mp4) **reused** the same cached plan instead of regenerating
+3. Third video (short_educational.mp4) also reused the same cached plan
+
+This caused all videos to use the same incorrect consolidated plan, resulting in swapped/wrong durations.
+
+### Evidence
+- Investigation run: `outputs/runs/20251130_164406`
+- Only ONE `synchronized_plan.json` file created (timestamp 17:03)
+- File contents: `total_duration: 138.27`, `total_shots: 1`
+- `short_hook.mp4` duration: 138.1s (matches the cached plan!)
+- Expected durations from `segments.json`:
+  - full: 149.04s ✗ (got 89.1s)
+  - hook: 60.0s ✗ (got 138.1s)
+  - educational: 60s ✗ (got 38.0s)
+
+### Fix Applied
+Modified `agents/build_multiformat_videos.py:61-65` to delete `synchronized_plan.json` before each video build:
+
+```python
+# Delete cached synchronized_plan.json to force regeneration
+# This prevents the bug where all videos use the same cached plan
+sync_plan_path = output_dir / "synchronized_plan.json"
+if sync_plan_path.exists():
+    sync_plan_path.unlink()
+```
+
+This ensures each video format regenerates its own synchronized plan based on its specific media plan, preventing cross-contamination.
+
+### Verification
+To verify the fix works, run a new pipeline and check that each video has the correct duration matching its segment definition in `segments.json`.
+
+### Files Modified
+- `agents/build_multiformat_videos.py` (lines 61-65)
+
+---
+
+
 ## Issues Found and Fixed
+
+### ✅ FIXED: Field name mismatch in video assembly media lookup
+
+**Issue:** Daily automation pipeline failing with "No local media found" error during video assembly, causing complete pipeline failure.
+
+**Error Message:**
+```
+No local media found for https://www.pexels.com/video/flashing-lights-9255201/, skipping
+❌ Failed to build full video
+```
+
+**Root Cause:**
+Field name mismatch between data structure creation and lookup in `agents/5_assemble_video.py`:
+- When `available_media` list is created (lines 568-577), media items only have these fields: `"url"`, `"description"`, `"local_path"`, `"media_type"`
+- But the lookup code (lines 325, 357) tried to find items by `m.get("media_url")` which doesn't exist in the list
+- The field is actually called `"url"` not `"media_url"`
+
+**Fix Applied:**
+Changed field name in lookup from `"media_url"` to `"url"` on lines 325 and 357 in `agents/5_assemble_video.py`:
+
+```python
+# Before (line 325, 357):
+media = next((m for m in approved_media if m.get("media_url") == matched.get("video_url")), None)
+
+# After:
+media = next((m for m in approved_media if m.get("url") == matched.get("video_url")), None)
+```
+
+**Files Modified:**
+- `agents/5_assemble_video.py` (2 lines changed)
+
+**Verification:**
+- Tested on failed run `outputs/runs/20251128_162455`
+- Successfully matched media and created `synchronized_plan.json`
+- No more "No local media found" errors
+
+---
 
 ### ✅ FIXED: Incorrect video durations in multi-format builds
 
@@ -435,6 +522,43 @@ if approved_media_path.exists():
 
 ---
 
+### ✅ FIXED: Suno API rejecting music prompts with artist names
+
+**Issue:** Daily automation pipeline failed during music composition stage with:
+```
+{
+  "status": "SENSITIVE_WORD_ERROR",
+  "errorCode": 400,
+  "errorMessage": "Tags contained artist name: blink182"
+}
+Exception: Timeout after 300s
+```
+
+**Root Cause:**
+1. The lyrics agent generates a `music_prompt` field for Suno API containing style/genre descriptions
+2. When the topic tone is "rebellious" or similar, Claude naturally uses artist comparisons like "Blink-182 meets science class vibe" as shorthand for describing musical style
+3. Suno API blocks artist names in prompts to avoid copyright issues
+4. The lyricist prompt had "No copyrighted references" rule at line 94, but this only applied to lyrics, not the `music_prompt` field
+
+**Fix:** Added explicit artist name prohibition to music prompt guidelines in `agents/prompts/lyricist_prompt.md:47-50`:
+```markdown
+**CRITICAL: NO ARTIST NAMES**
+- Do NOT include any band names, artist names, or musician references (e.g., "Blink-182", "Beatles", "Taylor Swift")
+- Use only genre descriptors (e.g., "pop punk" not "Blink-182 style")
+- Describe instrumentation and mood directly instead of comparing to artists
+```
+
+Also updated the example music prompt to demonstrate the correct format without artist references.
+
+**Files affected:**
+- `agents/prompts/lyricist_prompt.md` (lines 47-50, 78) - Added NO ARTIST NAMES rule and updated example
+
+**Result:** Music prompts now use only genre descriptors and avoid artist name references that trigger Suno's content filter.
+
+**Date:** 2025-11-27
+
+---
+
 ## Commit History
 
 - `649ca59` - fix: save suno_output.json with word-level timestamps
@@ -445,3 +569,65 @@ if approved_media_path.exists():
 - `5bc881e` - fix: use venv python and improve topic generator prompting
 - `987143c` - docs: add comprehensive testing guide and optimization explanation
 - `9f78922` - feat: add comprehensive automation setup script
+
+## Fix #13: Segment Analyzer Configuration Error
+**Date**: 2025-11-29  
+**Component**: agents/analyze_segments.py  
+**Status**: FIXED
+
+### Problem
+Pipeline failing at Stage 4.5 (Segment Analysis) with error: `❌ Error: 'video_formats'`
+- KeyError when trying to access `config['video_formats']['shorts']['duration_range']`
+- This configuration key doesn't exist in config/config.json
+- Segment analysis is needed for multi-format video generation
+
+### Root Cause
+The code was trying to read duration settings from a non-existent config key:
+```python
+duration_range = config['video_formats']['shorts']['duration_range']
+min_dur, max_dur = duration_range
+```
+
+But config.json doesn't have a `video_formats` section.
+
+### Solution
+1. Removed dependency on non-existent config key
+2. Used hardcoded default values for segment duration (30-60 seconds)
+3. Fixed compatibility with both old and new Suno API formats:
+   - Old format: `words` array
+   - New format: `alignedWords` array with `startS`/`endS` fields
+
+### Changes Made
+
+**agents/analyze_segments.py:210-218**:
+- Removed config loading for video_formats
+- Set default duration range: `min_dur, max_dur = 30, 60`
+
+**agents/analyze_segments.py:15-33**:
+- Updated `load_lyrics()` to handle both Suno API formats
+- Automatically converts `alignedWords` to `words` format if needed
+
+### Verification
+```bash
+OUTPUT_DIR=outputs/runs/20251128_162455 ./venv/bin/python3 agents/analyze_segments.py
+```
+
+Output:
+```
+✅ Segments analyzed:
+  Full: 0-144.2s
+  Hook: 29.5-89.5s (60.0s)
+  Educational: 16.8-47.3s (30.5s)
+```
+
+Generated `segments.json` with:
+- Full video segment (entire song)
+- Hook segment (musical chorus, 30-60s)
+- Educational segment (key learning content, 30-60s)
+
+### Impact
+- Segment analysis now works correctly
+- Pipeline can proceed to multi-format video generation
+- Supports both old and new Suno API response formats
+- Daily pipeline should now complete successfully
+

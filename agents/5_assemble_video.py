@@ -103,12 +103,17 @@ def create_clip_from_shot(shot: dict, video_settings: dict):
             # Load video clip
             clip = VideoFileClip(local_path)
 
-            # Trim if needed
+            # Trim if clip is longer than needed
+            # If clip is shorter, loop it to fill the required duration
             if clip.duration > duration:
                 clip = clip.subclip(0, duration)
             elif clip.duration < duration:
-                # Loop if too short
-                clip = clip.loop(duration=duration)
+                # Loop the clip to fill the required duration
+                # This prevents the "frozen frame" issue where MoviePy freezes the last frame
+                loops_needed = int(duration / clip.duration) + 1
+                print(f"  🔄 Looping shot {shot['shot_number']}: {clip.duration:.2f}s → {duration:.2f}s ({loops_needed}x)")
+                clip = concatenate_videoclips([clip] * loops_needed).subclip(0, duration)
+
 
         # Resize to fit target resolution (letterbox/pillarbox instead of crop)
         # This preserves all content without cropping
@@ -263,7 +268,7 @@ def fetch_and_process_lyrics(music_metadata: dict, research_data: dict, sync_con
         return None, None
 
 
-def create_synchronized_plan(phrase_groups: List[Dict], approved_media: List[Dict], sync_config: dict) -> Dict:
+def create_synchronized_plan(phrase_groups: List[Dict], approved_media: List[Dict], sync_config: dict, target_audio_duration: float = None) -> Dict:
     """
     Create synchronized media plan using semantic matching with clip consolidation.
 
@@ -271,6 +276,7 @@ def create_synchronized_plan(phrase_groups: List[Dict], approved_media: List[Dic
         phrase_groups: Phrase groups from AI
         approved_media: Available media from curator
         sync_config: Sync configuration including clip consolidation settings
+        target_audio_duration: Target audio duration in seconds (optional, extends last shot if needed)
 
     Returns:
         Synchronized plan dict
@@ -322,7 +328,7 @@ def create_synchronized_plan(phrase_groups: List[Dict], approved_media: List[Dic
             matched = matched_groups[0]
 
             # Find media object
-            media = next((m for m in approved_media if m.get("media_url") == matched.get("video_url")), None)
+            media = next((m for m in approved_media if m.get("url") == matched.get("video_url")), None)
 
             if not media or "local_path" not in media:
                 logger.warning(f"No local media found for {matched.get('video_url', 'unknown')}, skipping")
@@ -354,7 +360,7 @@ def create_synchronized_plan(phrase_groups: List[Dict], approved_media: List[Dic
 
         shots = []
         for group in matched_groups:
-            media = next((m for m in approved_media if m.get("media_url") == group.get("video_url")), None)
+            media = next((m for m in approved_media if m.get("url") == group.get("video_url")), None)
 
             if not media or "local_path" not in media:
                 logger.warning(f"No local media found for {group.get('video_url', 'unknown')}, skipping")
@@ -384,6 +390,19 @@ def create_synchronized_plan(phrase_groups: List[Dict], approved_media: List[Dic
 
     total_duration = shots[-1]["end_time"] if shots else 0
 
+    # Extend last shot if it doesn't cover the full audio duration
+    if target_audio_duration and shots and total_duration < target_audio_duration:
+        gap = target_audio_duration - total_duration
+        logger.warning(f"⚠️  Phrase groups end at {total_duration:.1f}s, but audio is {target_audio_duration:.1f}s")
+        logger.warning(f"   Extending last shot by {gap:.1f}s to cover full audio duration")
+
+        # Extend the last shot to cover the gap
+        last_shot = shots[-1]
+        last_shot["end_time"] = target_audio_duration
+        last_shot["duration"] = last_shot["end_time"] - last_shot["start_time"]
+
+        total_duration = target_audio_duration
+
     plan = {
         "shot_list": shots,
         "total_duration": total_duration,
@@ -402,7 +421,7 @@ def create_synchronized_plan(phrase_groups: List[Dict], approved_media: List[Dic
     return plan
 
 
-def assemble_video(approved_data: dict, video_settings: dict, audio_path: str, audio_start: float = 0.0):
+def assemble_video(approved_data: dict, video_settings: dict, audio_path: str, audio_start: float = 0.0, audio_duration: float = None):
     """
     Assemble final video from approved media and audio.
 
@@ -411,6 +430,7 @@ def assemble_video(approved_data: dict, video_settings: dict, audio_path: str, a
         video_settings: Video config
         audio_path: Path to music file
         audio_start: Start time in seconds for audio slicing
+        audio_duration: Desired audio duration in seconds (if None, uses video duration)
 
     Returns:
         Path to final video
@@ -457,9 +477,18 @@ def assemble_video(approved_data: dict, video_settings: dict, audio_path: str, a
     if audio_start > 0:
         audio = audio.subclip(audio_start)
 
-    # Trim audio if longer than video
-    if audio.duration > final_video.duration:
-        audio = audio.subclip(0, final_video.duration)
+    # Determine target audio duration
+    target_duration = audio_duration if audio_duration is not None else final_video.duration
+
+    # Trim audio to target duration
+    if audio.duration > target_duration:
+        audio = audio.subclip(0, target_duration)
+        print(f"  Trimmed audio to {target_duration}s")
+
+    # Trim video to match audio duration (handles clips that run too long)
+    if final_video.duration > target_duration:
+        final_video = final_video.subclip(0, target_duration)
+        print(f"  Trimmed video to {target_duration}s (matches audio)")
 
     final_video = final_video.set_audio(audio)
 
@@ -508,6 +537,10 @@ def main():
                        type=float,
                        default=0.0,
                        help='Start time in seconds for audio slicing (default: 0.0)')
+    parser.add_argument('--audio-duration',
+                       type=float,
+                       default=None,
+                       help='Desired audio duration in seconds (default: None, uses video duration)')
     args = parser.parse_args()
 
     # Parse resolution
@@ -577,14 +610,14 @@ def main():
                         ]
 
                         synchronized_plan = create_synchronized_plan(
-                            phrase_groups, available_media, sync_config
+                            phrase_groups, available_media, sync_config, target_audio_duration=args.audio_duration
                         )
 
                         print(f"✅ Matched {len(synchronized_plan['shot_list'])} synchronized shots")
                         print("\n🎬 Assembling synchronized video...")
 
                         # Use synchronized plan instead of approved_data
-                        output_path = assemble_video(synchronized_plan, video_settings, str(audio_path), audio_start=args.audio_start)
+                        output_path = assemble_video(synchronized_plan, video_settings, str(audio_path), audio_start=args.audio_start, audio_duration=args.audio_duration)
 
                         print(f"\n✅ Synchronized video assembly complete!")
                         print(f"📹 Final video: {output_path}")
@@ -602,7 +635,7 @@ def main():
     print("\n🎬 Assembling video with curator's timing...")
     # Fallback to original assembly
     print("\n🎬 Assembling video with curator's timing...")
-    output_path = assemble_video(approved_data, video_settings, str(audio_path), audio_start=args.audio_start)
+    output_path = assemble_video(approved_data, video_settings, str(audio_path), audio_start=args.audio_start, audio_duration=args.audio_duration)
 
     print(f"\n✅ Video assembly complete!")
     print(f"📹 Final video: {output_path}")

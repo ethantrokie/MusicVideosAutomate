@@ -80,7 +80,7 @@ generate_metadata() {
 
     case $video_type in
         full)
-            TITLE="${topic} - Full Educational Song"
+            TITLE="${topic}"
             DESCRIPTION="Learn about ${topic} through music! Full version.
 
 Watch the Shorts versions:
@@ -91,7 +91,7 @@ ${hashtags}"
             VIDEO_FILE="full.mp4"
             ;;
         short_hook)
-            TITLE="${topic} 🎵 #Shorts"
+            TITLE="${topic} 🎵"
             DESCRIPTION="${topic}
 
 Watch the full version: [PLACEHOLDER_FULL]
@@ -100,7 +100,7 @@ ${hashtags}"
             VIDEO_FILE="short_hook.mp4"
             ;;
         short_educational)
-            TITLE="${topic} Explained 📚 #Shorts"
+            TITLE="${topic} Explained"
             DESCRIPTION="${topic} - Key concept explained!
 
 Watch the full version: [PLACEHOLDER_FULL]
@@ -110,7 +110,7 @@ ${hashtags}"
             ;;
         *)
             # Default fallback
-            TITLE="${topic} | Educational Video"
+            TITLE="${topic}"
             DESCRIPTION="Learn about ${topic}!
 
 ${hashtags}"
@@ -124,8 +124,23 @@ if [ -z "$RUN_DIR" ]; then
     RUN_DIR="outputs/current"
 fi
 
-# Get topic from idea.txt
-TOPIC=$(head -1 input/idea.txt | cut -d'.' -f1)
+# Try to get video_title from research.json first (preferred)
+RESEARCH_FILE="${RUN_DIR}/research.json"
+if [ -f "$RESEARCH_FILE" ]; then
+    TOPIC=$(python3 -c "import json; data=json.load(open('$RESEARCH_FILE')); print(data.get('video_title', ''))" 2>/dev/null)
+fi
+
+# Fallback to old method if video_title not available
+if [ -z "$TOPIC" ]; then
+    echo "  ⚠️  No video_title in research.json, falling back to idea.txt extraction"
+    RAW_TOPIC=$(head -1 input/idea.txt | cut -d'.' -f1)
+    # Extract core topic: Take first 3-6 words, capitalize properly
+    TOPIC=$(echo "$RAW_TOPIC" | sed -E 's/^Explain //' | awk '{for(i=1;i<=6 && i<=NF;i++) printf "%s ", $i}' | sed 's/ $//' | awk '{print toupper(substr($0,1,1)) substr($0,2)}')
+    # If topic is still too long (>65 chars), truncate to first 5 words
+    if [ ${#TOPIC} -gt 65 ]; then
+        TOPIC=$(echo "$RAW_TOPIC" | sed -E 's/^Explain //' | awk '{printf "%s %s %s %s %s", $1, $2, $3, $4, $5}' | awk '{print toupper(substr($0,1,1)) substr($0,2)}')
+    fi
+fi
 
 # Generate metadata based on video type
 generate_metadata "$VIDEO_TYPE" "$TOPIC"

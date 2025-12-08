@@ -263,7 +263,7 @@ def apply_pycaps_subtitles(video_path: Path, srt_path: Path, output_path: Path, 
     print(f"  ✅ Karaoke subtitles applied")
 
 
-def apply_ffmpeg_subtitles(video_path: Path, srt_path: Path, output_path: Path, config: Dict, subtitle_type: str = 'traditional') -> None:
+def apply_ffmpeg_subtitles(video_path: Path, srt_path: Path, output_path: Path, config: Dict, subtitle_type: str = 'traditional', is_short: bool = False) -> None:
     """Apply subtitles using FFmpeg."""
     subtitle_config = config['subtitle_settings'][subtitle_type]
     font = subtitle_config['font']
@@ -287,12 +287,45 @@ def apply_ffmpeg_subtitles(video_path: Path, srt_path: Path, output_path: Path, 
     if result.returncode != 0:
         raise Exception(f"FFmpeg SRT->ASS conversion failed: {result.stderr}")
 
+    # For shorts (9:16 vertical), calculate vertical margin to position subtitles ~25% from bottom
+    # We detect actual video height and calculate margin proportionally
+    margin_v = 0
+    if is_short:
+        # Get actual video dimensions using ffprobe
+        probe_cmd = [
+            'ffprobe', '-v', 'error',
+            '-select_streams', 'v:0',
+            '-show_entries', 'stream=height',
+            '-of', 'csv=p=0',
+            str(video_path)
+        ]
+        probe_result = subprocess.run(probe_cmd, capture_output=True, text=True)
+        if probe_result.returncode == 0:
+            try:
+                video_height = int(probe_result.stdout.strip())
+                # ASS uses PlayResY of 288 by default, so we need to scale the margin
+                # 25% of video height, scaled to ASS canvas
+                # For a 1920px video at 25% from bottom = 480px real margin
+                # Scaled to 288px canvas: 480 * (288/1920) = 72
+                ass_canvas_height = 288  # FFmpeg default
+                real_margin = int(video_height * 0.25)
+                margin_v = int(real_margin * (ass_canvas_height / video_height))
+                print(f"  Detected video height: {video_height}px")
+                print(f"  Applying vertical margin for shorts: {margin_v}px in ASS canvas (25% from bottom)")
+            except ValueError:
+                print(f"  ⚠️  Could not detect video height, using default margin")
+                margin_v = 72  # Fallback: 25% of 288
+        else:
+            margin_v = 72  # Fallback
+
     # Burn ASS subtitles into video
-    # Note: force_style doesn't work in newer FFmpeg, use subtitles filter instead
+    # Note: force_style overrides the style defined in the ASS file
+    # Explicitly set Alignment=2 (Bottom Center) to ensure MarginV is from bottom
+    style = f"FontName={font},FontSize={font_size},PrimaryColour=&HFFFFFF&,OutlineColour=&H000000&,Outline=3,Shadow=2,Alignment=2,MarginV={margin_v}"
     cmd_burn = [
         'ffmpeg', '-y',
         '-i', str(video_path),
-        '-vf', f"subtitles={ass_path}:force_style='FontName={font},FontSize={font_size},PrimaryColour=&HFFFFFF&,OutlineColour=&H000000&,Outline=3,Shadow=2'",
+        '-vf', f"subtitles={ass_path}:force_style='{style}'",
         '-c:v', 'libx264',
         '-c:a', 'copy',
         str(output_path)
@@ -301,6 +334,7 @@ def apply_ffmpeg_subtitles(video_path: Path, srt_path: Path, output_path: Path, 
     result = subprocess.run(cmd_burn, capture_output=True, text=True)
     if result.returncode != 0:
         raise Exception(f"FFmpeg subtitle burn failed: {result.stderr}")
+
 
     print(f"  ✅ Traditional subtitles burned")
 
@@ -373,17 +407,21 @@ def main():
     video_file = output_dir / f"{args.video}.mp4"
     output_file = output_dir / f"{args.video}_subtitled.mp4"
 
+    # Detect if this is a short video (9:16 vertical format)
+    is_short = args.video in ['short_hook', 'short_educational']
+
     if args.engine == 'pycaps':
         # Check if css_template is configured for pycaps
         karaoke_config = config.get('subtitle_settings', {}).get('karaoke', {})
-        if 'css_template' in karaoke_config:
-            css_template = Path(karaoke_config['css_template'])
+        css_template_path = karaoke_config.get('css_template', '').strip()
+        if css_template_path:
+            css_template = Path(css_template_path)
             apply_pycaps_subtitles(video_file, srt_file, output_file, css_template)
         else:
             print("  ⚠️  pycaps requested but css_template not configured, falling back to ffmpeg")
-            apply_ffmpeg_subtitles(video_file, srt_file, output_file, config, args.type)
+            apply_ffmpeg_subtitles(video_file, srt_file, output_file, config, args.type, is_short)
     else:
-        apply_ffmpeg_subtitles(video_file, srt_file, output_file, config, args.type)
+        apply_ffmpeg_subtitles(video_file, srt_file, output_file, config, args.type, is_short)
 
     # Replace original with subtitled version
     video_file.unlink()

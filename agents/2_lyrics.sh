@@ -8,14 +8,14 @@ OUTPUT_DIR="${OUTPUT_DIR:-outputs}"
 echo "🎵 Lyrics Agent: Generating song lyrics..."
 
 # Check for research output
-if [ ! -f "${OUTPUT_DIR}/research.json" ]; then
-    echo "❌ Error: ${OUTPUT_DIR}/research.json not found"
-    echo "Run research agent first: ./agents/1_research.sh"
+if [ ! -f "${OUTPUT_DIR}/research_pruned_for_lyrics.json" ]; then
+    echo "❌ Error: ${OUTPUT_DIR}/research_pruned_for_lyrics.json not found"
+    echo "Run context pruner first"
     exit 1
 fi
 
 # Read research data
-RESEARCH=$(cat ${OUTPUT_DIR}/research.json)
+RESEARCH=$(cat ${OUTPUT_DIR}/research_pruned_for_lyrics.json)
 TONE=$(python3 -c "import json; print(json.load(open('${OUTPUT_DIR}/research.json'))['tone'])")
 
 echo "  Tone: $TONE"
@@ -33,7 +33,7 @@ echo '```' >> "$TEMP_PROMPT"
 
 # Call Claude Code CLI - it will write directly to outputs/lyrics.json
 echo "  Calling Claude Code for lyrics..."
-claude -p "$(cat $TEMP_PROMPT)" --dangerously-skip-permissions > /dev/null 2>&1
+/Users/ethantrokie/.npm-global/bin/claude -p "$(cat $TEMP_PROMPT)" --model claude-sonnet-4-5 --dangerously-skip-permissions
 
 # Clean up temp prompt
 rm "$TEMP_PROMPT"

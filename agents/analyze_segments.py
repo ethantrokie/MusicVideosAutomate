@@ -16,7 +16,21 @@ def load_lyrics() -> Dict:
     """Load Suno lyrics with word-level timestamps."""
     lyrics_file = Path(f"{os.environ['OUTPUT_DIR']}/suno_output.json")
     with open(lyrics_file) as f:
-        return json.load(f)
+        data = json.load(f)
+
+    # Handle both old and new Suno API formats
+    if 'alignedWords' in data:
+        # New format: convert alignedWords to words
+        words = []
+        for word_data in data['alignedWords']:
+            words.append({
+                'word': word_data['word'],
+                'start': word_data['startS'],
+                'end': word_data['endS']
+            })
+        data['words'] = words
+
+    return data
 
 
 def detect_musical_hook(lyrics: Dict, min_duration: float = 30, max_duration: float = 60) -> Dict:
@@ -103,12 +117,12 @@ def detect_musical_hook(lyrics: Dict, min_duration: float = 30, max_duration: fl
             'rationale': f'First chorus repetition: "{chorus_text[:50]}..."'
         }
 
-    # Fallback: Use seconds 30-90 (typical hook placement)
+    # Fallback: Use seconds 30+ with max_duration constraint (typically 30s for shorts)
     fallback_start = 30
-    fallback_end = min(90, words[-1]['end'])
+    fallback_end = min(fallback_start + max_duration, words[-1]['end'])
     fallback_duration = fallback_end - fallback_start
 
-    # Adjust to min duration
+    # Adjust to min duration if needed
     if fallback_duration < min_duration:
         fallback_end = min(fallback_start + max_duration, words[-1]['end'])
 
@@ -152,7 +166,7 @@ CRITICAL: Respond with ONLY the JSON object, no markdown, no explanation."""
 
     try:
         result = subprocess.run(
-            ['claude', '-p', prompt, '--dangerously-skip-permissions'],
+            ['claude', '-p', prompt, '--model', 'claude-haiku-4-5', '--dangerously-skip-permissions'],
             capture_output=True,
             text=True,
             timeout=60
@@ -207,10 +221,6 @@ def main():
     """Main execution."""
     print("🎯 Analyzing song segments...")
 
-    # Load config
-    with open('config/config.json') as f:
-        config = json.load(f)
-
     # Load lyrics
     lyrics = load_lyrics()
 
@@ -218,9 +228,8 @@ def main():
     topic_file = Path('input/idea.txt')
     topic = topic_file.read_text().strip().split('.')[0]
 
-    # Get duration range from config
-    duration_range = config['video_formats']['shorts']['duration_range']
-    min_dur, max_dur = duration_range
+    # Use duration from config for shorts (30 seconds)
+    min_dur, max_dur = 30, 30
 
     # Analyze segments
     print("  Detecting musical hook...")

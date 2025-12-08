@@ -65,6 +65,98 @@ def is_slideshow_gif(file_path: str, fps_threshold: float = 10.0) -> bool:
         return False
 
 
+def get_media_duration(file_path: str) -> float:
+    """
+    Get duration of media file in seconds using ffprobe.
+
+    Returns:
+        float: Duration in seconds, or 0.0 if unable to determine
+    """
+    import subprocess
+
+    try:
+        result = subprocess.run([
+            'ffprobe', '-v', 'error',
+            '-show_entries', 'format=duration',
+            '-of', 'default=noprint_wrappers=1:nokey=1',
+            file_path
+        ], capture_output=True, text=True, timeout=10)
+
+        if result.returncode == 0:
+            return float(result.stdout.strip())
+    except Exception:
+        pass
+
+    return 0.0
+
+
+def validate_clip_durations(shots: list, downloaded: list, target_duration: float) -> None:
+    """
+    Validate that downloaded clips have sufficient total duration.
+
+    Args:
+        shots: Original shot list from media_plan.json
+        downloaded: List of successfully downloaded files
+        target_duration: Target video duration in seconds
+    """
+    print(f"\n🔍 Validating clip durations...")
+
+    # Build mapping from shot_number to required duration
+    shot_durations = {}
+    for shot in shots:
+        shot_durations[shot["shot_number"]] = shot.get("duration", 0)
+
+    # Check actual durations of downloaded files
+    actual_durations = {}
+    total_actual = 0.0
+    total_required = 0.0
+    insufficient_clips = []
+
+    for item in downloaded:
+        shot_num = item["shot_number"]
+        file_path = item["local_path"]
+        required_duration = shot_durations.get(shot_num, 0)
+
+        # Get actual duration
+        actual_duration = get_media_duration(file_path)
+        actual_durations[shot_num] = actual_duration
+
+        total_actual += actual_duration
+        total_required += required_duration
+
+        # Track clips that are shorter than required
+        if actual_duration < required_duration:
+            shortage = required_duration - actual_duration
+            insufficient_clips.append({
+                "shot_number": shot_num,
+                "required": required_duration,
+                "actual": actual_duration,
+                "shortage": shortage
+            })
+
+    # Summary
+    print(f"  Total required duration: {total_required:.2f}s")
+    print(f"  Total actual duration: {total_actual:.2f}s")
+    print(f"  Target video duration: {target_duration:.2f}s")
+
+    if insufficient_clips:
+        print(f"\n  ⚠️  Warning: {len(insufficient_clips)} clips are shorter than required:")
+        for clip in insufficient_clips:
+            print(f"    - Shot {clip['shot_number']}: needs {clip['required']:.2f}s, got {clip['actual']:.2f}s (short by {clip['shortage']:.2f}s)")
+        print(f"\n  Note: Video assembly will handle shortages by trimming final video to audio length")
+
+    # Check if we have enough total duration
+    if total_actual < target_duration:
+        shortage = target_duration - total_actual
+        print(f"\n  ⚠️  WARNING: Total clip duration ({total_actual:.2f}s) is less than target ({target_duration:.2f}s)")
+        print(f"    Shortage: {shortage:.2f}s")
+        print(f"    The final video may end prematurely or show black frames")
+        print(f"    Consider downloading more media or using longer clips")
+    else:
+        surplus = total_actual - target_duration
+        print(f"  ✅ Sufficient clip duration (surplus: {surplus:.2f}s)")
+
+
 def download_file(url: str, output_path: str, max_retries: int = 3) -> bool:
     """
     Download file with retry logic.
@@ -199,6 +291,10 @@ def main():
         print(f"❌ Failed: {len(failed)}")
         for f in failed:
             print(f"  - Shot {f['shot_number']}: {f['url']}")
+
+    # Validate clip durations against requirements
+    target_duration = data.get("total_duration", 60)  # Default to 60s if not specified
+    validate_clip_durations(shots, downloaded, target_duration)
 
 
 if __name__ == "__main__":

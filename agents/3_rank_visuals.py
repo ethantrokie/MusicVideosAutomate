@@ -8,8 +8,9 @@ import os
 import sys
 import json
 import logging
+import hashlib
 from pathlib import Path
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Optional
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import numpy as np
@@ -26,25 +27,48 @@ from output_helper import get_output_path, ensure_output_dir
 class VisualRanker:
     """Ranks videos by visual diversity using CLIP embeddings and MMR."""
 
-    def __init__(self, model_name: str = 'clip-ViT-B-32', lambda_param: float = 0.7):
+    def __init__(self, model_name: str = 'clip-ViT-B-32', lambda_param: float = 0.7, cache_dir: Optional[Path] = None):
         """
         Initialize the visual ranker.
 
         Args:
             model_name: CLIP model to use
             lambda_param: MMR balance (0-1). Higher = prioritize relevance over diversity
+            cache_dir: Directory to cache downloaded thumbnails (optional)
         """
         self.logger = logging.getLogger(__name__)
         self.model = SentenceTransformer(model_name)
         self.lambda_param = lambda_param
+        self.cache_dir = cache_dir
+
+        # Create cache directory if specified
+        if self.cache_dir:
+            self.cache_dir.mkdir(parents=True, exist_ok=True)
 
     def cosine_similarity(self, a: np.ndarray, b: np.ndarray) -> float:
         """Calculate cosine similarity between two vectors."""
         return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
 
+    def _get_cache_path(self, url: str) -> Optional[Path]:
+        """
+        Get the cache file path for a thumbnail URL.
+
+        Args:
+            url: Thumbnail URL
+
+        Returns:
+            Path to cached file or None if caching disabled
+        """
+        if not self.cache_dir:
+            return None
+
+        # Create a hash of the URL for the filename
+        url_hash = hashlib.md5(url.encode()).hexdigest()
+        return self.cache_dir / f"{url_hash}.jpg"
+
     def _download_thumbnail(self, url: str, timeout: int = 10) -> Image.Image:
         """
-        Download thumbnail from URL.
+        Download thumbnail from URL (with caching support).
 
         Args:
             url: Thumbnail URL
@@ -53,10 +77,30 @@ class VisualRanker:
         Returns:
             PIL Image or None if failed
         """
+        # Check cache first
+        cache_path = self._get_cache_path(url)
+        if cache_path and cache_path.exists():
+            try:
+                return Image.open(cache_path).convert('RGB')
+            except Exception as e:
+                self.logger.warning(f"Failed to load cached thumbnail: {e}")
+                # If cache is corrupted, delete it and re-download
+                cache_path.unlink(missing_ok=True)
+
+        # Download thumbnail
         try:
             response = requests.get(url, timeout=timeout)
             if response.status_code == 200:
-                return Image.open(BytesIO(response.content)).convert('RGB')
+                image = Image.open(BytesIO(response.content)).convert('RGB')
+
+                # Save to cache if enabled
+                if cache_path:
+                    try:
+                        image.save(cache_path, 'JPEG', quality=85)
+                    except Exception as e:
+                        self.logger.warning(f"Failed to cache thumbnail: {e}")
+
+                return image
         except Exception as e:
             self.logger.warning(f"Failed to download thumbnail from {url}: {e}")
         return None
@@ -264,8 +308,11 @@ def main():
     enriched_media = resolver.enrich_with_thumbnails(media_suggestions)
     research_data['media_suggestions'] = enriched_media
 
-    # Initialize ranker
-    ranker = VisualRanker(lambda_param=0.7)
+    # Set up thumbnail cache directory
+    cache_dir = ensure_output_dir('thumbnails')
+
+    # Initialize ranker with caching enabled
+    ranker = VisualRanker(lambda_param=0.7, cache_dir=cache_dir)
 
     # Rank media
     ranked_media = ranker.rank_media(research_data)

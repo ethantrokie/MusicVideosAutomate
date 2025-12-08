@@ -36,6 +36,7 @@ class PhraseGrouper:
         if not aligned_words:
             return []
 
+        # Primary: Gap-based detection
         phrases = []
         current_phrase = []
 
@@ -55,6 +56,22 @@ class PhraseGrouper:
                 # Last word - end phrase
                 phrases.append(self._build_phrase(current_phrase))
 
+        # Defensive Fallback #1: Punctuation-based splitting if < 3 phrase groups
+        if len(phrases) < 3:
+            self.logger.warning(f"Gap-based detection produced only {len(phrases)} phrase groups. Trying punctuation-based splitting...")
+            phrases = self._split_by_punctuation(aligned_words)
+
+        # Defensive Fallback #2: Structural marker splitting if still < 3 groups
+        if len(phrases) < 3:
+            self.logger.warning(f"Punctuation-based detection produced only {len(phrases)} phrase groups. Trying structural marker splitting...")
+            phrases = self._split_by_structural_markers(aligned_words)
+
+        # Log which method was used
+        if len(phrases) >= 3:
+            self.logger.info(f"Successfully created {len(phrases)} phrase groups")
+        else:
+            self.logger.warning(f"All fallback methods exhausted. Created {len(phrases)} phrase groups")
+
         return phrases
 
     def _build_phrase(self, words: List[Dict]) -> Dict:
@@ -65,6 +82,59 @@ class PhraseGrouper:
             "startS": words[0]["startS"],
             "endS": words[-1]["endS"]
         }
+
+    def _split_by_punctuation(self, aligned_words: List[Dict]) -> List[Dict]:
+        """Split phrases based on punctuation marks."""
+        if not aligned_words:
+            return []
+
+        phrases = []
+        current_phrase = []
+
+        for i, word in enumerate(aligned_words):
+            current_phrase.append(word)
+
+            # Check if word ends with sentence-ending punctuation
+            word_text = word["word"].rstrip()
+            if word_text.endswith(('.', '!', '?', ',')) or i == len(aligned_words) - 1:
+                if current_phrase:
+                    phrases.append(self._build_phrase(current_phrase))
+                    current_phrase = []
+
+        # Handle remaining words if any
+        if current_phrase:
+            phrases.append(self._build_phrase(current_phrase))
+
+        return phrases
+
+    def _split_by_structural_markers(self, aligned_words: List[Dict]) -> List[Dict]:
+        """Split phrases based on structural markers like [Verse], [Chorus], [Bridge]."""
+        if not aligned_words:
+            return []
+
+        phrases = []
+        current_phrase = []
+
+        structural_markers = ['[Verse', '[Chorus', '[Bridge', '[Pre-Chorus', '[Outro', '[Intro']
+
+        for i, word in enumerate(aligned_words):
+            word_text = word["word"].strip()
+
+            # Check if this word starts a new structural section
+            is_marker = any(word_text.startswith(marker) for marker in structural_markers)
+
+            if is_marker and current_phrase:
+                # Save current phrase before starting new section
+                phrases.append(self._build_phrase(current_phrase))
+                current_phrase = [word]
+            else:
+                current_phrase.append(word)
+
+            # End phrase at last word
+            if i == len(aligned_words) - 1 and current_phrase:
+                phrases.append(self._build_phrase(current_phrase))
+
+        return phrases
 
     def extract_key_terms(self, lyrics: str, key_facts: List[str]) -> List[str]:
         """
@@ -98,7 +168,7 @@ Example: ["chlorophyll", "atp synthase", "electron transport", "photosynthesis"]
         try:
             # Call Claude Code CLI
             result = subprocess.run(
-                ["claude", "-p", prompt, "--dangerously-skip-permissions"],
+                ["claude", "-p", prompt, "--model", "claude-haiku-4-5", "--dangerously-skip-permissions"],
                 capture_output=True,
                 text=True,
                 timeout=30
@@ -167,7 +237,7 @@ Return JSON array of groups:
         try:
             # Call Claude Code CLI
             result = subprocess.run(
-                ["claude", "-p", prompt, "--dangerously-skip-permissions"],
+                ["claude", "-p", prompt, "--model", "claude-haiku-4-5", "--dangerously-skip-permissions"],
                 capture_output=True,
                 text=True,
                 timeout=60

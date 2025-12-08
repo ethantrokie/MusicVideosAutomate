@@ -76,7 +76,7 @@ def create_dummy_assets(output_dir: Path):
     with open(output_dir / "approved_media.json", "w") as f:
         json.dump(approved_media, f)
         
-    # Create config
+    # Create test config (using test-specific path to avoid overwriting production config)
     config = {
         "video_settings": {
             "fps": 24,
@@ -86,9 +86,10 @@ def create_dummy_assets(output_dir: Path):
             "enabled": False
         }
     }
-    
-    os.makedirs("config", exist_ok=True)
-    with open("config/config.json", "w") as f:
+
+    test_config_dir = output_dir / "config"
+    test_config_dir.mkdir(exist_ok=True)
+    with open(test_config_dir / "config.json", "w") as f:
         json.dump(config, f)
 
 def test_assembly_with_start_time():

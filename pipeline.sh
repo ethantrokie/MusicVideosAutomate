@@ -164,6 +164,8 @@ if [ $START_STAGE -le 3 ]; then
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo -e "${BLUE}Stage 3/6: Lyrics Generation${NC}"
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo "✂️ Pruning context for lyricist..."
+    python3 agents/context_pruner.py lyricist
     ./agents/2_lyrics.sh
     if [ $? -ne 0 ]; then
         echo -e "${RED}❌ Lyrics generation failed${NC}"
@@ -226,6 +228,8 @@ if [ $START_STAGE -le 5 ]; then
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo -e "${BLUE}Stage 5/6: Media Curation${NC}"
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo "✂️ Pruning context for curator..."
+    python3 agents/context_pruner.py curator
     ./agents/4_curate_media.sh
     if [ $? -ne 0 ]; then
         echo -e "${RED}❌ Media curation failed${NC}"
@@ -371,7 +375,7 @@ EOF
 
                 # Run gap-filling research
                 echo "  Finding media for $TARGET_COUNT missing concepts..."
-                claude -p "$(cat $TEMP_GAP_PROMPT)" --dangerously-skip-permissions > /dev/null 2>&1
+                claude -p "$(cat $TEMP_GAP_PROMPT)" --model claude-sonnet-4-5 --dangerously-skip-permissions
 
                 rm "$TEMP_GAP_PROMPT"
 
@@ -590,6 +594,17 @@ if [ $START_STAGE -le 8 ]; then
                 fi
             fi
 
+            # Upload educational short to TikTok
+            if [ -f "${RUN_DIR}/short_educational.mp4" ]; then
+                echo "  Uploading educational short to TikTok..."
+                if ./upload_to_tiktok.sh --run="${RUN_TIMESTAMP}" --type=short_educational --privacy="${TIKTOK_PRIVACY}"; then
+                    TIKTOK_EDU_ID=$(cat "${RUN_DIR}/tiktok_video_id_short_educational.txt" 2>/dev/null || echo "")
+                    echo "    ✅ TikTok educational short uploaded"
+                else
+                    echo -e "    ${YELLOW}⚠️  TikTok educational short upload failed (non-fatal)${NC}"
+                fi
+            fi
+
             echo "✅ TikTok uploads complete"
         else
             echo "⏭️  TikTok uploads disabled in config"
@@ -647,7 +662,7 @@ echo ""
 # Show upload results if available
 if [ -f "${RUN_DIR}/upload_results.json" ]; then
     echo -e "${GREEN}🔗 YouTube URLs:${NC}"
-    python3 -c "import json; r=json.load(open('${RUN_DIR}/upload_results.json')); print(f\"  Full: {r['full_video']['url']}\"); print(f\"  Hook: {r['hook_short']['url']}\"); print(f\"  Educational: {r['educational_short']['url']}\")"
+    python3 -c "import json; r=json.load(open('${RUN_DIR}/upload_results.json')); print(f\"  Full: {r['youtube']['full_video']['url']}\"); print(f\"  Hook: {r['youtube']['hook_short']['url']}\"); print(f\"  Educational: {r['youtube']['educational_short']['url']}\")"
     echo ""
 fi
 

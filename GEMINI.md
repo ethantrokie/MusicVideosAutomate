@@ -24,14 +24,16 @@ The project follows a pipeline architecture, where each stage produces artifacts
 
 1.  **Research**: Gathers facts and royalty-free media related to the input idea.
 2.  **Visual Ranking**: Analyzes the curated media for visual diversity using CLIP.
-3.  **Lyrics Generation**: Creates lyrics based on the research.
-4.  **Music Composition**: Generates music using the Suno API.
-5.  **Segment Analysis**: Analyzes the song to identify the best segments for short-form videos.
-6.  **Media Curation**: Selects and downloads the most relevant media for each shot.
-7.  **Video Assembly**: Assembles the video, combining the media, music, and lyrics.
-8.  **Subtitle Generation**: Adds subtitles to the videos.
-9.  **YouTube Upload**: Uploads the final videos to YouTube.
-10. **Cross-Linking**: Adds links to the video descriptions to connect the different formats.
+3.  **Context Pruning (for Lyricist)**: A smaller version of the research data, containing only the `key_facts`, is created to reduce token usage.
+4.  **Lyrics Generation**: Creates lyrics based on the pruned research data.
+5.  **Music Composition**: Generates music using the Suno API.
+6.  **Segment Analysis**: Analyzes the song to identify the best segments for short-form videos.
+7.  **Context Pruning (for Curator)**: A smaller version of the research data, containing only the `media_suggestions`, is created.
+8.  **Media Curation**: Selects and downloads the most relevant media for each shot.
+9.  **Video Assembly**: Assembles the video, combining the media, music, and lyrics.
+10. **Subtitle Generation**: Adds subtitles to the videos.
+11. **YouTube Upload**: Uploads the final videos to YouTube.
+12. **Cross-Linking**: Adds links to the video descriptions to connect the different formats.
 
 ## Building and Running
 

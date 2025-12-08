@@ -40,7 +40,7 @@ sed "s/{{TOPIC}}/$TOPIC/g; s/{{TONE}}/$TONE/g; s|outputs/research.json|${OUTPUT_
 
 # Call Claude Code CLI - it will write directly to the timestamped research.json
 echo "  Calling Claude Code for research..."
-claude -p "$(cat $TEMP_PROMPT)" --dangerously-skip-permissions > /dev/null 2>&1
+/Users/ethantrokie/.npm-global/bin/claude -p "$(cat $TEMP_PROMPT)" --model claude-sonnet-4-5 --dangerously-skip-permissions
 
 # Clean up temp prompt
 rm "$TEMP_PROMPT"

@@ -102,6 +102,15 @@ View full video on YouTube @learningsciencemusic
 ${hashtags}"
             VIDEO_FILE="short_hook.mp4"
             ;;
+        short_educational)
+            TITLE="${topic} Explained"
+            CAPTION="${topic} - Key concept explained!
+
+Watch the full version on YouTube @learningsciencemusic
+
+${hashtags}"
+            VIDEO_FILE="short_educational.mp4"
+            ;;
         *)
             # Default fallback
             TITLE="${topic} | Educational Video"
@@ -118,8 +127,17 @@ if [ -z "$RUN_DIR" ]; then
     RUN_DIR="outputs/current"
 fi
 
-# Get topic from idea.txt
-TOPIC=$(head -1 input/idea.txt | cut -d'.' -f1)
+# Try to get video_title from research.json first (preferred)
+RESEARCH_FILE="${RUN_DIR}/research.json"
+if [ -f "$RESEARCH_FILE" ]; then
+    TOPIC=$(python3 -c "import json; data=json.load(open('$RESEARCH_FILE')); print(data.get('video_title', ''))" 2>/dev/null)
+fi
+
+# Fallback to old method if video_title not available
+if [ -z "$TOPIC" ]; then
+    echo "  ⚠️  No video_title in research.json, falling back to idea.txt extraction"
+    TOPIC=$(head -1 input/idea.txt | cut -d'.' -f1)
+fi
 
 # Generate metadata based on video type
 generate_metadata "$VIDEO_TYPE" "$TOPIC"

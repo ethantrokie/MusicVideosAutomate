@@ -33,13 +33,14 @@ class SunoAPIClient:
             "Content-Type": "application/json"
         }
 
-    def generate_music(self, lyrics: str, prompt: str, duration: int = 35) -> dict:
+    def generate_music(self, lyrics: str, prompt: str, title: str = "Educational Song", duration: int = 35) -> dict:
         """
         Generate music using Suno API.
 
         Args:
             lyrics: Song lyrics (max 5000 chars for V5, 3000 chars for V3.5/V4)
             prompt: Style/genre description (max 1000 chars for V5, 200 chars for V3.5/V4)
+            title: Song title
             duration: Target duration in seconds (ignored, for backwards compatibility)
 
         Returns:
@@ -66,7 +67,7 @@ class SunoAPIClient:
             "instrumental": False,
             "prompt": lyrics,  # Lyrics go in prompt field
             "style": prompt,   # Music style/genre description
-            "title": "Educational Song",
+            "title": title,
             "model": self.model,
             "callBackUrl": "https://example.com/webhook"  # Placeholder URL for polling
         }
@@ -185,13 +186,26 @@ def main():
         model=config["suno_api"].get("model", "V5")
     )
 
+    # Load topic from input/idea.txt for title generation
+    topic_file = Path('input/idea.txt')
+    if topic_file.exists():
+        topic = topic_file.read_text().strip().split('.')[0]
+        # Suno API has 80 character limit for titles
+        title = topic[:77] + "..." if len(topic) > 80 else topic
+        if not title:
+            title = "Educational Song"
+    else:
+        title = "Educational Song"
+
     # Generate music
     print(f"  Lyrics: {len(lyrics_data['lyrics'])} characters")
     print(f"  Prompt: {lyrics_data['music_prompt']}")
+    print(f"  Title: {title}")
 
     result = client.generate_music(
         lyrics=lyrics_data['lyrics'],
         prompt=lyrics_data['music_prompt'],
+        title=title,
         duration=lyrics_data['estimated_duration_seconds']
     )
 

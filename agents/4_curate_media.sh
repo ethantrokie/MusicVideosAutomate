@@ -23,8 +23,8 @@ done
 echo "🎨 Media Curator Agent: Selecting visuals..."
 
 # Check for required inputs
-if [ ! -f "${OUTPUT_DIR}/research.json" ]; then
-    echo "❌ Error: ${OUTPUT_DIR}/research.json not found"
+if [ ! -f "${OUTPUT_DIR}/research_pruned_for_curator.json" ]; then
+    echo "❌ Error: ${OUTPUT_DIR}/research_pruned_for_curator.json not found"
     exit 1
 fi
 
@@ -34,7 +34,7 @@ if [ ! -f "${OUTPUT_DIR}/lyrics.json" ]; then
 fi
 
 # Read data
-RESEARCH=$(cat ${OUTPUT_DIR}/research.json)
+RESEARCH=$(cat ${OUTPUT_DIR}/research_pruned_for_curator.json)
 LYRICS=$(cat ${OUTPUT_DIR}/lyrics.json)
 
 # Check for visual rankings (optional)
@@ -72,7 +72,7 @@ fi
 
 # Call Claude Code CLI - it will write directly to outputs/media_plan.json
 echo "  Calling Claude Code for media curation..."
-claude -p "$(cat $TEMP_PROMPT)" --dangerously-skip-permissions > /dev/null 2>&1
+/Users/ethantrokie/.npm-global/bin/claude -p "$(cat $TEMP_PROMPT)" --model claude-sonnet-4-5 --dangerously-skip-permissions
 
 # Clean up temp prompt
 rm "$TEMP_PROMPT"
@@ -101,4 +101,4 @@ print(f\"  Pacing: {data['pacing']}\")
 
 # Download media
 echo ""
-python3 agents/download_media.py
+./venv/bin/python3 agents/download_media.py

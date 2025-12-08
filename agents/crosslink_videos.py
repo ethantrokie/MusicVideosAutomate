@@ -58,8 +58,18 @@ def main(full_id: str, hook_id: str, edu_id: str, tiktok_full_id: str = None, ti
     hook_url = f"https://youtube.com/shorts/{hook_id}"
     edu_url = f"https://youtube.com/shorts/{edu_id}"
 
-    # Load topic
-    topic = Path('input/idea.txt').read_text().strip().split('.')[0]
+    # Load topic from research.json (preferred) or fallback to idea.txt
+    output_dir = Path(os.environ.get('OUTPUT_DIR', 'outputs/current'))
+    research_path = output_dir / 'research.json'
+    topic = ''  # Initialize
+    if research_path.exists():
+        with open(research_path) as f:
+            research = json.load(f)
+            topic = research.get('video_title', '')
+    
+    # Fallback to old method if video_title not available
+    if not topic:
+        topic = Path('input/idea.txt').read_text().strip().split('.')[0]
 
     # Build TikTok URLs if IDs provided
     tiktok_full_url = None

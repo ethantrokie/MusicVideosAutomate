@@ -13,6 +13,7 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
+from google.auth.exceptions import RefreshError
 
 
 SCOPES = [
@@ -32,7 +33,38 @@ def get_authenticated_service():
 
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
+            try:
+                creds.refresh(Request())
+            except RefreshError as e:
+                # Token has been revoked or expired, need to re-authenticate
+                # Check if running in automated mode (no terminal)
+                import sys
+                if not sys.stdin.isatty():
+                    # Automated mode - cannot re-authenticate
+                    print("=" * 80)
+                    print("❌ YOUTUBE OAUTH TOKEN EXPIRED OR REVOKED")
+                    print("=" * 80)
+                    print("The automated pipeline cannot re-authenticate without manual intervention.")
+                    print("The refresh token has expired and requires interactive browser authentication.")
+                    print("")
+                    print("To fix this issue:")
+                    print("  1. Delete the expired token:")
+                    print("     rm config/youtube_token.pickle")
+                    print("")
+                    print("  2. Run an interactive upload to re-authenticate:")
+                    print("     ./upload_to_youtube.sh outputs/runs/<latest_run>/full.mp4")
+                    print("")
+                    print("  3. Complete the browser OAuth flow when prompted")
+                    print("")
+                    print("  4. The new token will be saved and future automated runs will work")
+                    print("=" * 80)
+                    raise Exception("YouTube token expired - manual re-authentication required") from e
+                else:
+                    # Interactive mode - can re-authenticate
+                    print("  ⚠️  Refresh token expired/revoked, re-authenticating...")
+                    flow = InstalledAppFlow.from_client_secrets_file(
+                        str(creds_path), SCOPES)
+                    creds = flow.run_local_server(port=0)
         else:
             flow = InstalledAppFlow.from_client_secrets_file(
                 str(creds_path), SCOPES)

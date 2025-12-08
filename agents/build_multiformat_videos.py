@@ -21,7 +21,8 @@ def build_video_with_format_plan(
     resolution: str,
     output_name: str,
     media_plan_file: str,
-    start_time: float = 0.0
+    start_time: float = 0.0,
+    duration: float = None
 ) -> bool:
     """
     Build a video using a format-specific media plan.
@@ -32,11 +33,12 @@ def build_video_with_format_plan(
         output_name: Output filename (e.g., "full.mp4")
         media_plan_file: Media plan JSON file (e.g., "media_plan_full.json")
         start_time: Start time in seconds for audio slicing
+        duration: Desired audio duration in seconds (if None, uses video duration)
 
     Returns:
         True if successful, False otherwise
     """
-    print(f"🎬 Building {format_type} video from {media_plan_file} (audio start: {start_time}s)...")
+    print(f"🎬 Building {format_type} video from {media_plan_file} (audio start: {start_time}s, duration: {duration}s)...")
 
     output_dir = Path(os.getenv("OUTPUT_DIR", "outputs"))
     media_plan_path = output_dir / media_plan_file
@@ -58,13 +60,23 @@ def build_video_with_format_plan(
         import shutil
         shutil.copy(media_plan_path, approved_media_path)
 
-        # Call video assembly with appropriate resolution and audio start time
+        # Delete cached synchronized_plan.json to force regeneration
+        # This prevents the bug where all videos use the same cached plan
+        sync_plan_path = output_dir / "synchronized_plan.json"
+        if sync_plan_path.exists():
+            sync_plan_path.unlink()
+
+        # Call video assembly with appropriate resolution, audio start time, and duration
         cmd = [
-            './venv/bin/python3', 
-            'agents/5_assemble_video.py', 
+            './venv/bin/python3',
+            'agents/5_assemble_video.py',
             '--resolution', resolution,
             '--audio-start', str(start_time)
         ]
+
+        # Add audio duration if specified
+        if duration is not None:
+            cmd.extend(['--audio-duration', str(duration)])
         
         result = subprocess.run(
             cmd,
@@ -111,7 +123,7 @@ def load_segments() -> Dict:
         return json.load(f)
 
 
-def build_full_video() -> Path:
+def build_full_video(duration: float) -> Path:
     """Build full horizontal video using format-specific media plan."""
     print("🎬 Building full video (16:9) with 180s media plan...")
 
@@ -120,7 +132,8 @@ def build_full_video() -> Path:
         resolution="1920x1080",
         output_name="full.mp4",
         media_plan_file="media_plan_full.json",
-        start_time=0.0
+        start_time=0.0,
+        duration=duration
     )
 
     if not success:
@@ -131,7 +144,7 @@ def build_full_video() -> Path:
     return output_dir / "full.mp4"
 
 
-def build_hook_short(start_time: float) -> Path:
+def build_hook_short(start_time: float, duration: float) -> Path:
     """Build hook short using format-specific media plan."""
     print(f"🎬 Building hook short (9:16) with 30s media plan (start: {start_time}s)...")
 
@@ -140,7 +153,8 @@ def build_hook_short(start_time: float) -> Path:
         resolution="1080x1920",
         output_name="short_hook.mp4",
         media_plan_file="media_plan_hook.json",
-        start_time=start_time
+        start_time=start_time,
+        duration=duration
     )
 
     if not success:
@@ -151,7 +165,7 @@ def build_hook_short(start_time: float) -> Path:
     return output_dir / "short_hook.mp4"
 
 
-def build_educational_short(start_time: float) -> Path:
+def build_educational_short(start_time: float, duration: float) -> Path:
     """Build educational short using format-specific media plan."""
     print(f"🎬 Building educational short (9:16) with 30s media plan (start: {start_time}s)...")
 
@@ -160,7 +174,8 @@ def build_educational_short(start_time: float) -> Path:
         resolution="1080x1920",
         output_name="short_educational.mp4",
         media_plan_file="media_plan_educational.json",
-        start_time=start_time
+        start_time=start_time,
+        duration=duration
     )
 
     if not success:
@@ -206,7 +221,7 @@ def main():
         print()
 
         # Build full video using format-specific media plan
-        full_video = build_full_video()
+        full_video = build_full_video(segments['full']['duration'])
         print()
 
         # Check if shorts are enabled
@@ -215,9 +230,9 @@ def main():
             return
 
         # Build shorts using format-specific media plans
-        build_hook_short(segments['hook']['start'])
+        build_hook_short(segments['hook']['start'], segments['hook']['duration'])
         print()
-        build_educational_short(segments['educational']['start'])
+        build_educational_short(segments['educational']['start'], segments['educational']['duration'])
         print()
 
         print("✅ All videos built successfully!")
