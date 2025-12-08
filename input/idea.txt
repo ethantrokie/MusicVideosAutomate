@@ -1,1 +1,1 @@
-Testing PATH fix by running research agent with minimal PATH... export OUTPUT_DIR=outputs/test_path_fix mkdir -p  echo How photosynthesis works env -i PATH=/usr/bin:/bin HOME= OUTPUT_DIR= ./agents/1_research.sh
+How bullet trains use magnetic levitation to float above tracks eliminating friction by repelling superconducting magnets. Tone: energetic pop punk with driving guitars, fast tempo, and rebellious educational energy

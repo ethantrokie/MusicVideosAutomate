@@ -18,12 +18,7 @@ from google.auth.transport.requests import Request
 # Import change guardian
 sys.path.insert(0, str(Path(__file__).parent))
 from change_guardian import ChangeGuardian
-
-
-SCOPES = [
-    'https://www.googleapis.com/auth/youtube.readonly',
-    'https://www.googleapis.com/auth/yt-analytics.readonly'
-]
+from youtube_scopes import SCOPES
 
 
 def get_authenticated_service(api_name, api_version):
