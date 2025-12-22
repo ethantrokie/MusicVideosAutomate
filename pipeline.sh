@@ -152,10 +152,38 @@ if [ $START_STAGE -le 1 ]; then
     echo ""
 fi
 
-# Stage 2: Visual Ranking
+# Stage 2: Lyrics
 if [ $START_STAGE -le 2 ]; then
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${BLUE}Stage 2/6: Visual Ranking${NC}"
+    echo -e "${BLUE}Stage 2/7: Lyrics Generation${NC}"
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo "✂️ Pruning context for lyricist..."
+    python3 agents/context_pruner.py lyricist
+    ./agents/2_lyrics.sh
+    if [ $? -ne 0 ]; then
+        echo -e "${RED}❌ Lyrics generation failed${NC}"
+        exit 1
+    fi
+    echo ""
+fi
+
+# Stage 2.5: Lyric-Based Media Search
+if [ $START_STAGE -le 3 ]; then
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${BLUE}Stage 2.5/7: Lyric-Based Media Search${NC}"
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    ./agents/3.5_lyric_media_search.sh
+    if [ $? -ne 0 ]; then
+        echo -e "${RED}❌ Lyric media search failed${NC}"
+        exit 1
+    fi
+    echo ""
+fi
+
+# Stage 2.6: Visual Ranking
+if [ $START_STAGE -le 3 ]; then
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${BLUE}Stage 2.6/7: Visual Ranking${NC}"
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 
     echo "🎨 Visual Ranking Agent: Analyzing media diversity..."
@@ -169,25 +197,10 @@ if [ $START_STAGE -le 2 ]; then
     echo ""
 fi
 
-# Stage 3: Lyrics
+# Stage 3: Music
 if [ $START_STAGE -le 3 ]; then
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${BLUE}Stage 3/6: Lyrics Generation${NC}"
-    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo "✂️ Pruning context for lyricist..."
-    python3 agents/context_pruner.py lyricist
-    ./agents/2_lyrics.sh
-    if [ $? -ne 0 ]; then
-        echo -e "${RED}❌ Lyrics generation failed${NC}"
-        exit 1
-    fi
-    echo ""
-fi
-
-# Stage 4: Music
-if [ $START_STAGE -le 4 ]; then
-    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${BLUE}Stage 4/6: Music Composition${NC}"
+    echo -e "${BLUE}Stage 3/7: Music Composition${NC}"
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     ./agents/3_compose.py
     if [ $? -ne 0 ]; then
@@ -197,10 +210,10 @@ if [ $START_STAGE -le 4 ]; then
     echo ""
 fi
 
-# Stage 4.5: Segment Analysis (for multi-format videos)
-if [ $START_STAGE -le 5 ]; then
+# Stage 4: Segment Analysis (for multi-format videos)
+if [ $START_STAGE -le 4 ]; then
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${BLUE}Stage 4.5: Segment Analysis${NC}"
+    echo -e "${BLUE}Stage 4/7: Segment Analysis${NC}"
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 
     echo "🎯 Analyzing song segments for multi-format videos..."
@@ -236,7 +249,7 @@ fi
 # Multi-format builds create format-specific plans (media_plan_full.json, etc.) in Stage 6.
 if [ $START_STAGE -le 5 ]; then
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${BLUE}Stage 5/6: Media Curation${NC}"
+    echo -e "${BLUE}Stage 5/7: Media Curation${NC}"
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 
     # Get audio duration from segments.json
