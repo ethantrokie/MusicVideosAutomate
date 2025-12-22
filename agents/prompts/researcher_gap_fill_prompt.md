@@ -13,6 +13,14 @@ Find **{{TARGET_COUNT}} videos or animated GIFs** from Pexels, Pixabay, and Giph
 ## Output Format
 Create a JSON file at `{{OUTPUT_PATH}}` with the following structure.
 
+-   **URLs must be DIRECT media page URLs (specific video/GIF page), NOT search/explore pages.**
+-   **CORRECT URL examples:**
+    -   `https://www.pexels.com/video/scientist-looking-at-microscope-12345/` ✅
+    -   `https://pixabay.com/videos/molecule-chemistry-science-atom-181248/` ✅
+    -   `https://giphy.com/gifs/science-atom-atoms-78tnf6zJoFIcFjWYme` ✅
+-   **INCORRECT URL examples (DO NOT USE):**
+    -   `https://giphy.com/explore/electric-spark` ❌ (explore page)
+    -   `https://pixabay.com/videos/search/electrical%20sparks/` ❌ (search page)
 -   **Use only URLs from Pexels, Pixabay, or Giphy.**
 -   **Output valid JSON only.**
 

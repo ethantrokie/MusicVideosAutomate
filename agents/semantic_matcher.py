@@ -44,7 +44,11 @@ class SemanticMatcher:
             return phrase_groups
 
         # Generate embeddings for all videos
-        video_texts = [v["description"] for v in available_media]
+        # Prefer enhanced_description from video LLM analysis if available
+        video_texts = [
+            v.get("enhanced_description") or v.get("description", "")
+            for v in available_media
+        ]
         video_embeddings = self.model.encode(video_texts, convert_to_numpy=True, show_progress_bar=False)
 
         matched_groups = []
@@ -59,8 +63,10 @@ class SemanticMatcher:
             for i, video in enumerate(available_media):
                 base_score = self.cosine_similarity(group_embedding, video_embeddings[i])
 
-                # Apply keyword boosting
-                video_desc_lower = video["description"].lower()
+                # Apply keyword boosting (check both original and enhanced descriptions)
+                video_desc_lower = (
+                    video.get("enhanced_description", "") + " " + video.get("description", "")
+                ).lower()
                 boost = 1.0
                 for key_term in group.get("key_terms", []):
                     if key_term.lower() in video_desc_lower:

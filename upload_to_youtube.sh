@@ -100,7 +100,7 @@ ${hashtags}"
             VIDEO_FILE="short_hook.mp4"
             ;;
         short_educational)
-            TITLE="${topic} Explained"
+            TITLE="${topic} 🎵"
             DESCRIPTION="${topic} - Key concept explained!
 
 Watch the full version: [PLACEHOLDER_FULL]

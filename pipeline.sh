@@ -140,6 +140,16 @@ if [ $START_STAGE -le 1 ]; then
         exit 1
     fi
     echo ""
+
+    # Stage 1.5: Validate and Fix URLs
+    echo -e "${YELLOW}🔍 Validating URLs and fixing hallucinations...${NC}"
+    python agents/1.5_validate_urls.py "${RUN_DIR}/research.json" --quiet
+    if [ $? -ne 0 ]; then
+        echo -e "${RED}❌ URL validation failed${NC}"
+        exit 1
+    fi
+    echo -e "${GREEN}✅ All URLs validated!${NC}"
+    echo ""
 fi
 
 # Stage 2: Visual Ranking
@@ -228,9 +238,25 @@ if [ $START_STAGE -le 5 ]; then
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo -e "${BLUE}Stage 5/6: Media Curation${NC}"
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+
+    # Get audio duration from segments.json
+    AUDIO_DURATION=$(./venv/bin/python3 -c "
+import json
+import os
+segments_file = os.path.join(os.getenv('OUTPUT_DIR', 'outputs/current'), 'segments.json')
+try:
+    with open(segments_file) as f:
+        segments = json.load(f)
+        # Use full duration from segments
+        print(int(segments.get('full', {}).get('duration', 180)))
+except:
+    print(180)  # Fallback to 180s
+")
+
+    echo "  📏 Audio duration: ${AUDIO_DURATION}s"
     echo "✂️ Pruning context for curator..."
     python3 agents/context_pruner.py curator
-    ./agents/4_curate_media.sh
+    ./agents/4_curate_media.sh --duration ${AUDIO_DURATION}
     if [ $? -ne 0 ]; then
         echo -e "${RED}❌ Media curation failed${NC}"
         exit 1
@@ -250,12 +276,125 @@ if [ $START_STAGE -le 5 ]; then
         fi
     else
         echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-        echo -e "${YELLOW}Express Mode: Auto-approving media${NC}"
+        echo -e "${YELLOW}Express Mode: Smart Media Processing${NC}"
         echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-        # Copy media plan to approved
-        cp "${OUTPUT_DIR}/media_plan.json" "${OUTPUT_DIR}/approved_media.json"
-        # Add local_path to approved media
-        python3 << EOF
+        
+        # Video LLM Enhancements (if available)
+        if [ -d "venv_video_llm" ]; then
+            echo "🤖 Video LLM enhancements enabled"
+            
+            # Step 1: Enhance media descriptions with video LLM
+            echo "🔍 Enhancing media descriptions with Video LLM..."
+            source venv_video_llm/bin/activate
+            if python3 agents/analyze_downloaded_media.py 2>/dev/null; then
+                echo "  ✅ Media descriptions enhanced"
+            else
+                echo "  ⚠️ Enhancement skipped (non-fatal)"
+            fi
+            
+            # Step 2: Quality filter media
+            echo "🔍 Quality filtering media..."
+            FILTER_EXIT=0
+            if python3 agents/filter_media_quality.py 2>/dev/null; then
+                echo "  ✅ Quality filtering complete"
+            else
+                FILTER_EXIT=$?
+                if [ $FILTER_EXIT -eq 1 ]; then
+                    # CRITICAL: All clips rejected - trigger recovery
+                    echo "  ❌ CRITICAL: All clips rejected by quality filter"
+                    echo "  🔄 Attempting recovery: Re-running curator with improved search terms..."
+
+                    if python3 agents/retry_curator_with_better_terms.py; then
+                        echo "  ✅ Recovery successful, re-running quality filter with threshold=4..."
+                        if python3 agents/filter_media_quality.py --threshold 4 2>/dev/null; then
+                            echo "  ✅ Quality filtering complete (relaxed threshold)"
+                            FILTER_EXIT=0
+                        else
+                            RECOVERY_EXIT=$?
+                            if [ $RECOVERY_EXIT -eq 1 ]; then
+                                echo "  ❌ FATAL: Still no approved clips after recovery"
+                                log_error "Quality filter rejected all clips even after recovery"
+                                deactivate
+                                exit 1
+                            else
+                                echo "  ⚠️ Few clips approved after recovery, continuing"
+                                FILTER_EXIT=0
+                            fi
+                        fi
+                    else
+                        echo "  ❌ Recovery failed"
+                        log_error "Failed to recover from quality filter rejection"
+                        deactivate
+                        exit 1
+                    fi
+                elif [ $FILTER_EXIT -eq 2 ]; then
+                    echo "  ⚠️ Few clips approved, continuing with available media"
+                else
+                    echo "  ⚠️ Quality filter error (continuing with all media)"
+                    FILTER_EXIT=999  # Mark as skipped
+                fi
+            fi
+            deactivate
+            source venv/bin/activate
+        else
+            echo "⏭️ Video LLM not available, using standard express mode"
+            FILTER_EXIT=999  # Mark as skipped
+        fi
+
+        # Use quality filter results if available, otherwise fallback to auto-approve
+        if [ -f "${OUTPUT_DIR}/quality_filter_results.json" ] && [ $FILTER_EXIT -ne 999 ]; then
+            echo "📋 Using quality-filtered media..."
+            python3 << EOF
+import json
+import os
+
+output_dir = os.getenv('OUTPUT_DIR', 'outputs')
+
+# Load quality filter results
+with open(f'{output_dir}/quality_filter_results.json') as f:
+    filter_results = json.load(f)
+
+# Load media plan for shot metadata
+with open(f'{output_dir}/media_plan.json') as f:
+    plan = json.load(f)
+
+approved_clips = filter_results.get('approved', [])
+
+if not approved_clips:
+    print("⚠️ No approved clips in filter results, this should not happen")
+    exit(1)
+
+# Create approved media by matching filtered clips with shot plan
+approved_shots = []
+for clip in approved_clips:
+    shot_num = clip.get('shot_number')
+    # Find corresponding shot in plan
+    matching_shots = [s for s in plan['shot_list'] if s['shot_number'] == shot_num]
+    if matching_shots:
+        shot = matching_shots[0].copy()
+        shot['local_path'] = clip['local_path']
+        shot['quality_score'] = clip.get('quality_score', 0)
+        if 'enhanced_description' in clip:
+            shot['enhanced_description'] = clip['enhanced_description']
+        approved_shots.append(shot)
+
+# Update plan with only approved shots
+plan['shot_list'] = approved_shots
+plan['quality_filtered'] = True
+plan['original_count'] = len(plan.get('shot_list', []))
+plan['approved_count'] = len(approved_shots)
+
+with open(f'{output_dir}/approved_media.json', 'w') as f:
+    json.dump(plan, f, indent=2)
+
+print(f"✅ Using {len(approved_shots)} quality-approved clips (rejected {filter_results.get('threshold', 0)} low quality + {len(filter_results.get('ads_rejected', []))} ads)")
+EOF
+        else
+            echo "⏭️ Quality filter not available, auto-approving all media..."
+            # Copy media plan to approved
+            cp "${OUTPUT_DIR}/media_plan.json" "${OUTPUT_DIR}/approved_media.json"
+            # Add local_path to approved media
+            python3 << EOF
 import json
 import os
 
@@ -271,12 +410,16 @@ for shot in plan['shot_list']:
     downloaded = [d for d in manifest['downloaded'] if d['shot_number'] == shot['shot_number']]
     if downloaded:
         shot['local_path'] = downloaded[0]['local_path']
+        # Also copy enhanced_description if available
+        if 'enhanced_description' in downloaded[0]:
+            shot['enhanced_description'] = downloaded[0]['enhanced_description']
 
 with open(f'{output_dir}/approved_media.json', 'w') as f:
     json.dump(plan, f, indent=2)
 
 print("✅ Auto-approved all downloaded media")
 EOF
+        fi
     fi
 
     # Check for research gaps
@@ -375,7 +518,7 @@ EOF
 
                 # Run gap-filling research
                 echo "  Finding media for $TARGET_COUNT missing concepts..."
-                claude -p "$(cat $TEMP_GAP_PROMPT)" --model claude-sonnet-4-5 --dangerously-skip-permissions
+                /Users/ethantrokie/.npm-global/bin/claude -p "$(cat $TEMP_GAP_PROMPT)" --model claude-sonnet-4-5 --dangerously-skip-permissions
 
                 rm "$TEMP_GAP_PROMPT"
 
@@ -418,6 +561,118 @@ EOF
                     else
                         echo -e "  ${YELLOW}⚠️  Visual ranking failed, continuing${NC}"
                     fi
+
+                    # Download the gap-fill media
+                    if [ -f "${OUTPUT_DIR}/gap_fill_media.json" ]; then
+                        echo "  📥 Downloading gap-fill media..."
+
+                        # Convert gap_fill_media.json to a temporary shot list for download
+                        ./venv/bin/python3 << 'EOF'
+import json
+import os
+
+output_dir = os.getenv('OUTPUT_DIR', 'outputs')
+
+# Load gap-fill media
+with open(f'{output_dir}/gap_fill_media.json') as f:
+    gap_data = json.load(f)
+
+# Load current approved_media to get next shot number
+approved_path = f'{output_dir}/approved_media.json'
+if os.path.exists(approved_path):
+    with open(approved_path) as f:
+        approved = json.load(f)
+    next_shot_num = max([s['shot_number'] for s in approved.get('shot_list', [])]) + 1
+else:
+    next_shot_num = 1
+
+# Convert gap-fill media to shot list format
+gap_media = gap_data.get('gap_fill_media', [])
+shot_list = []
+for i, media in enumerate(gap_media):
+    shot_list.append({
+        'shot_number': next_shot_num + i,
+        'media_url': media.get('url', ''),
+        'media_type': media.get('type', 'video'),
+        'source': media.get('source', 'gap_fill'),
+        'description': media.get('description', ''),
+        'lyrics_match': media.get('concept', ''),
+        'transition': 'fade',
+        'priority': 'high'
+    })
+
+# Create temporary shot list for download
+temp_shots = {
+    'shot_list': shot_list,
+    'total_shots': len(shot_list)
+}
+
+with open(f'{output_dir}/gap_fill_shots.json', 'w') as f:
+    json.dump(temp_shots, f, indent=2)
+
+print(f'Created {len(shot_list)} gap-fill shots for download')
+EOF
+
+                        # Download gap-fill shots
+                        if [ -f "${OUTPUT_DIR}/gap_fill_shots.json" ]; then
+                            ./venv/bin/python3 agents/download_media.py "${OUTPUT_DIR}/gap_fill_shots.json"
+
+                            # Merge downloaded gap-fill media into approved_media.json
+                            ./venv/bin/python3 << 'EOF'
+import json
+import os
+from pathlib import Path
+
+output_dir = os.getenv('OUTPUT_DIR', 'outputs')
+
+# Load approved media
+approved_path = f'{output_dir}/approved_media.json'
+with open(approved_path) as f:
+    approved = json.load(f)
+
+# Load gap-fill shots to see what was downloaded
+gap_shots_path = f'{output_dir}/gap_fill_shots.json'
+with open(gap_shots_path) as f:
+    gap_shots = json.load(f)
+
+# Load manifest to see which ones succeeded
+manifest_path = f'{output_dir}/media_manifest.json'
+if os.path.exists(manifest_path):
+    with open(manifest_path) as f:
+        manifest = json.load(f)
+
+    # Add successfully downloaded gap-fill shots to approved_media
+    downloaded_nums = {d['shot_number'] for d in manifest.get('downloaded', [])}
+
+    added = 0
+    for shot in gap_shots['shot_list']:
+        if shot['shot_number'] in downloaded_nums:
+            # Add local_path from manifest
+            for d in manifest['downloaded']:
+                if d['shot_number'] == shot['shot_number']:
+                    shot['local_path'] = d['local_path']
+                    break
+
+            approved['shot_list'].append(shot)
+            added += 1
+
+    if added > 0:
+        # Update totals
+        approved['total_shots'] = len(approved['shot_list'])
+
+        # Save updated approved_media.json
+        with open(approved_path, 'w') as f:
+            json.dump(approved, f, indent=2)
+
+        print(f'  ✅ Added {added} gap-fill clips to approved media')
+    else:
+        print(f'  ⚠️  No gap-fill media was successfully downloaded')
+EOF
+
+                            # Clean up temporary file
+                            rm -f "${OUTPUT_DIR}/gap_fill_shots.json"
+                        fi
+                    fi
                 fi
             else
                 echo -e "${YELLOW}⚠️  Gap request file not found, skipping gap-fill${NC}"
@@ -439,12 +694,12 @@ if [ $START_STAGE -le 6 ]; then
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 
     # Check if multi-format is enabled
-    if python3 -c "import json; c=json.load(open('config/config.json')); print(c.get('video_formats',{}).get('full_video',{}).get('enabled',True))" | grep -q "True"; then
+    if ./venv/bin/python3 -c "import json; c=json.load(open('config/config.json')); print(c.get('video_formats',{}).get('full_video',{}).get('enabled',True))" | grep -q "True"; then
         echo "🎬 Building multi-format videos with format-specific media plans..."
         echo "  • Full video (16:9, 180s) - comprehensive coverage"
         echo "  • Hook short (9:16, 30s) - most engaging segment"
         echo "  • Educational short (9:16, 30s) - key teaching moments"
-        python3 agents/build_multiformat_videos.py
+        ./venv/bin/python3 agents/build_multiformat_videos.py
         if [ $? -ne 0 ]; then
             echo -e "${RED}❌ Multi-format video assembly failed${NC}"
             exit 1
@@ -470,9 +725,10 @@ if [ $START_STAGE -le 7 ]; then
     if [ -f "${RUN_DIR}/full.mp4" ]; then
         echo "📝 Adding subtitles to all videos..."
 
-        # Traditional subtitles for full video (FFmpeg)
-        if python3 agents/generate_subtitles.py --engine=ffmpeg --type=traditional --video=full; then
-            echo "  ✅ Full video subtitles applied"
+        # 10. Generate Subtitles (Karaoke style for all formats)
+        echo "📝 Generating subtitles..."
+        if python3 agents/generate_subtitles.py --engine=ffmpeg --type=karaoke --video=full; then
+            echo "✅ Full video subtitles generated"
         else
             echo -e "${YELLOW}  ⚠️  Full video subtitles failed, continuing...${NC}"
         fi
@@ -496,6 +752,172 @@ if [ $START_STAGE -le 7 ]; then
     else
         echo -e "${YELLOW}⚠️  No multi-format videos found, skipping subtitles${NC}"
     fi
+    echo ""
+fi
+
+# Stage 7.5: Video Overlays (Title Cards and End Screens)
+if [ $START_STAGE -le 8 ] && [ -f "${RUN_DIR}/full.mp4" ]; then
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${BLUE}Stage 7.5: Adding Video Overlays${NC}"
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+
+    # Get video title from research.json
+    VIDEO_TITLE=$(python3 -c "import json; data=json.load(open('${RUN_DIR}/research.json')); print(data.get('video_title', 'Educational Video'))" 2>/dev/null || echo "Educational Video")
+    echo "  Video title: ${VIDEO_TITLE}"
+
+    # Add overlays to full video
+    if [ -f "${RUN_DIR}/full.mp4" ]; then
+        echo "  📝 Adding overlays to full video..."
+        if python3 agents/video_overlays.py --video="${RUN_DIR}/full.mp4" --title="${VIDEO_TITLE}" --type=full; then
+            echo "  ✅ Full video overlays added"
+        else
+            echo -e "${YELLOW}  ⚠️  Full video overlays failed, continuing...${NC}"
+        fi
+    fi
+
+    # Add overlays to shorts
+    if [ -f "${RUN_DIR}/short_hook.mp4" ]; then
+        echo "  📝 Adding overlays to hook short..."
+        if python3 agents/video_overlays.py --video="${RUN_DIR}/short_hook.mp4" --title="${VIDEO_TITLE}" --type=short_hook; then
+            echo "  ✅ Hook short overlays added"
+        else
+            echo -e "${YELLOW}  ⚠️  Hook short overlays failed, continuing...${NC}"
+        fi
+    fi
+
+    if [ -f "${RUN_DIR}/short_educational.mp4" ]; then
+        echo "  📝 Adding overlays to educational short..."
+        if python3 agents/video_overlays.py --video="${RUN_DIR}/short_educational.mp4" --title="${VIDEO_TITLE}" --type=short_educational; then
+            echo "  ✅ Educational short overlays added"
+        else
+            echo -e "${YELLOW}  ⚠️  Educational short overlays failed, continuing...${NC}"
+        fi
+    fi
+
+    echo ""
+fi
+
+# Stage 7.6: Video LLM Validation and Description Generation
+if [ $START_STAGE -le 8 ] && [ -d "venv_video_llm" ] && [ -f "${RUN_DIR}/full.mp4" ]; then
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${BLUE}Stage 7.6: Video LLM Analysis${NC}"
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    
+    source venv_video_llm/bin/activate
+    
+    # Validate visual-lyric sync with two-tier recovery
+    echo "🔍 Validating visual-lyric synchronization..."
+    SYNC_EXIT=0
+    if python3 agents/validate_visual_sync.py --video=full 2>/dev/null; then
+        echo "  ✅ Sync validation complete"
+    else
+        SYNC_EXIT=$?
+        if [ $SYNC_EXIT -eq 1 ]; then
+            # CRITICAL: Very poor sync - attempt recovery
+            echo "  ❌ CRITICAL: Very poor visual-lyric sync detected"
+            echo "  🔄 Attempting recovery 1/2: Re-running semantic matcher with adjusted parameters..."
+
+            if python3 agents/retry_semantic_matching.py; then
+                echo "  ✅ Semantic matching retry complete, re-validating sync..."
+
+                # Re-run sync validation
+                if python3 agents/validate_visual_sync.py --video=full 2>/dev/null; then
+                    echo "  ✅ Sync improved after semantic matching retry"
+                    SYNC_EXIT=0
+                else
+                    RETRY_EXIT=$?
+                    if [ $RETRY_EXIT -eq 1 ]; then
+                        # Still critical - trigger full recovery
+                        echo "  ❌ Sync still poor after semantic matching retry"
+                        echo "  🔄 Attempting recovery 2/2: Re-downloading media with improved search terms..."
+
+                        deactivate
+                        source venv/bin/activate
+
+                        if python3 agents/retry_curator_with_better_terms.py; then
+                            echo "  ✅ Media re-downloaded, re-running quality filter with threshold=4..."
+
+                            source venv_video_llm/bin/activate
+                            if python3 agents/filter_media_quality.py --threshold 4 2>/dev/null; then
+                                echo "  ✅ Quality filter passed with new media"
+
+                                # Re-assemble video with new media
+                                deactivate
+                                source venv/bin/activate
+
+                                echo "  🎬 Re-assembling video with new media..."
+                                if python3 agents/5_assemble_video.py; then
+                                    echo "  ✅ Video re-assembled"
+
+                                    # Final sync validation
+                                    source venv_video_llm/bin/activate
+                                    if python3 agents/validate_visual_sync.py --video=full 2>/dev/null; then
+                                        echo "  ✅ Sync validation passed after full recovery"
+                                        SYNC_EXIT=0
+                                    else
+                                        FINAL_EXIT=$?
+                                        if [ $FINAL_EXIT -eq 1 ]; then
+                                            echo "  ❌ FATAL: Sync still critical after full recovery"
+                                            log_error "Visual-lyric sync failed even after full recovery"
+                                            deactivate
+                                            exit 1
+                                        else
+                                            echo "  ⚠️ Sync acceptable after full recovery (non-critical)"
+                                            SYNC_EXIT=0
+                                        fi
+                                    fi
+                                else
+                                    echo "  ❌ Video assembly failed after recovery"
+                                    log_error "Failed to re-assemble video after media recovery"
+                                    deactivate
+                                    exit 1
+                                fi
+                            else
+                                echo "  ❌ Quality filter still rejecting media after recovery"
+                                log_error "No acceptable media found even after recovery"
+                                deactivate
+                                exit 1
+                            fi
+                        else
+                            echo "  ❌ Media recovery failed"
+                            log_error "Failed to recover media for sync improvement"
+                            deactivate
+                            exit 1
+                        fi
+                    else
+                        # Retry improved sync to acceptable level (exit code 2 or 0)
+                        echo "  ✅ Sync improved to acceptable level"
+                        SYNC_EXIT=0
+                    fi
+                fi
+            else
+                echo "  ❌ Semantic matching retry failed"
+                log_error "Failed to retry semantic matching"
+                deactivate
+                exit 1
+            fi
+        elif [ $SYNC_EXIT -eq 2 ]; then
+            echo "  ⚠️ Warning: Some segments have weak visual matches (continuing)"
+        else
+            echo "  ⚠️ Sync validation skipped"
+        fi
+    fi
+    
+    # Generate AI descriptions for all videos
+    echo "📝 Generating AI video descriptions..."
+    for VIDEO_TYPE in full short_hook short_educational; do
+        if [ -f "${RUN_DIR}/${VIDEO_TYPE}.mp4" ]; then
+            if python3 agents/generate_video_description.py --video="${VIDEO_TYPE}" --platform=youtube 2>/dev/null; then
+                echo "  ✅ ${VIDEO_TYPE} YouTube description generated"
+            fi
+            if python3 agents/generate_video_description.py --video="${VIDEO_TYPE}" --platform=tiktok 2>/dev/null; then
+                echo "  ✅ ${VIDEO_TYPE} TikTok description generated"
+            fi
+        fi
+    done
+    
+    deactivate
+    source venv/bin/activate
     echo ""
 fi
 
@@ -566,18 +988,16 @@ if [ $START_STAGE -le 8 ]; then
         echo "✅ YouTube uploads complete"
         echo ""
 
-        # Upload to TikTok (if enabled)
+        # Upload to TikTok (if enabled) - via Dropbox + Zapier
         TIKTOK_ENABLED=$(jq -r '.tiktok.enabled // false' "$CONFIG_FILE" 2>/dev/null)
         if [ "$TIKTOK_ENABLED" = "true" ]; then
-            echo "📤 Uploading to TikTok..."
-            TIKTOK_PRIVACY=$(jq -r '.tiktok.privacy_status // "public_to_everyone"' "$CONFIG_FILE" 2>/dev/null)
+            echo "📤 Uploading to TikTok via Zapier..."
 
             # Upload full video to TikTok
             if [ -f "${RUN_DIR}/full.mp4" ]; then
                 echo "  Uploading full video to TikTok..."
-                if ./upload_to_tiktok.sh --run="${RUN_TIMESTAMP}" --type=full --privacy="${TIKTOK_PRIVACY}"; then
-                    TIKTOK_FULL_ID=$(cat "${RUN_DIR}/tiktok_video_id_full.txt" 2>/dev/null || echo "")
-                    echo "    ✅ TikTok full video uploaded"
+                if ./venv/bin/python3 agents/6_upload_dropbox_zapier.py --run="${RUN_TIMESTAMP}" --type=full; then
+                    echo "    ✅ TikTok full video uploaded via Zapier"
                 else
                     echo -e "    ${YELLOW}⚠️  TikTok full video upload failed (non-fatal)${NC}"
                 fi
@@ -586,9 +1006,8 @@ if [ $START_STAGE -le 8 ]; then
             # Upload hook short to TikTok
             if [ -f "${RUN_DIR}/short_hook.mp4" ]; then
                 echo "  Uploading hook short to TikTok..."
-                if ./upload_to_tiktok.sh --run="${RUN_TIMESTAMP}" --type=short_hook --privacy="${TIKTOK_PRIVACY}"; then
-                    TIKTOK_HOOK_ID=$(cat "${RUN_DIR}/tiktok_video_id_short_hook.txt" 2>/dev/null || echo "")
-                    echo "    ✅ TikTok hook short uploaded"
+                if ./venv/bin/python3 agents/6_upload_dropbox_zapier.py --run="${RUN_TIMESTAMP}" --type=short_hook; then
+                    echo "    ✅ TikTok hook short uploaded via Zapier"
                 else
                     echo -e "    ${YELLOW}⚠️  TikTok hook short upload failed (non-fatal)${NC}"
                 fi
@@ -597,15 +1016,14 @@ if [ $START_STAGE -le 8 ]; then
             # Upload educational short to TikTok
             if [ -f "${RUN_DIR}/short_educational.mp4" ]; then
                 echo "  Uploading educational short to TikTok..."
-                if ./upload_to_tiktok.sh --run="${RUN_TIMESTAMP}" --type=short_educational --privacy="${TIKTOK_PRIVACY}"; then
-                    TIKTOK_EDU_ID=$(cat "${RUN_DIR}/tiktok_video_id_short_educational.txt" 2>/dev/null || echo "")
-                    echo "    ✅ TikTok educational short uploaded"
+                if ./venv/bin/python3 agents/6_upload_dropbox_zapier.py --run="${RUN_TIMESTAMP}" --type=short_educational; then
+                    echo "    ✅ TikTok educational short uploaded via Zapier"
                 else
                     echo -e "    ${YELLOW}⚠️  TikTok educational short upload failed (non-fatal)${NC}"
                 fi
             fi
 
-            echo "✅ TikTok uploads complete"
+            echo "✅ TikTok uploads complete (via Zapier)"
         else
             echo "⏭️  TikTok uploads disabled in config"
         fi

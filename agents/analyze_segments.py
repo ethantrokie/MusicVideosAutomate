@@ -228,8 +228,11 @@ def main():
     topic_file = Path('input/idea.txt')
     topic = topic_file.read_text().strip().split('.')[0]
 
-    # Use duration from config for shorts (30 seconds)
-    min_dur, max_dur = 30, 30
+    # Load shorts duration from config
+    with open('config/config.json') as f:
+        config = json.load(f)
+    shorts_duration = config.get('video_formats', {}).get('shorts', {}).get('hook_duration', 35)
+    min_dur, max_dur = shorts_duration, shorts_duration
 
     # Analyze segments
     print("  Detecting musical hook...")

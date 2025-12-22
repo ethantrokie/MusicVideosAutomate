@@ -16,7 +16,8 @@ You are a science-focused media curator. Your job is to create a shot list for a
 ## Output Format
 Write your output to `{{OUTPUT_PATH}}` in the following JSON format.
 
--   **Use only URLs from the research data.**
+-   **Use only DIRECT media URLs from the research data (URLs must point to specific video/GIF pages, not search/explore pages).**
+-   **Skip any search/explore URLs from research data - only include direct media page URLs.**
 -   **Ensure timing adds up to the total duration with no gaps.**
 -   **Output valid JSON only.**
 

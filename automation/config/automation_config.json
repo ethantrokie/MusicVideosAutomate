@@ -36,14 +36,21 @@
     "avoid_repeat_days": 30,
     "categories": [
       "engineering",
+      "manufacturing",
       "biology",
       "computer science",
       "chemistry",
       "physics",
-      "earth_science",
-      "civil engineering"
-    ],
-    "prefer_trending": false
+      "earth_science"
+    ]
+  },
+  "trends": {
+    "enabled": true,
+    "seed_keywords": ["how its made", "how does", "science explained", "physics", "biology", "engineering", "computer science"],
+    "top_queries_count": 5,
+    "rising_queries_count": 5,
+    "cache_duration_hours": 6,
+    "category": 174
   },
   "auto_debug": {
     "enabled": true,

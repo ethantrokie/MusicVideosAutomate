@@ -187,6 +187,8 @@ def main():
     import argparse
 
     parser = argparse.ArgumentParser(description='Download media files from shot list')
+    parser.add_argument('input_file', nargs='?', default=None,
+                       help='Input JSON file with shot list (default: media_plan.json)')
     parser.add_argument('--aspect-ratio', choices=['landscape', 'portrait', 'any'],
                        default='any', help='Preferred media orientation')
     parser.add_argument('--segment', choices=['full', 'hook', 'educational'],
@@ -194,7 +196,11 @@ def main():
     args = parser.parse_args()
 
     # Load shot list
-    shot_list_path = get_output_path("media_plan.json")
+    if args.input_file:
+        shot_list_path = Path(args.input_file)
+    else:
+        shot_list_path = get_output_path("media_plan.json")
+
     if not shot_list_path.exists():
         print(f"❌ Error: {shot_list_path} not found")
         sys.exit(1)
@@ -274,19 +280,36 @@ def main():
                 "reason": "download_failed"
             })
 
-    # Save download manifest
-    manifest = {
-        "downloaded": downloaded,
-        "failed": failed,
-        "success_count": len(downloaded),
-        "failure_count": len(failed)
-    }
-
+    # Load existing manifest to merge (preserve previously downloaded clips)
     manifest_path = get_output_path("media_manifest.json")
+    existing_manifest = {"downloaded": [], "failed": []}
+    if manifest_path.exists():
+        try:
+            with open(manifest_path) as f:
+                existing_manifest = json.load(f)
+        except Exception:
+            pass
+    
+    # Merge: add new downloads to existing, avoiding duplicates
+    existing_shots = {d["shot_number"] for d in existing_manifest.get("downloaded", [])}
+    for item in downloaded:
+        if item["shot_number"] not in existing_shots:
+            existing_manifest["downloaded"].append(item)
+    
+    existing_failed_shots = {f["shot_number"] for f in existing_manifest.get("failed", [])}
+    for item in failed:
+        if item["shot_number"] not in existing_failed_shots:
+            existing_manifest["failed"].append(item)
+    
+    # Update counts
+    existing_manifest["success_count"] = len(existing_manifest["downloaded"])
+    existing_manifest["failure_count"] = len(existing_manifest["failed"])
+
     with open(manifest_path, "w") as f:
-        json.dump(manifest, f, indent=2)
+        json.dump(existing_manifest, f, indent=2)
 
     print(f"\n✅ Downloaded: {len(downloaded)}/{len(shots)}")
+    print(f"   Total in manifest: {existing_manifest['success_count']} clips")
     if failed:
         print(f"❌ Failed: {len(failed)}")
         for f in failed:
@@ -294,7 +317,7 @@ def main():
 
     # Validate clip durations against requirements
     target_duration = data.get("total_duration", 60)  # Default to 60s if not specified
-    validate_clip_durations(shots, downloaded, target_duration)
+    validate_clip_durations(shots, existing_manifest["downloaded"], target_duration)
 
 
 if __name__ == "__main__":

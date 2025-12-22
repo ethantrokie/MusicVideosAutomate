@@ -1,0 +1,29 @@
+Collecting pytrends
+  Downloading pytrends-4.9.2-py3-none-any.whl.metadata (13 kB)
+Requirement already satisfied: requests>=2.0 in ./venv/lib/python3.13/site-packages (from pytrends) (2.32.5)
+Collecting pandas>=0.25 (from pytrends)
+  Using cached pandas-2.3.3-cp313-cp313-macosx_11_0_arm64.whl.metadata (91 kB)
+Collecting lxml (from pytrends)
+  Downloading lxml-6.0.2-cp313-cp313-macosx_10_13_universal2.whl.metadata (3.6 kB)
+Requirement already satisfied: numpy>=1.26.0 in ./venv/lib/python3.13/site-packages (from pandas>=0.25->pytrends) (2.2.6)
+Collecting python-dateutil>=2.8.2 (from pandas>=0.25->pytrends)
+  Using cached python_dateutil-2.9.0.post0-py2.py3-none-any.whl.metadata (8.4 kB)
+Requirement already satisfied: pytz>=2020.1 in ./venv/lib/python3.13/site-packages (from pandas>=0.25->pytrends) (2025.2)
+Collecting tzdata>=2022.7 (from pandas>=0.25->pytrends)
+  Using cached tzdata-2025.2-py2.py3-none-any.whl.metadata (1.4 kB)
+Collecting six>=1.5 (from python-dateutil>=2.8.2->pandas>=0.25->pytrends)
+  Using cached six-1.17.0-py2.py3-none-any.whl.metadata (1.7 kB)
+Requirement already satisfied: charset_normalizer<4,>=2 in ./venv/lib/python3.13/site-packages (from requests>=2.0->pytrends) (3.4.4)
+Requirement already satisfied: idna<4,>=2.5 in ./venv/lib/python3.13/site-packages (from requests>=2.0->pytrends) (3.11)
+Requirement already satisfied: urllib3<3,>=1.21.1 in ./venv/lib/python3.13/site-packages (from requests>=2.0->pytrends) (2.5.0)
+Requirement already satisfied: certifi>=2017.4.17 in ./venv/lib/python3.13/site-packages (from requests>=2.0->pytrends) (2025.11.12)
+Downloading pytrends-4.9.2-py3-none-any.whl (15 kB)
+Using cached pandas-2.3.3-cp313-cp313-macosx_11_0_arm64.whl (10.7 MB)
+Using cached python_dateutil-2.9.0.post0-py2.py3-none-any.whl (229 kB)
+Using cached six-1.17.0-py2.py3-none-any.whl (11 kB)
+Using cached tzdata-2025.2-py2.py3-none-any.whl (347 kB)
+Downloading lxml-6.0.2-cp313-cp313-macosx_10_13_universal2.whl (8.6 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 8.6/8.6 MB 192.9 kB/s  0:00:47
+Installing collected packages: tzdata, six, lxml, python-dateutil, pandas, pytrends
+
+Successfully installed lxml-6.0.2 pandas-2.3.3 python-dateutil-2.9.0.post0 pytrends-4.9.2 six-1.17.0 tzdata-2025.2

@@ -10,3 +10,5 @@ google-auth-httplib2
 google-auth-oauthlib
 pycaps @ git+https://github.com/francozanardi/pycaps.git#egg=pycaps[all]
 tiktok-uploader>=1.1.5
+pytrends>=4.9.0
+dropbox>=11.36.0

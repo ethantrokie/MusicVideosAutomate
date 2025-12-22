@@ -104,8 +104,12 @@ def load_available_media() -> List[Dict]:
                 local_path = downloaded_files[shot_num]
             
             if local_path and Path(local_path).exists():
-                # Get actual duration
+                # Get actual duration - try ffprobe first, fall back to metadata duration
                 actual_duration = get_media_duration(local_path)
+                if actual_duration == 0:
+                    # ffprobe failed (not installed or error) - use duration from metadata
+                    actual_duration = shot.get("duration", 0)
+
                 if actual_duration > 0:
                     # Preserve ALL metadata for semantic matching
                     clip = {
@@ -129,28 +133,34 @@ def load_available_media() -> List[Dict]:
     media_dir = Path(output_dir) / "media"
     if media_dir.exists():
         existing_paths = {c["local_path"] for c in available_clips}
-        for media_file in media_dir.glob("shot_*.mp4"):
+        # Check for all supported media formats (mp4, gif, jpg, jpeg, png)
+        for media_file in media_dir.glob("shot_*.*"):
+            if media_file.suffix.lower() not in ['.mp4', '.gif', '.jpg', '.jpeg', '.png']:
+                continue
             if str(media_file) not in existing_paths:
                 duration = get_media_duration(str(media_file))
-                if duration > 0:
-                    # Extract shot number from filename
-                    try:
-                        shot_num = int(media_file.stem.replace("shot_", ""))
-                    except ValueError:
-                        shot_num = len(available_clips) + 100  # Fallback
-                    
-                    available_clips.append({
-                        "shot_number": shot_num,
-                        "local_path": str(media_file),
-                        "actual_duration": duration,
-                        "media_url": "",
-                        "media_type": "video",
-                        "description": f"Discovered media file: {media_file.name}",
-                        "lyrics_match": "",
-                        "source": "discovered",
-                        "transition": "crossfade",
-                        "priority": "low",
-                    })
+                # If ffprobe fails, assume a default duration of 5 seconds for discovered files
+                if duration == 0:
+                    duration = 5.0
+
+                # Extract shot number from filename
+                try:
+                    shot_num = int(media_file.stem.replace("shot_", ""))
+                except ValueError:
+                    shot_num = len(available_clips) + 100  # Fallback
+
+                available_clips.append({
+                    "shot_number": shot_num,
+                    "local_path": str(media_file),
+                    "actual_duration": duration,
+                    "media_url": "",
+                    "media_type": "video",
+                    "description": f"Discovered media file: {media_file.name}",
+                    "lyrics_match": "",
+                    "source": "discovered",
+                    "transition": "crossfade",
+                    "priority": "low",
+                })
     
     # Sort by shot number for consistency
     available_clips.sort(key=lambda x: x["shot_number"])
@@ -167,7 +177,7 @@ def build_format_plan(format_type: FormatType, target_duration: float,
     Strategy:
     - Maximize visual variety by using many short clips instead of few long clips
     - For 'full': Target 15-30 shots at 3-8s each
-    - For 'hook'/'educational': Target 8-15 shots at 2-5s each
+    - For 'hook'/'educational': Target 12-20 shots at 1.5-3s each (~2s ideal for engagement)
     - Distribute duration evenly for better pacing
     """
     print(f"  Building {format_type} media plan ({target_duration}s + {CLIP_COVERAGE_BUFFER_SECONDS}s buffer)...")
@@ -205,22 +215,29 @@ def build_format_plan(format_type: FormatType, target_duration: float,
         MAX_SHOT_DURATION = 8.0
         TARGET_MIN_SHOTS = 15
     else:
-        # Shorts: rapid pacing with quick cuts
-        IDEAL_SHOT_DURATION = 3.0
-        MIN_SHOT_DURATION = 2.0
-        MAX_SHOT_DURATION = 5.0
-        TARGET_MIN_SHOTS = 8
+        # Shorts: rapid pacing with very quick cuts (~2s each for maximum engagement)
+        IDEAL_SHOT_DURATION = 2.0
+        MIN_SHOT_DURATION = 1.5
+        MAX_SHOT_DURATION = 3.0
+        TARGET_MIN_SHOTS = 12
 
     # Calculate how many shots to use (maximize variety while respecting constraints)
     ideal_num_shots = int(required_duration / IDEAL_SHOT_DURATION)
     num_clips = len(available_clips)
 
-    # Unique-first strategy: prioritize using each clip once, only reuse when necessary
+    # Strategy: prefer ideal shot duration, allow reuse if needed for better pacing
     if total_available >= required_duration:
-        # We have enough total duration - use unique clips only (no reuse needed)
-        num_shots = num_clips
-        max_clip_reuse = 1
-        print(f"    📊 Unique-first strategy: using all {num_clips} unique clips (no reuse needed)")
+        # We have enough total duration
+        if num_clips >= ideal_num_shots:
+            # Enough clips to achieve ideal pacing without reuse
+            num_shots = ideal_num_shots
+            max_clip_reuse = 1
+            print(f"    📊 Optimal pacing: using {num_shots} clips at ~{IDEAL_SHOT_DURATION:.1f}s each (no reuse)")
+        else:
+            # Need to reuse some clips to achieve ideal pacing
+            num_shots = ideal_num_shots
+            max_clip_reuse = min(3, int(ideal_num_shots / num_clips) + 1)
+            print(f"    📊 Fast pacing: using {num_clips} clips with up to {max_clip_reuse}x reuse for ~{IDEAL_SHOT_DURATION:.1f}s shots")
     else:
         # Insufficient total duration - need to reuse clips to fill required time
         if total_available < target_duration:

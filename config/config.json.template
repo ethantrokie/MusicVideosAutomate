@@ -33,5 +33,13 @@
     "keyword_boost_multiplier": 2.0,
     "diversity_penalty": 0.1,
     "transition_duration": 0.3
+  },
+  "dropbox": {
+    "app_key": "x5fdjkwdfrtt9sn",
+    "app_secret": "YOUR_APP_SECRET_HERE",
+    "access_token": "YOUR_ACCESS_TOKEN_HERE"
+  },
+  "zapier": {
+    "webhook_url": "https://hooks.zapier.com/hooks/catch/25706774/uf7q6vp/"
   }
 }

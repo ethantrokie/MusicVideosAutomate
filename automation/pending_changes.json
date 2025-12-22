@@ -1,0 +1,22 @@
+[
+  {
+    "change": "Increase video duration to capture more watch time from high-retention viewers",
+    "current_value": "35s",
+    "proposed_value": "50s",
+    "rationale": "Top performers (Photoelectric Effect, Quantum Entanglement) are sustaining attention beyond current length. 50s allows deeper explanation while staying under 1-minute threshold for short-form algorithms.",
+    "confidence": 0.82,
+    "expected_impact": "15-25% increase in total watch time minutes, improved algorithmic promotion",
+    "validation_status": "NEEDS_REVIEW",
+    "validation_reason": "Change type not in allowed list"
+  },
+  {
+    "change": "Reduce media items density to improve visual comprehension",
+    "current_value": "12-20",
+    "proposed_value": "8-12",
+    "rationale": "At 35s with 12-20 items, cuts occur every 1.75-2.9s. High retention videos likely benefit from clearer visual storytelling. Fewer, longer clips reduce cognitive load.",
+    "confidence": 0.78,
+    "expected_impact": "5-10% retention improvement, better alignment between audio explanations and visuals",
+    "validation_status": "NEEDS_REVIEW",
+    "validation_reason": "Change type not in allowed list"
+  }
+]

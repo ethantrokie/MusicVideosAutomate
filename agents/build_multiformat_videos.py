@@ -68,7 +68,7 @@ def build_video_with_format_plan(
 
         # Call video assembly with appropriate resolution, audio start time, and duration
         cmd = [
-            './venv/bin/python3',
+            sys.executable,
             'agents/5_assemble_video.py',
             '--resolution', resolution,
             '--audio-start', str(start_time)
@@ -211,7 +211,7 @@ def main():
         # Build format-specific media plans based on segments
         print("\n📋 Creating format-specific media plans...")
         result = subprocess.run(
-            ['./venv/bin/python3', 'agents/build_format_media_plan.py'],
+            [sys.executable, 'agents/build_format_media_plan.py'],
             env=os.environ.copy()
         )
 
