@@ -23,8 +23,9 @@ done
 echo "🎨 Media Curator Agent: Selecting visuals..."
 
 # Check for required inputs
-if [ ! -f "${OUTPUT_DIR}/research_pruned_for_curator.json" ]; then
-    echo "❌ Error: ${OUTPUT_DIR}/research_pruned_for_curator.json not found"
+if [ ! -f "${OUTPUT_DIR}/visual_rankings.json" ]; then
+    echo "❌ Error: ${OUTPUT_DIR}/visual_rankings.json not found"
+    echo "Run Stage 3.6 (visual ranking) first"
     exit 1
 fi
 
@@ -34,15 +35,10 @@ if [ ! -f "${OUTPUT_DIR}/lyrics.json" ]; then
 fi
 
 # Read data
-RESEARCH=$(cat ${OUTPUT_DIR}/research_pruned_for_curator.json)
+VISUAL_RANKINGS=$(cat ${OUTPUT_DIR}/visual_rankings.json)
 LYRICS=$(cat ${OUTPUT_DIR}/lyrics.json)
 
-# Check for visual rankings (optional)
-VISUAL_RANKINGS=""
-if [ -f "${OUTPUT_DIR}/visual_rankings.json" ]; then
-    echo "  📊 Using visual rankings for media selection"
-    VISUAL_RANKINGS=$(cat ${OUTPUT_DIR}/visual_rankings.json)
-fi
+echo "  📊 Using lyric-tagged ranked media"
 
 # Create temp file with substituted prompt
 TEMP_PROMPT=$(mktemp)
@@ -52,23 +48,15 @@ sed -e "s|{{OUTPUT_PATH}}|${OUTPUT_DIR}/media_plan.json|g" \
 
 # Add data to the end
 echo "" >> "$TEMP_PROMPT"
-echo "## Research Data" >> "$TEMP_PROMPT"
+echo "## Lyric-Tagged Ranked Media" >> "$TEMP_PROMPT"
 echo '```json' >> "$TEMP_PROMPT"
-echo "$RESEARCH" >> "$TEMP_PROMPT"
+echo "$VISUAL_RANKINGS" >> "$TEMP_PROMPT"
 echo '```' >> "$TEMP_PROMPT"
 echo "" >> "$TEMP_PROMPT"
 echo "## Lyrics Data" >> "$TEMP_PROMPT"
 echo '```json' >> "$TEMP_PROMPT"
 echo "$LYRICS" >> "$TEMP_PROMPT"
 echo '```' >> "$TEMP_PROMPT"
-
-if [ -n "$VISUAL_RANKINGS" ]; then
-    echo "" >> "$TEMP_PROMPT"
-    echo "## Visual Rankings Data" >> "$TEMP_PROMPT"
-    echo '```json' >> "$TEMP_PROMPT"
-    echo "$VISUAL_RANKINGS" >> "$TEMP_PROMPT"
-    echo '```' >> "$TEMP_PROMPT"
-fi
 
 # Call Claude Code CLI - it will write directly to outputs/media_plan.json
 echo "  Calling Claude Code for media curation..."

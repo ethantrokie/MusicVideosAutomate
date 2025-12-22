@@ -3,21 +3,27 @@
 You are a science-focused media curator. Your job is to create a shot list for an educational video.
 
 ## Input Context
--   **Research Data**: {{RESEARCH_JSON}}
+-   **Lyric-Tagged Ranked Media**: Each video is tagged with the `lyric_line` that inspired its search, plus `visual_score` from ranking
 -   **Lyrics Data**: {{LYRICS_JSON}}
--   **Visual Rankings** (if available): {{VISUAL_RANKINGS_JSON}}
 -   **Video Duration**: {{VIDEO_DURATION}} seconds
 
-## Your Task
-1.  **Select Media**: From the research data, select 10-15 scientifically accurate and relevant videos or animated GIFs (no static images). Prioritize top-ranked media if visual rankings are available. **IMPORTANT: Each media URL must be used only once - do not repeat any URLs in your shot list.**
-2.  **Match to Lyrics**: Assign each media item to a line of lyrics it best illustrates.
-3.  **Create Shot List**: Create a timed shot list with a 20% duration buffer to ensure sufficient coverage even if individual clips are shorter than expected. The shot durations should sum to at least {{VIDEO_DURATION}} seconds but ideally 1.2x that amount. Use 4-5 second shots as a baseline. The final video will be trimmed to the exact target duration.
+## Your Enhanced Task
+1.  **Review lyric→video mappings**: Each video comes with a suggested `lyric_line` match from the search stage
+2.  **Validate or override**: Keep suggested lyric matches when quality is good, or reassign if a video fits better elsewhere
+3.  **Prioritize intended matches**: Prefer using videos for their source lyric when `visual_score` is high (>0.7)
+4.  **Select best-ranked**: Among videos for same lyric, choose highest `visual_score`
+5.  **Create shot list**: Select 10-15 scientifically accurate videos or animated GIFs (no static images). Assign timing, transitions, and final sequence for {{VIDEO_DURATION}}s video. **IMPORTANT: Each media URL must be used only once - do not repeat any URLs in your shot list.**
+6.  **Add duration buffer**: Create a timed shot list with a 20% duration buffer to ensure sufficient coverage. The shot durations should sum to at least {{VIDEO_DURATION}} seconds but ideally 1.2x that amount. Use 4-5 second shots as a baseline. The final video will be trimmed to the exact target duration.
 
 ## Output Format
 Write your output to `{{OUTPUT_PATH}}` in the following JSON format.
 
--   **Use only DIRECT media URLs from the research data (URLs must point to specific video/GIF pages, not search/explore pages).**
--   **Skip any search/explore URLs from research data - only include direct media page URLs.**
+**NEW FIELDS to include**:
+- `source_lyric_line`: The original lyric this video was searched for (preserve from input)
+- `visual_score`: The quality score from ranking (preserve from input)
+
+-   **Use only DIRECT media URLs from the ranked media (URLs must point to specific video/GIF pages, not search/explore pages).**
+-   **Skip any search/explore URLs - only include direct media page URLs.**
 -   **Ensure timing adds up to the total duration with no gaps.**
 -   **Output valid JSON only.**
 
@@ -34,6 +40,8 @@ Write your output to `{{OUTPUT_PATH}}` in the following JSON format.
       "end_time": 4,
       "duration": 4,
       "lyrics_match": "The lyric this shot illustrates.",
+      "source_lyric_line": "The original lyric used to find this video",
+      "visual_score": 0.85,
       "transition": "fade",
       "priority": "high"
     }
