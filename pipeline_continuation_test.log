@@ -222,3 +222,88 @@ The media plan has been written to `/Users/ethantrokie/SoftwareDevProjects/Music
 
 ✅ Built 3/3 format-specific media plans
    All plans preserve description, media_url for semantic matching
+🎥 Multi-Format Video Builder
+==================================================
+📊 Loaded segments:
+  Full: 179.2s
+  Hook: 30.0-65.0s
+  Educational: 43.7-78.7s
+
+
+📋 Creating format-specific media plans...
+
+🎬 Building full video (16:9) with 180s media plan...
+🎬 Building full video from media_plan_full.json (audio start: 0.0s, duration: 179.16s)...
+  ✅ Created full.mp4
+
+🎬 Building hook short (9:16) with 30s media plan (start: 30s)...
+🎬 Building hook video from media_plan_hook.json (audio start: 30s, duration: 35s)...
+  ✅ Created short_hook.mp4
+
+🎬 Building educational short (9:16) with 30s media plan (start: 43.68s)...
+🎬 Building educational video from media_plan_educational.json (audio start: 43.68s, duration: 35.0s)...
+  ✅ Created short_educational.mp4
+
+✅ All videos built successfully!
+
+Output files:
+  outputs/runs/20251221_212854/full.mp4
+  outputs/runs/20251221_212854/short_hook.mp4
+  outputs/runs/20251221_212854/short_educational.mp4
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[0;34mStage 7/9: Subtitle Generation[0m
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+📝 Adding subtitles to all videos...
+📝 Generating subtitles...
+🎬 Generating karaoke subtitles with ffmpeg...
+  Detected video resolution: 1920x1080
+  Generated phrase-highlight ASS: outputs/runs/20251221_212854/subtitles/full_karaoke.ass
+  Phrases: 60, Words per phrase: 3-10
+  Generated: outputs/runs/20251221_212854/subtitles/full_karaoke.ass
+  Burning ASS subtitles with FFmpeg...
+  ASS file: outputs/runs/20251221_212854/subtitles/full_karaoke.ass
+  ✅ Karaoke subtitles burned
+✅ Subtitles applied successfully
+✅ Full video subtitles generated
+🎬 Generating karaoke subtitles with pycaps...
+  Detected video resolution: 1080x1920
+  Generated phrase-highlight ASS: outputs/runs/20251221_212854/subtitles/short_hook_karaoke.ass
+  Phrases: 17, Words per phrase: 3-7
+  Generated: outputs/runs/20251221_212854/subtitles/short_hook_karaoke.ass
+  Burning ASS subtitles with FFmpeg...
+  ASS file: outputs/runs/20251221_212854/subtitles/short_hook_karaoke.ass
+  ✅ Karaoke subtitles burned
+✅ Subtitles applied successfully
+  ✅ Hook short subtitles applied
+🎬 Generating karaoke subtitles with pycaps...
+  Detected video resolution: 1080x1920
+  Generated phrase-highlight ASS: outputs/runs/20251221_212854/subtitles/short_educational_karaoke.ass
+  Phrases: 18, Words per phrase: 3-7
+  Generated: outputs/runs/20251221_212854/subtitles/short_educational_karaoke.ass
+  Burning ASS subtitles with FFmpeg...
+  ASS file: outputs/runs/20251221_212854/subtitles/short_educational_karaoke.ass
+  ✅ Karaoke subtitles burned
+✅ Subtitles applied successfully
+  ✅ Educational short subtitles applied
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[0;34mStage 7.5: Adding Video Overlays[0m
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+  Video title: How Steel I-Beams Are Made Explained
+  📝 Adding overlays to full video...
+🎬 Adding overlays to video...
+  Type: full
+  Title: How Steel I-Beams Are Made Explained
+  Loading video: outputs/runs/20251221_212854/full.mp4
+  Video size: 1920x1080, duration: 179.2s
+  Creating title overlay: 'How Steel I-Beams Are Made Explained'
+  Creating end screen (full video)...
+  Compositing overlays...
+  Rendering to outputs/runs/20251221_212854/full.overlay.mp4...
+Moviepy - Building video outputs/runs/20251221_212854/full.overlay.mp4.
+MoviePy - Writing audio in full.overlayTEMP_MPY_wvf_snd.mp4
+chunk:   0%|          | 0/3951 [00:00<?, ?it/s, now=None]chunk:   7%|▋         | 269/3951 [00:00<00:01, 2663.41it/s, now=None]chunk:  14%|█▍        | 551/3951 [00:00<00:01, 2753.38it/s, now=None]chunk:  22%|██▏       | 867/3951 [00:00<00:01, 2931.05it/s, now=None]chunk:  29%|██▉       | 1161/3951 [00:00<00:00, 2882.61it/s, now=None]chunk:  37%|███▋      | 1479/3951 [00:00<00:00, 2976.44it/s, now=None]chunk:  46%|████▌     | 1818/3951 [00:00<00:00, 3112.73it/s, now=None]chunk:  54%|█████▍    | 2130/3951 [00:00<00:00, 3051.39it/s, now=None]chunk:  62%|██████▏   | 2437/3951 [00:00<00:00, 3050.05it/s, now=None]chunk:  70%|██████▉   | 2760/3951 [00:00<00:00, 3105.08it/s, now=None]chunk:  78%|███████▊  | 3071/3951 [00:01<00:00, 3090.15it/s, now=None]chunk:  86%|████████▌ | 3381/3951 [00:01<00:00, 2982.11it/s, now=None]chunk:  94%|█████████▎| 3701/3951 [00:01<00:00, 3044.39it/s, now=None]                                                                      MoviePy - Done.
+Moviepy - Writing video outputs/runs/20251221_212854/full.overlay.mp4
+
+t:   0%|          | 0/5375 [00:00<?, ?it/s, now=None]t:   0%|          | 9/5375 [00:00<01:05, 81.45it/s, now=None]t:   0%|          | 18/5375 [00:00<01:15, 71.40it/s, now=None]t:   0%|          | 26/5375 [00:00<01:14, 72.22it/s, now=None]t:   1%|          | 34/5375 [00:00<01:12, 73.93it/s, now=None]t:   1%|          | 42/5375 [00:00<01:10, 75.25it/s, now=None]t:   1%|          | 50/5375 [00:00<01:09, 76.48it/s, now=None]t:   1%|          | 58/5375 [00:00<01:08, 77.51it/s, now=None]t:   1%|          | 67/5375 [00:00<01:05, 81.00it/s, now=None]t:   1%|▏         | 78/5375 [00:00<01:00, 87.32it/s, now=None]t:   2%|▏         | 88/5375 [00:01<00:58, 90.69it/s, now=None]t:   2%|▏         | 98/5375 [00:01<01:04, 82.23it/s, now=None]t:   2%|▏         | 107/5375 [00:01<01:13, 72.11it/s, now=None]t:   2%|▏         | 115/5375 [00:01<01:17, 67.50it/s, now=None]t:   2%|▏         | 122/5375 [00:01<01:18, 66.80it/s, now=None]t:   2%|▏         | 129/5375 [00:01<01:26, 60.86it/s, now=None]t:   3%|▎         | 136/5375 [00:01<01:30, 58.00it/s, now=None]t:   3%|▎         | 143/5375 [00:02<01:38, 53.31it/s, now=None]t:   3%|▎         | 150/5375 [00:02<01:31, 56.98it/s, now=None]t:   3%|▎         | 156/5375 [00:02<01:40, 51.94it/s, now=None]t:   3%|▎         | 162/5375 [00:02<01:48, 48.08it/s, now=None]t:   3%|▎         | 167/5375 [00:02<01:56, 44.59it/s, now=None]t:   3%|▎         | 174/5375 [00:02<01:43, 50.08it/s, now=None]t:   3%|▎         | 180/5375 [00:02<01:47, 48.46it/s, now=None]t:   3%|▎         | 186/5375 [00:02<01:41, 51.29it/s, now=None]t:   4%|▎         | 192/5375 [00:03<01:50, 46.98it/s, now=None]t:   4%|▎         | 199/5375 [00:03<01:45, 49.11it/s, now=None]t:   4%|▍         | 207/5375 [00:03<01:37, 53.03it/s, now=None]t:   4%|▍         | 216/5375 [00:03<01:23, 61.70it/s, now=None]t:   4%|▍         | 226/5375 [00:03<01:12, 71.12it/s, now=None]t:   4%|▍         | 234/5375 [00:03<01:15, 67.66it/s, now=None]t:   5%|▍         | 244/5375 [00:03<01:09, 74.34it/s, now=None]t:   5%|▍         | 254/5375 [00:03<01:04, 79.58it/s, now=None]t:   5%|▍         | 264/5375 [00:04<01:00, 84.29it/s, now=None]t:   5%|▌         | 273/5375 [00:04<01:00, 83.99it/s, now=None]t:   5%|▌         | 283/5375 [00:04<00:58, 87.74it/s, now=None]t:   5%|▌         | 293/5375 [00:04<00:55, 91.20it/s, now=None]t:   6%|▌         | 303/5375 [00:04<00:55, 90.96it/s, now=None]t:   6%|▌         | 313/5375 [00:04<00:54, 92.49it/s, now=None]t:   6%|▌         | 323/5375 [00:04<00:53, 94.46it/s, now=None]
