@@ -292,7 +292,17 @@ def main():
     logging.basicConfig(level=logging.INFO, format='%(message)s')
     logger = logging.getLogger(__name__)
 
-    # Load research data
+    # Load lyric media data
+    lyric_media_path = get_output_path('lyric_media.json')
+    if not lyric_media_path.exists():
+        logger.error(f"Lyric media data not found at {lyric_media_path}")
+        logger.error("Run Stage 3.5 (lyric media search) first")
+        sys.exit(1)
+
+    with open(lyric_media_path) as f:
+        lyric_media_data = json.load(f)
+
+    # Still need research.json for key_facts
     research_path = get_output_path('research.json')
     if not research_path.exists():
         logger.error(f"Research data not found at {research_path}")
@@ -301,12 +311,22 @@ def main():
     with open(research_path) as f:
         research_data = json.load(f)
 
-    # Enrich media suggestions with thumbnail URLs
+    # Flatten media_by_lyric while preserving lyric metadata
+    candidates = []
+    for lyric_entry in lyric_media_data.get('media_by_lyric', []):
+        for video in lyric_entry.get('videos', []):
+            # Preserve lyric tags
+            video['lyric_line'] = lyric_entry['lyric_line']
+            video['visual_concept'] = lyric_entry['visual_concept']
+            video['search_term'] = lyric_entry.get('search_term', '')
+            candidates.append(video)
+
+    logger.info(f"Loaded {len(candidates)} videos from lyric media search")
+
+    # Enrich with thumbnails if needed
     from stock_photo_api import StockPhotoResolver
     resolver = StockPhotoResolver()
-    media_suggestions = research_data.get('media_suggestions', [])
-    enriched_media = resolver.enrich_with_thumbnails(media_suggestions)
-    research_data['media_suggestions'] = enriched_media
+    enriched_media = resolver.enrich_with_thumbnails(candidates)
 
     # Set up thumbnail cache directory
     cache_dir = ensure_output_dir('thumbnails')
@@ -314,15 +334,21 @@ def main():
     # Initialize ranker with caching enabled
     ranker = VisualRanker(lambda_param=0.7, cache_dir=cache_dir)
 
+    # Create structure for ranking (needs key_facts from research)
+    ranking_input = {
+        'media_suggestions': enriched_media,
+        'key_facts': research_data.get('key_facts', [])
+    }
+
     # Rank media
-    ranked_media = ranker.rank_media(research_data)
+    ranked_media = ranker.rank_media(ranking_input)
 
     # Save rankings
     output_path = get_output_path('visual_rankings.json')
     output_data = {
         'ranked_media': ranked_media,
         'metadata': {
-            'total_analyzed': len(research_data.get('media_suggestions', [])),
+            'total_analyzed': len(enriched_media),
             'ranking_method': 'mmr',
             'lambda': 0.7,
             'model': 'clip-ViT-B-32'
