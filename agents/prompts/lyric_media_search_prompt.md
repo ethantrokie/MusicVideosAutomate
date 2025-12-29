@@ -67,6 +67,69 @@ Bad (line-by-line, gaps):
 Good (phrase-based, full coverage):
 - "Planetary gears, spinning all around / Sun, planets, and ring - that's the sound / Hold one still, spin another one fast" → "Planetary gear components (sun, ring, carrier) and their mechanical interaction" → 2-3 videos ✓
 
+## Phrase Construction Guidelines
+
+**When analyzing lyrics, group related lines into visual concepts:**
+
+### 1. Identify Natural Phrase Boundaries
+
+Look for:
+- **Repeated concepts** across 2-4 consecutive lines
+- **Cause-and-effect sequences** ("X happens, which causes Y")
+- **Component listings** ("Part A, Part B, Part C")
+- **Process descriptions** spanning multiple lines
+- **Complete thoughts** that need full context
+
+### 2. Create Searchable Visual Concepts
+
+For each phrase group, extract:
+- **Core visual**: What can be filmed or animated?
+- **Key components**: Which elements must appear in the video?
+- **Action/motion**: Is something moving, changing, or interacting?
+
+### 3. Generate Effective Search Terms
+
+Convert phrase to 2-4 word search query:
+- **Remove poetic language**: "meshing teeth on this power ride" → "interlocking gears rotating"
+- **Use technical terms when appropriate**: "planetary gears" (good for mechanical topics)
+- **Prioritize visual action**: "gears spinning" > "gear concepts"
+
+### 4. Examples
+
+**Topic: Planetary Gears in Transmissions**
+
+Lyric Phrase (3 lines grouped):
+```
+Planetary gears, spinning all around
+Sun, planets, and ring - that's the sound
+Hold one still, spin another one fast
+```
+
+Visual Concept: "Planetary gear set showing sun gear, planet gears, and ring gear in mechanical interaction"
+
+Search Term: "planetary gear transmission animation"
+
+**Topic: Photosynthesis**
+
+Lyric Phrase (2 lines grouped):
+```
+Chloroplasts trap the photons flying in
+Converting light to chemical energy within
+```
+
+Visual Concept: "Chloroplast structure absorbing light and converting to chemical energy"
+
+Search Term: "chloroplast photosynthesis animation"
+
+**Filler to Skip:**
+```
+[Chorus]
+Oh, oh, oh yeah!
+Mmm, mmm
+```
+
+Rationale: No educational value, purely musical filler
+
 ## IMPORTANT: Autonomous Operation
 
 - **DO NOT ask questions or request clarification.**
