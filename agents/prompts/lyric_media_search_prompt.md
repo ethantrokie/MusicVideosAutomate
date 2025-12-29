@@ -178,14 +178,18 @@ Write your output to `{{OUTPUT_PATH}}` in the following JSON format.
 - **URLs must be DIRECT media page URLs**, not search/explore pages
 - **Media must be from Pexels, Pixabay, or Giphy only**
 - **Output valid JSON only**
+- **Include coverage metrics** for debugging and validation
 
 ```json
 {
   "media_by_lyric": [
     {
-      "lyric_line": "Exact lyric line from the song",
+      "lyric_line": "Exact lyric line or phrase group from the song",
       "visual_concept": "Brief description of what this represents visually",
-      "search_term": "The actual search query used",
+      "search_term": "The actual search query used (may be fallback)",
+      "search_fallback": false,
+      "original_search_term": null,
+      "fallback_reason": null,
       "videos": [
         {
           "url": "https://www.pexels.com/video/specific-video-12345/",
@@ -199,10 +203,37 @@ Write your output to `{{OUTPUT_PATH}}` in the following JSON format.
       ]
     }
   ],
-  "total_videos": 25,
-  "lyric_coverage_percent": 90,
-  "concepts_extracted": 18
+  "coverage_metrics": {
+    "total_lyric_lines": 40,
+    "lines_with_videos": 35,
+    "coverage_percentage": 87.5,
+    "filler_lines_skipped": 5,
+    "skipped_lines": [
+      "[Chorus]",
+      "Oh, oh, oh yeah!",
+      "Mmm, mmm",
+      "[Instrumental Break]",
+      "Yeah, yeah!"
+    ],
+    "skip_rationale": "Musical filler with no educational content"
+  },
+  "search_metrics": {
+    "total_searches": 28,
+    "successful_searches": 26,
+    "failed_searches": 2,
+    "fallback_searches_used": 4,
+    "total_videos_found": 32
+  },
+  "concepts_extracted": 28,
+  "total_videos": 32
 }
 ```
+
+**Coverage Validation:**
+
+After generating output, verify:
+- `coverage_percentage` ≥ 80%
+- `skipped_lines` only contains true filler (no educational content)
+- `fallback_searches_used` < 30% of total searches (if higher, topic may be too obscure)
 
 Begin analysis.
