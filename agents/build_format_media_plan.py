@@ -69,6 +69,66 @@ def load_phrase_groups() -> List[Dict]:
         return []
 
 
+def match_clips_to_phrase_groups(
+    phrase_groups: List[Dict],
+    available_clips: List[Dict]
+) -> List[Dict]:
+    """
+    Match each phrase group to the best available clip using semantic similarity.
+
+    Args:
+        phrase_groups: List of phrase groups with start_time, end_time, key_terms
+        available_clips: List of clips with description, lyrics_match metadata
+
+    Returns:
+        List of phrase groups with matched clip data added
+    """
+    from difflib import SequenceMatcher
+
+    matched_groups = []
+    used_clip_indices = set()
+
+    for group in phrase_groups:
+        # Build search text from phrase group
+        phrase_text = group.get("topic", "")
+        key_terms = " ".join(group.get("key_terms", []))
+        search_text = f"{phrase_text} {key_terms}".lower()
+
+        # Find best matching clip
+        best_score = 0
+        best_clip_idx = None
+
+        for idx, clip in enumerate(available_clips):
+            # Prefer unused clips, but allow reuse if needed
+            reuse_penalty = 0.3 if idx in used_clip_indices else 0
+
+            # Score based on description and lyrics_match
+            clip_text = f"{clip.get('description', '')} {clip.get('lyrics_match', '')}".lower()
+
+            # Simple word overlap score
+            search_words = set(search_text.split())
+            clip_words = set(clip_text.split())
+            overlap = len(search_words & clip_words)
+            total = len(search_words | clip_words)
+            score = (overlap / total if total > 0 else 0) - reuse_penalty
+
+            if score > best_score:
+                best_score = score
+                best_clip_idx = idx
+
+        # Add matched clip data to group
+        if best_clip_idx is not None:
+            matched_group = group.copy()
+            matched_group["matched_clip"] = available_clips[best_clip_idx]
+            matched_group["match_score"] = best_score
+            matched_groups.append(matched_group)
+            used_clip_indices.add(best_clip_idx)
+        else:
+            print(f"  ⚠️  No clip match for phrase group {group.get('group_id', '?')}")
+
+    return matched_groups
+
+
 def get_format_config(format_type: FormatType, segments: Dict) -> Dict:
     """Get duration and configuration for each format."""
     configs = {
