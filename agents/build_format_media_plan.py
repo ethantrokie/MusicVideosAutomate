@@ -129,6 +129,75 @@ def match_clips_to_phrase_groups(
     return matched_groups
 
 
+def build_synchronized_shot_list(
+    matched_groups: List[Dict],
+    segment_start: float,
+    segment_end: float
+) -> List[Dict]:
+    """
+    Build shot list with lyric-synchronized timing.
+    Filters phrase groups to segment time range and creates shots with actual timestamps.
+
+    Args:
+        matched_groups: Phrase groups with matched clips
+        segment_start: Segment start time in seconds (e.g., 30 for hook)
+        segment_end: Segment end time in seconds (e.g., 45 for hook)
+
+    Returns:
+        List of shots with synchronized start_time, end_time from lyrics
+    """
+    shots = []
+    shot_number = 1
+
+    # Filter groups to this segment's time range
+    segment_groups = [
+        g for g in matched_groups
+        if g["start_time"] < segment_end and g["end_time"] > segment_start
+    ]
+
+    print(f"    📍 Found {len(segment_groups)} phrase groups in segment range {segment_start}-{segment_end}s")
+
+    for group in segment_groups:
+        clip = group.get("matched_clip")
+        if not clip:
+            continue
+
+        # Use ACTUAL lyric timestamps from phrase group
+        lyric_start = max(group["start_time"], segment_start)
+        lyric_end = min(group["end_time"], segment_end)
+        duration = lyric_end - lyric_start
+
+        # Adjust timing to segment-relative (0-based for this segment)
+        relative_start = lyric_start - segment_start
+        relative_end = lyric_end - segment_start
+
+        shot = {
+            "shot_number": shot_number,
+            "local_path": clip["local_path"],
+            "media_type": clip.get("media_type", "video"),
+            "media_url": clip.get("media_url", ""),
+            "description": clip.get("description", ""),
+            "lyrics_match": group.get("topic", ""),
+            "source": clip.get("source", ""),
+            "transition": clip.get("transition", "crossfade"),
+            "priority": clip.get("priority", "normal"),
+            # SYNCHRONIZED TIMING - from actual lyrics
+            "start_time": relative_start,
+            "end_time": relative_end,
+            "duration": duration,
+            # Preserve phrase group for debugging
+            "phrase_group_id": group.get("group_id"),
+            "absolute_start": lyric_start,  # For debugging
+            "absolute_end": lyric_end,
+            "match_score": group.get("match_score", 0)
+        }
+
+        shots.append(shot)
+        shot_number += 1
+
+    return shots
+
+
 def get_format_config(format_type: FormatType, segments: Dict) -> Dict:
     """Get duration and configuration for each format."""
     configs = {
