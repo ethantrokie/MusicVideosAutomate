@@ -60,6 +60,12 @@ python3 -c "
 import json
 data = json.load(open('${OUTPUT_DIR}/lyric_media.json'))
 print(f\"  Found {data['total_videos']} videos\")
-print(f\"  Coverage: {data['lyric_coverage_percent']}%\")
+# Handle both old and new coverage metric formats
+coverage = data.get('coverage_metrics', {}).get('coverage_percentage') or data.get('lyric_coverage_percent', 'N/A')
+print(f\"  Coverage: {coverage}%\")
 print(f\"  Concepts: {data['concepts_extracted']}\")
+# Show search metrics if available
+if 'search_metrics' in data:
+    sm = data['search_metrics']
+    print(f\"  Searches: {sm['successful_searches']}/{sm['total_searches']} successful, {sm['fallback_searches_used']} fallbacks used\")
 "
