@@ -41,11 +41,31 @@ python agents/search_media.py "SEARCH QUERY" --type=video --max=2 --json
 - "DNA replication" (not "genetic information copying itself")
 - "friction heat generation" (not "creating warmth from rubbing")
 
-## Target Coverage
+## Target Coverage & Grouping Strategy
 
-- **Goal**: 20-30 videos total for ~180s video
+**Coverage Goal: 80-90% of lyric lines (excluding intelligent filler word detection)**
+
+- **Total Videos**: 25-35 for ~180s video (roughly 1 concept per 5-7 seconds)
 - **Per Concept**: 1-2 videos
-- **Concepts**: Extract 15-20 visual concepts from lyrics
+- **Concepts to Extract**: 25-35 visual concepts using phrase-based grouping
+- **Grouping Strategy**: Cluster 2-4 related lyric lines into cohesive visual concepts
+- **Skip Intelligently**: Repeated filler words ("oh", "yeah", "[Instrumental]"), but PRESERVE all educational/topic-specific content
+
+**Why Phrase-Based Grouping?**
+- Reduces total searches (faster execution, lower cost)
+- Improves lyric coverage (no orphaned lines)
+- Creates more cohesive visual segments
+- Better handles poetic language that needs context
+
+**Example Grouping:**
+
+Bad (line-by-line, gaps):
+- "Planetary gears, spinning all around" → 1 concept
+- "Sun, planets, and ring - that's the sound" → SKIPPED (no video)
+- "Hold one still, spin another one fast" → SKIPPED (no video)
+
+Good (phrase-based, full coverage):
+- "Planetary gears, spinning all around / Sun, planets, and ring - that's the sound / Hold one still, spin another one fast" → "Planetary gear components (sun, ring, carrier) and their mechanical interaction" → 2-3 videos ✓
 
 ## IMPORTANT: Autonomous Operation
 
