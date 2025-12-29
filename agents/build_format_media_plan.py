@@ -412,7 +412,8 @@ def filter_clips_for_segment(available_clips: List[Dict], segment_lyrics: str,
 
 def build_format_plan(format_type: FormatType, target_duration: float,
                       available_clips: List[Dict], output_file: str,
-                      segment_lyrics: str = "") -> bool:
+                      segment_lyrics: str = "", segments: Dict = None,
+                      phrase_groups: List[Dict] = None) -> bool:
     """
     Build a media plan for a specific format by assigning clips from the pool.
     Preserves all semantic metadata for 5_assemble_video.py's matcher.
@@ -429,6 +430,18 @@ def build_format_plan(format_type: FormatType, target_duration: float,
     if not available_clips:
         print(f"    ❌ No available clips to assign")
         return False
+
+    # Load phrase groups for lyric synchronization
+    use_lyric_sync = phrase_groups is not None and len(phrase_groups) > 0
+
+    if use_lyric_sync:
+        print(f"  ✓ Lyric synchronization ENABLED - using phrase group timestamps")
+        # Match clips to phrase groups semantically
+        matched_groups = match_clips_to_phrase_groups(phrase_groups, available_clips)
+        print(f"    Matched {len(matched_groups)} phrase groups to clips")
+    else:
+        print(f"  ⚠️  Lyric synchronization DISABLED - using sequential timing fallback")
+        matched_groups = []
 
     # Filter clips to match segment lyrics (for shorts)
     if segment_lyrics:
@@ -509,79 +522,102 @@ def build_format_plan(format_type: FormatType, target_duration: float,
 
     print(f"    Strategy: {num_shots} shots at ~{base_duration_per_shot:.1f}s each for visual variety")
 
-    # Build shot list for this format
-    shot_list = []
-    current_duration = 0.0
-    clip_index = 0
-    shot_number = 1
+    # Build shot list with synchronized or sequential timing
+    if use_lyric_sync and segments is not None:
+        # Get segment boundaries from segments.json
+        segment_info = segments.get(format_type, {})
+        segment_start = segment_info.get("start", 0)
+        segment_end = segment_info.get("end", target_duration)
 
-    while current_duration < required_duration and shot_number <= num_shots:
-        # Cycle through clips if we run out
-        clip = available_clips[clip_index % num_clips]
+        # Build synchronized shots
+        shot_list = build_synchronized_shot_list(
+            matched_groups,
+            segment_start,
+            segment_end
+        )
 
-        # Calculate duration for this shot
-        remaining_needed = required_duration - current_duration
+        # Calculate total duration from shots
+        total_duration = max((s["end_time"] for s in shot_list), default=0) if shot_list else 0
 
-        if shot_number == num_shots:
-            # Last shot: use exactly what's needed (plus small buffer)
-            clip_duration = min(clip["actual_duration"], remaining_needed + 1.0)
-        else:
-            # Regular shot: use base duration with slight variation for natural pacing
-            # Vary by ±20% for natural feel
-            import random
-            variation_factor = random.uniform(0.8, 1.2)
-            desired_duration = base_duration_per_shot * variation_factor
+        print(f"    ✓ Created {len(shot_list)} synchronized shots (duration: {total_duration:.1f}s)")
 
-            # Clamp to acceptable range and clip's actual duration
-            clip_duration = min(
-                clip["actual_duration"],
-                max(MIN_SHOT_DURATION, min(desired_duration, MAX_SHOT_DURATION))
-            )
+    else:
+        # FALLBACK: Sequential timing (original logic)
+        shot_list = []
+        current_duration = 0.0
+        clip_index = 0
+        shot_number = 1
 
-        # Create shot with ALL semantic metadata preserved
-        shot = {
-            "shot_number": shot_number,
-            "local_path": clip["local_path"],
-            "media_url": clip.get("media_url", ""),
-            "media_type": clip.get("media_type", "video"),
-            "description": clip.get("description", ""),
-            "lyrics_match": clip.get("lyrics_match", ""),
-            "source": clip.get("source", ""),
-            "duration": clip_duration,
-            "start_time": current_duration,
-            "end_time": current_duration + clip_duration,
-            "transition": clip.get("transition", "crossfade"),
-            "priority": clip.get("priority", "normal"),
-            "original_shot": clip["shot_number"],
-        }
-        shot_list.append(shot)
+        while current_duration < required_duration and shot_number <= num_shots:
+            # Cycle through clips if we run out
+            clip = available_clips[clip_index % num_clips]
 
-        current_duration += clip_duration
-        shot_number += 1
-        clip_index += 1
+            # Calculate duration for this shot
+            remaining_needed = required_duration - current_duration
 
-        # Safety limit to prevent infinite loops
-        if shot_number > 100:
-            print(f"    ⚠️  Hit safety limit of 100 shots")
-            break
+            if shot_number == num_shots:
+                # Last shot: use exactly what's needed (plus small buffer)
+                clip_duration = min(clip["actual_duration"], remaining_needed + 1.0)
+            else:
+                # Regular shot: use base duration with slight variation for natural pacing
+                # Vary by ±20% for natural feel
+                import random
+                variation_factor = random.uniform(0.8, 1.2)
+                desired_duration = base_duration_per_shot * variation_factor
+
+                # Clamp to acceptable range and clip's actual duration
+                clip_duration = min(
+                    clip["actual_duration"],
+                    max(MIN_SHOT_DURATION, min(desired_duration, MAX_SHOT_DURATION))
+                )
+
+            # Create shot with ALL semantic metadata preserved
+            shot = {
+                "shot_number": shot_number,
+                "local_path": clip["local_path"],
+                "media_url": clip.get("media_url", ""),
+                "media_type": clip.get("media_type", "video"),
+                "description": clip.get("description", ""),
+                "lyrics_match": clip.get("lyrics_match", ""),
+                "source": clip.get("source", ""),
+                "duration": clip_duration,
+                "start_time": current_duration,
+                "end_time": current_duration + clip_duration,
+                "transition": clip.get("transition", "crossfade"),
+                "priority": clip.get("priority", "normal"),
+                "original_shot": clip["shot_number"],
+            }
+            shot_list.append(shot)
+
+            current_duration += clip_duration
+            shot_number += 1
+            clip_index += 1
+
+            # Safety limit to prevent infinite loops
+            if shot_number > 100:
+                print(f"    ⚠️  Hit safety limit of 100 shots")
+                break
+
+        total_duration = current_duration
+        print(f"    ✓ Created {len(shot_list)} sequential shots (duration: {total_duration:.1f}s)")
     
     # Create the media plan
     media_plan = {
         "format": format_type,
         "target_duration": target_duration,
-        "total_duration": current_duration,
+        "total_duration": total_duration,
         "total_shots": len(shot_list),
         "pacing": "varied",
         "transition_style": "smooth",
         "shot_list": shot_list
     }
-    
+
     # Save the plan
     output_path = get_output_path(output_file)
     with open(output_path, 'w') as f:
         json.dump(media_plan, f, indent=2)
-    
-    print(f"    ✅ Created {output_file} with {len(shot_list)} shots ({current_duration:.1f}s)")
+
+    print(f"    ✅ Created {output_file} with {len(shot_list)} shots ({total_duration:.1f}s)")
     return True
 
 
@@ -621,6 +657,15 @@ def main():
     total_duration = sum(c["actual_duration"] for c in available_clips)
     print(f"  Found {len(available_clips)} clips totaling {total_duration:.1f}s")
 
+    # Load phrase groups for lyric synchronization
+    phrase_groups = load_phrase_groups()
+    use_lyric_sync = len(phrase_groups) > 0
+
+    if use_lyric_sync:
+        print(f"  ✓ Lyric synchronization ENABLED - using phrase group timestamps")
+    else:
+        print(f"  ⚠️  Lyric synchronization DISABLED - using sequential timing fallback")
+
     # Show clips with their descriptions for verification
     for clip in available_clips[:5]:  # Show first 5
         desc = clip.get('description', 'No description')[:40]
@@ -652,7 +697,9 @@ def main():
             config["duration"],
             available_clips.copy(),  # Pass a copy so filtering doesn't affect other formats
             config["output_file"],
-            segment_lyrics
+            segment_lyrics,
+            segments,
+            phrase_groups if use_lyric_sync else None
         )
         if success:
             success_count += 1
