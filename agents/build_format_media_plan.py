@@ -21,7 +21,7 @@ from typing import Dict, List, Literal
 # Minimum buffer to ensure clips cover full audio duration even if some downloads fail
 CLIP_COVERAGE_BUFFER_SECONDS = 15
 
-FormatType = Literal["full", "hook", "educational"]
+FormatType = Literal["full", "hook", "educational", "intro"]
 
 
 def get_output_path(filename: str) -> Path:
@@ -39,12 +39,34 @@ def get_media_duration(file_path: str) -> float:
             '-of', 'default=noprint_wrappers=1:nokey=1',
             file_path
         ], capture_output=True, text=True, timeout=10)
-        
+
         if result.returncode == 0:
             return float(result.stdout.strip())
     except Exception:
         pass
     return 0.0
+
+
+def load_phrase_groups() -> List[Dict]:
+    """
+    Load phrase groups with lyric timestamps.
+    Returns empty list if file doesn't exist (graceful degradation).
+    """
+    phrase_groups_path = get_output_path("phrase_groups.json")
+
+    if not phrase_groups_path.exists():
+        print("  ⚠️  phrase_groups.json not found, will use sequential timing")
+        return []
+
+    try:
+        with open(phrase_groups_path) as f:
+            phrase_groups = json.load(f)
+
+        print(f"  ✓ Loaded {len(phrase_groups)} phrase groups with lyric timestamps")
+        return phrase_groups
+    except Exception as e:
+        print(f"  ⚠️  Error loading phrase_groups.json: {e}, using sequential timing")
+        return []
 
 
 def get_format_config(format_type: FormatType, segments: Dict) -> Dict:
@@ -64,6 +86,11 @@ def get_format_config(format_type: FormatType, segments: Dict) -> Dict:
             "duration": segments["educational"]["duration"],
             "output_file": "media_plan_educational.json",
             "description": "Educational short vertical video"
+        },
+        "intro": {
+            "duration": segments["intro"]["duration"],
+            "output_file": "media_plan_intro.json",
+            "description": "Intro short vertical video"
         }
     }
     return configs[format_type]
@@ -168,13 +195,101 @@ def load_available_media() -> List[Dict]:
     return available_clips
 
 
+def get_lyrics_in_time_range(suno_data: Dict, start_time: float, end_time: float) -> str:
+    """
+    Extract which lyrics appear in a given time range.
+    Returns concatenated lyric text for that segment.
+    """
+    aligned_words = suno_data.get('alignedWords', [])
+    segment_words = []
+
+    for word_data in aligned_words:
+        word_start = word_data.get('startS', 0)
+        word_end = word_data.get('endS', 0)
+
+        # Include word if it overlaps with the segment
+        if word_start < end_time and word_end > start_time:
+            segment_words.append(word_data.get('word', ''))
+
+    return ''.join(segment_words).strip()
+
+
+def score_clip_for_segment(clip: Dict, segment_lyrics: str) -> float:
+    """
+    Score how well a clip matches the segment's lyrics.
+    Returns score 0.0-1.0, higher is better match.
+    """
+    lyrics_match = clip.get('lyrics_match', '').lower()
+    segment_lyrics_lower = segment_lyrics.lower()
+
+    if not lyrics_match or not segment_lyrics:
+        return 0.0
+
+    # Calculate word overlap
+    match_words = set(lyrics_match.split())
+    segment_words = set(segment_lyrics_lower.split())
+
+    # Remove common words for better matching
+    stopwords = {'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'you', 'that', 'this'}
+    match_words -= stopwords
+    segment_words -= stopwords
+
+    if not segment_words:
+        return 0.0
+
+    # Jaccard similarity: intersection / union
+    intersection = len(match_words & segment_words)
+    union = len(match_words | segment_words)
+
+    if union == 0:
+        return 0.0
+
+    return intersection / union
+
+
+def filter_clips_for_segment(available_clips: List[Dict], segment_lyrics: str,
+                             min_score: float = 0.1) -> List[Dict]:
+    """
+    Filter and sort clips by relevance to segment lyrics.
+    Returns clips sorted by match score (best first).
+    Falls back to all clips if no matches meet threshold.
+    """
+    if not segment_lyrics:
+        # No segment lyrics - return all clips
+        return available_clips
+
+    # Score all clips
+    scored_clips = []
+    for clip in available_clips:
+        score = score_clip_for_segment(clip, segment_lyrics)
+        scored_clips.append((score, clip))
+
+    # Sort by score (descending)
+    scored_clips.sort(key=lambda x: x[0], reverse=True)
+
+    # Filter by minimum score
+    matching_clips = [clip for score, clip in scored_clips if score >= min_score]
+
+    # If we have good matches, use them. Otherwise fall back to all clips
+    if matching_clips:
+        match_count = len(matching_clips)
+        avg_score = sum(score_clip_for_segment(c, segment_lyrics) for c in matching_clips) / match_count
+        print(f"    📍 Using {match_count}/{len(available_clips)} clips matching segment lyrics (avg score: {avg_score:.2f})")
+        return matching_clips
+    else:
+        print(f"    ⚠️  No clips matched segment lyrics (threshold={min_score}), using all clips")
+        return available_clips
+
+
 def build_format_plan(format_type: FormatType, target_duration: float,
-                      available_clips: List[Dict], output_file: str) -> bool:
+                      available_clips: List[Dict], output_file: str,
+                      segment_lyrics: str = "") -> bool:
     """
     Build a media plan for a specific format by assigning clips from the pool.
     Preserves all semantic metadata for 5_assemble_video.py's matcher.
 
     Strategy:
+    - Filter clips to match segment's lyrics (for hook/educational shorts)
     - Maximize visual variety by using many short clips instead of few long clips
     - For 'full': Target 15-30 shots at 3-8s each
     - For 'hook'/'educational': Target 12-20 shots at 1.5-3s each (~2s ideal for engagement)
@@ -185,6 +300,11 @@ def build_format_plan(format_type: FormatType, target_duration: float,
     if not available_clips:
         print(f"    ❌ No available clips to assign")
         return False
+
+    # Filter clips to match segment lyrics (for shorts)
+    if segment_lyrics:
+        print(f"    🎯 Filtering clips for segment lyrics ({len(segment_lyrics.split())} words)...")
+        available_clips = filter_clips_for_segment(available_clips, segment_lyrics)
 
     # Calculate total available duration
     total_available = sum(c["actual_duration"] for c in available_clips)
@@ -339,56 +459,80 @@ def build_format_plan(format_type: FormatType, target_duration: float,
 def main():
     """Build format-specific media plans by assigning from available clips."""
     print("🎨 Building format-specific media plans...")
-    
+
     # Load segments to get durations
     segments_path = get_output_path("segments.json")
     if not segments_path.exists():
         print(f"❌ Error: {segments_path} not found")
         print("Segment analysis must run before media planning")
         sys.exit(1)
-    
+
     with open(segments_path) as f:
         segments = json.load(f)
-    
+
+    # Load suno lyrics data for segment-based filtering
+    suno_path = get_output_path("suno_output.json")
+    suno_data = {}
+    if suno_path.exists():
+        with open(suno_path) as f:
+            suno_data = json.load(f)
+        print(f"  ✅ Loaded lyric timestamps from {suno_path.name}")
+    else:
+        print(f"  ⚠️  No suno_output.json found - will use all clips for each format")
+
     # Load all available media clips with semantic metadata
     print("\n📦 Loading available media clips...")
     available_clips = load_available_media()
-    
+
     if not available_clips:
         print("❌ Error: No downloaded media clips found")
         print("Media must be downloaded before building format-specific plans")
         sys.exit(1)
-    
+
     total_duration = sum(c["actual_duration"] for c in available_clips)
     print(f"  Found {len(available_clips)} clips totaling {total_duration:.1f}s")
-    
+
     # Show clips with their descriptions for verification
     for clip in available_clips[:5]:  # Show first 5
         desc = clip.get('description', 'No description')[:40]
-        print(f"    - shot_{clip['shot_number']:02d}: {clip['actual_duration']:.1f}s | {desc}...")
+        lyrics = clip.get('lyrics_match', 'No lyrics')[:40]
+        print(f"    - shot_{clip['shot_number']:02d}: {clip['actual_duration']:.1f}s | {desc}... | {lyrics}...")
     if len(available_clips) > 5:
         print(f"    ... and {len(available_clips) - 5} more")
     print()
-    
+
     # Build media plan for each format
-    formats: list[FormatType] = ["full", "hook", "educational"]
+    formats: list[FormatType] = ["full", "hook", "educational", "intro"]
     success_count = 0
-    
+
     for format_type in formats:
         config = get_format_config(format_type, segments)
+
+        # Extract segment lyrics for filtering (except full video uses all clips)
+        segment_lyrics = ""
+        if format_type != "full" and suno_data:
+            segment_info = segments.get(format_type, {})
+            start_time = segment_info.get("start", 0)
+            end_time = segment_info.get("end", 0)
+            segment_lyrics = get_lyrics_in_time_range(suno_data, start_time, end_time)
+            print(f"\n  🎵 {format_type.upper()} segment ({start_time}s-{end_time}s):")
+            print(f"     First 100 chars: {segment_lyrics[:100]}...")
+
         success = build_format_plan(
             format_type,
             config["duration"],
-            available_clips,
-            config["output_file"]
+            available_clips.copy(),  # Pass a copy so filtering doesn't affect other formats
+            config["output_file"],
+            segment_lyrics
         )
         if success:
             success_count += 1
-    
+
     # Summary
     print(f"\n✅ Built {success_count}/{len(formats)} format-specific media plans")
-    print(f"   All plans preserve description, media_url for semantic matching")
-    
+    print(f"   Full video: uses all clips sequentially")
+    print(f"   Hook/Educational/Intro shorts: filtered by segment lyrics")
+
     if success_count < len(formats):
         print("⚠️  Some media plans failed - videos may have incorrect durations")
         sys.exit(1)
