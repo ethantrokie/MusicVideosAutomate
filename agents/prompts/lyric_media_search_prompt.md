@@ -41,6 +41,39 @@ python agents/search_media.py "SEARCH QUERY" --type=video --max=2 --json
 - "DNA replication" (not "genetic information copying itself")
 - "friction heat generation" (not "creating warmth from rubbing")
 
+**CRITICAL: Retry Logic for Failed Searches**
+
+If a search returns **0 results** or fails:
+
+1. **Simplify the search term** by:
+   - Removing technical jargon → broader concepts
+   - Abstracting to parent category
+   - Using more common terminology
+   - Reducing to 1-2 core visual words
+
+2. **Retry ONCE** with simplified term
+
+3. **Document in output** which searches failed and used fallback
+
+**Retry Examples:**
+
+| Original Search | Result | Fallback Search | Result |
+|----------------|--------|----------------|--------|
+| "planetary gear sun ring carrier" | 0 videos | "mechanical gears rotating" | 3 videos ✓ |
+| "epicyclic transmission mechanism" | 0 videos | "car transmission gears" | 5 videos ✓ |
+| "torque multiplication ratio change" | 0 videos | "gear ratio mechanics" | 2 videos ✓ |
+| "chloroplast thylakoid stroma" | 0 videos | "plant cell photosynthesis" | 4 videos ✓ |
+
+**Implementation Pattern:**
+
+```bash
+# Try primary search
+python agents/search_media.py "planetary gear sun ring carrier" --type=video --max=2 --json
+
+# If 0 results → retry with simplified term
+python agents/search_media.py "mechanical gears rotating" --type=video --max=2 --json
+```
+
 ## Target Coverage & Grouping Strategy
 
 **Coverage Goal: 80-90% of lyric lines (excluding intelligent filler word detection)**
