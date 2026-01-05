@@ -59,6 +59,48 @@ def get_recent_topics(history, days=30):
     return recent
 
 
+def get_all_topics_for_exact_match(history):
+    """Get all historical topics for exact duplicate checking (not just recent)."""
+    return [entry["topic"] for entry in history["topics"]]
+
+
+def check_category_spacing(new_topic, recent_topics, min_spacing=7):
+    """
+    Check if topic's category was used too recently.
+    Returns (is_too_soon, category, last_index) where last_index is how many videos ago.
+    """
+    # Define category keywords
+    category_keywords = {
+        'quantum': ['quantum', 'entanglement', 'tunneling', 'photoelectric', 'superconductivity', 'superconductor'],
+        'astronomy': ['galaxy', 'star', 'planet', 'universe', 'cosmic', 'space', 'nebula', 'black hole'],
+        'biology': ['cell', 'dna', 'protein', 'photosynthesis', 'bacteria', 'evolution', 'gene', 'crispr'],
+        'chemistry': ['molecule', 'chemical', 'reaction', 'atom', 'element', 'compound', 'catalyst'],
+    }
+
+    # Identify new topic's category
+    new_topic_lower = new_topic.lower()
+    new_category = None
+    for category, keywords in category_keywords.items():
+        if any(keyword in new_topic_lower for keyword in keywords):
+            new_category = category
+            break
+
+    # If not in tracked categories, no spacing constraint
+    if not new_category:
+        return False, None, -1
+
+    # Check recent topics for same category
+    for i, recent_topic in enumerate(reversed(recent_topics[-min_spacing:])):
+        recent_lower = recent_topic.lower()
+        for keyword in category_keywords[new_category]:
+            if keyword in recent_lower:
+                # Found same category within spacing window
+                videos_ago = i + 1
+                return True, new_category, videos_ago
+
+    return False, None, -1
+
+
 def extract_keywords(topic):
     """Extract key scientific terms from a topic for similarity checking."""
     # Lowercase and remove punctuation
@@ -106,6 +148,14 @@ def check_topic_similarity(new_topic, recent_topics, threshold=0.3):
     Check if a new topic is too similar to recent topics.
     Returns (is_similar, similar_topic, similarity_score)
     """
+    # First: Check for exact duplicates (case-insensitive)
+    new_normalized = new_topic.lower().strip()
+    for recent in recent_topics:
+        recent_normalized = recent.lower().strip()
+        if new_normalized == recent_normalized:
+            return True, recent, 1.0  # Exact match
+
+    # Second: Check keyword similarity
     for recent in recent_topics:
         similarity = calculate_topic_similarity(new_topic, recent)
         if similarity >= threshold:
@@ -206,16 +256,36 @@ This helps ensure the video is relevant to what people are currently searching f
 
 """
 
+    # Build recent topics section with full context
+    recent_topics_section = ""
+    if recent_topics:
+        # Show last 20 topics (or all if fewer than 20)
+        topics_to_show = recent_topics[-20:] if len(recent_topics) > 20 else recent_topics
+        recent_topics_formatted = "\n".join([f"  {i+1}. {topic}" for i, topic in enumerate(topics_to_show)])
+        recent_topics_section = f"""
+
+RECENT TOPICS (LAST {len(topics_to_show)} VIDEOS) - DO NOT REPEAT OR CREATE SIMILAR TOPICS:
+{recent_topics_formatted}
+
+CRITICAL UNIQUENESS REQUIREMENTS:
+- Your topic MUST be completely different from ALL topics listed above
+- DO NOT use the same scientific concept, phenomenon, or process
+- DO NOT use similar keywords or terminology
+- If you notice a pattern (e.g., multiple quantum topics), actively avoid that category
+- Prefer under-represented scientific domains
+
+"""
+
     prompt = f"""SYSTEM CONTEXT: This is an automated pipeline. Do NOT use brainstorming skills. Do NOT ask clarifying questions. Just generate the output directly.
 
 You are a topic generator for educational science videos. Generate ONE topic ONLY.
-{trends_section}{category_section}
+{trends_section}{category_section}{recent_topics_section}
 REQUIREMENTS:
 - Category: One of {categories}
 - K-12 appropriate (ages 10-18)
 - Visually interesting (stock footage available)
 - Specific educational science concept (no broad topics) focused on everyday phenomena
-- Avoid these recent topics: {', '.join(recent_topics[-10:]) if recent_topics else 'none yet'}
+- UNIQUENESS: Your topic will be compared against recent videos listed below (DO NOT repeat)
 
 TOPIC VARIETY - Balance engineering/manufacturing with pure science:
 - Engineering & Manufacturing: "How it's made" production processes, mechanical systems, industrial manufacturing
@@ -365,36 +435,67 @@ AVOID quantum mechanics topics unless it's been 7+ videos since the last quantum
             print(f"  Warning: Could not fetch trends: {e}")
             trends_text = ""
 
-    # Try to generate a unique topic (up to 3 attempts)
-    max_attempts = 3
+    # Get all topics for exact duplicate checking (not just recent)
+    all_topics = get_all_topics_for_exact_match(history)
+
+    # Try to generate a unique topic (up to 5 attempts)
+    max_attempts = 5
     for attempt in range(1, max_attempts + 1):
         # Generate topic via Claude
         output = generate_topic_via_claude(config, recent_topics, trends_text, category_guidance)
         topic, tone = parse_topic_output(output)
 
-        # Check for similarity with recent topics
-        is_similar, similar_topic, similarity = check_topic_similarity(topic, recent_topics, threshold=0.3)
+        # Check 1: Exact duplicate against ALL history
+        is_similar, similar_topic, similarity = check_topic_similarity(topic, all_topics, threshold=0.2)
 
-        if not is_similar:
-            # Topic is unique, we're done
-            print(f"  ✅ Unique topic generated (attempt {attempt})")
-            print(f"  Topic: {topic}")
-            print(f"  Tone: {tone}")
-            break
-        else:
-            # Topic is too similar
-            print(f"  ⚠️  Attempt {attempt}: Topic too similar to recent topic")
-            print(f"     Similarity: {similarity:.1%} - {similar_topic[:80]}...")
-
+        if is_similar and similarity == 1.0:
+            # Exact duplicate found
+            print(f"  ⚠️  Attempt {attempt}: EXACT DUPLICATE of historical topic")
+            print(f"     Rejected: {similar_topic[:80]}...")
             if attempt < max_attempts:
                 print(f"     Retrying...")
-                # Add this topic to avoid list for next attempt
+                recent_topics.append(topic)
+            continue
+
+        # Check 2: Similarity with recent topics (stricter threshold)
+        is_similar, similar_topic, similarity = check_topic_similarity(topic, recent_topics, threshold=0.2)
+
+        if is_similar:
+            # Topic is too similar to recent topic
+            print(f"  ⚠️  Attempt {attempt}: Topic too similar to recent topic")
+            print(f"     Similarity: {similarity:.1%} - {similar_topic[:80]}...")
+            if attempt < max_attempts:
+                print(f"     Retrying...")
                 recent_topics.append(topic)
             else:
                 # Last attempt failed, but use it anyway
                 print(f"     Using topic despite similarity (max attempts reached)")
                 print(f"  Topic: {topic}")
                 print(f"  Tone: {tone}")
+            continue
+
+        # Check 3: Category spacing (e.g., no quantum topics within 7 videos)
+        is_too_soon, category, videos_ago = check_category_spacing(topic, recent_topics, min_spacing=7)
+
+        if is_too_soon:
+            # Category used too recently
+            print(f"  ⚠️  Attempt {attempt}: {category.title()} topic used {videos_ago} video(s) ago")
+            print(f"     Need {7 - videos_ago} more videos before another {category} topic")
+            if attempt < max_attempts:
+                print(f"     Retrying...")
+                recent_topics.append(topic)
+            else:
+                # Last attempt failed, but use it anyway
+                print(f"     Using topic despite category spacing (max attempts reached)")
+                print(f"  Topic: {topic}")
+                print(f"  Tone: {tone}")
+            continue
+
+        # All checks passed - topic is unique!
+        print(f"  ✅ Unique topic generated (attempt {attempt})")
+        print(f"  Topic: {topic}")
+        print(f"  Tone: {tone}")
+        break
 
     # Write to idea.txt
     write_idea_file(topic, tone)
