@@ -15,10 +15,11 @@ from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 
-# Import change guardian
+# Import change guardian and cleanup
 sys.path.insert(0, str(Path(__file__).parent))
 from change_guardian import ChangeGuardian
 from youtube_scopes import SCOPES
+from cleanup_old_runs import cleanup_old_runs
 
 
 def get_authenticated_service(api_name, api_version):
@@ -313,6 +314,20 @@ def main():
     """Main execution."""
     print("📊 Weekly Performance Optimizer")
     print("=" * 50)
+
+    # Cleanup old runs (2 weeks retention)
+    print("\n🧹 Cleaning up old pipeline runs...")
+    deleted_count, freed_mb, errors = cleanup_old_runs(runs_dir="outputs/runs", days_to_keep=14, dry_run=False)
+
+    if deleted_count > 0:
+        print(f"   ✓ Deleted {deleted_count} old runs, freed {freed_mb:.1f} MB")
+    else:
+        print("   ✓ No old runs to clean up")
+
+    if errors:
+        print(f"   ⚠️  {len(errors)} errors occurred during cleanup")
+
+    print()
 
     # Load configs
     automation_config, video_config = load_config()
