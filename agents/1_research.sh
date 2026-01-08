@@ -62,5 +62,4 @@ python3 -c "
 import json
 data = json.load(open('${OUTPUT_DIR}/research.json'))
 print(f\"  Found {len(data['key_facts'])} facts\")
-print(f\"  Found {len(data['media_suggestions'])} media suggestions\")
 "

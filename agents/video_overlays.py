@@ -23,6 +23,37 @@ try:
 except ImportError:
     pass
 
+# Configure ImageMagick for MoviePy text rendering
+# Prevents "unset" binary path errors in launchd environment
+import moviepy.config as mpconfig
+import shutil
+
+def find_imagemagick():
+    """Find ImageMagick binary, including fallback paths for launchd."""
+    # Try shutil.which first (works when PATH is set correctly)
+    binary = shutil.which('magick') or shutil.which('convert')
+    if binary:
+        return binary
+
+    # Fallback to common absolute paths (needed for launchd)
+    fallback_paths = [
+        '/opt/homebrew/bin/magick',      # Apple Silicon Homebrew
+        '/opt/homebrew/bin/convert',
+        '/usr/local/bin/magick',         # Intel Homebrew
+        '/usr/local/bin/convert',
+        '/usr/bin/convert',              # System default
+    ]
+    for path in fallback_paths:
+        if os.path.exists(path) and os.access(path, os.X_OK):
+            return path
+    return None
+
+imagemagick_binary = find_imagemagick()
+if imagemagick_binary:
+    mpconfig.change_settings({"IMAGEMAGICK_BINARY": imagemagick_binary})
+else:
+    print("⚠️  Warning: ImageMagick not found, text overlays may fail")
+
 from moviepy.editor import (
     VideoFileClip,
     TextClip,
@@ -312,7 +343,7 @@ def main():
     parser.add_argument('--video', type=str, required=True, help='Input video path')
     parser.add_argument('--output', type=str, help='Output video path (default: replaces input)')
     parser.add_argument('--title', type=str, help='Video title (default: from research.json)')
-    parser.add_argument('--type', choices=['full', 'short_hook', 'short_educational'],
+    parser.add_argument('--type', choices=['full', 'short_hook', 'short_educational', 'short_intro'],
                         default='full', help='Video type')
     parser.add_argument('--title-duration', type=float, default=2.0,
                         help='Title overlay duration in seconds')
@@ -339,7 +370,7 @@ def main():
     title = args.title or get_video_title(video_path.parent)
 
     # Determine if short
-    is_short = args.type in ['short_hook', 'short_educational']
+    is_short = args.type in ['short_hook', 'short_educational', 'short_intro']
 
     print(f"🎬 Adding overlays to video...")
     print(f"  Type: {args.type}")

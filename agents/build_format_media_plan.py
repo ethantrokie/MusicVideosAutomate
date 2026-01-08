@@ -69,6 +69,26 @@ def load_phrase_groups() -> List[Dict]:
         return []
 
 
+def get_phrase_time(phrase_group: Dict, key: str) -> float:
+    """
+    Get time value from phrase group, handling both old and new key formats.
+
+    Args:
+        phrase_group: Phrase group dictionary
+        key: Either 'start' or 'end'
+
+    Returns:
+        Time value in seconds
+    """
+    if key == 'start':
+        # Try new format first (startS), then old format (start_time)
+        return phrase_group.get('startS', phrase_group.get('start_time', 0))
+    elif key == 'end':
+        # Try new format first (endS), then old format (end_time)
+        return phrase_group.get('endS', phrase_group.get('end_time', 0))
+    return 0
+
+
 def match_clips_to_phrase_groups(
     phrase_groups: List[Dict],
     available_clips: List[Dict]
@@ -88,9 +108,12 @@ def match_clips_to_phrase_groups(
     matched_groups = []
     used_clip_indices = set()
 
-    for group in phrase_groups:
-        # Build search text from phrase group
-        phrase_text = group.get("topic", "")
+    for idx, group in enumerate(phrase_groups):
+        # Build search text from phrase group text field
+        # phrase_text can be from 'text' (new format) or 'topic' (old format)
+        phrase_text = group.get("text", group.get("topic", ""))
+
+        # Extract key terms from text if available, otherwise use key_terms field
         key_terms = " ".join(group.get("key_terms", []))
         search_text = f"{phrase_text} {key_terms}".lower()
 
@@ -98,9 +121,9 @@ def match_clips_to_phrase_groups(
         best_score = 0
         best_clip_idx = None
 
-        for idx, clip in enumerate(available_clips):
+        for clip_idx, clip in enumerate(available_clips):
             # Prefer unused clips, but allow reuse if needed
-            reuse_penalty = 0.3 if idx in used_clip_indices else 0
+            reuse_penalty = 0.3 if clip_idx in used_clip_indices else 0
 
             # Score based on description and lyrics_match
             clip_text = f"{clip.get('description', '')} {clip.get('lyrics_match', '')}".lower()
@@ -114,17 +137,21 @@ def match_clips_to_phrase_groups(
 
             if score > best_score:
                 best_score = score
-                best_clip_idx = idx
+                best_clip_idx = clip_idx
 
         # Add matched clip data to group
         if best_clip_idx is not None:
             matched_group = group.copy()
             matched_group["matched_clip"] = available_clips[best_clip_idx]
             matched_group["match_score"] = best_score
+            matched_group["group_id"] = idx  # Add group_id for tracking
             matched_groups.append(matched_group)
             used_clip_indices.add(best_clip_idx)
         else:
-            print(f"  ⚠️  No clip match for phrase group {group.get('group_id', '?')}")
+            # Still add the group even if no clip matched, for tracking
+            matched_group = group.copy()
+            matched_group["group_id"] = idx
+            print(f"  ⚠️  No clip match for phrase group {idx} ({phrase_text[:40]}...)")
 
     return matched_groups
 
@@ -152,7 +179,7 @@ def build_synchronized_shot_list(
     # Filter groups to this segment's time range
     segment_groups = [
         g for g in matched_groups
-        if g["start_time"] < segment_end and g["end_time"] > segment_start
+        if get_phrase_time(g, 'start') < segment_end and get_phrase_time(g, 'end') > segment_start
     ]
 
     print(f"    📍 Found {len(segment_groups)} phrase groups in segment range {segment_start}-{segment_end}s")
@@ -163,8 +190,8 @@ def build_synchronized_shot_list(
             continue
 
         # Use ACTUAL lyric timestamps from phrase group
-        lyric_start = max(group["start_time"], segment_start)
-        lyric_end = min(group["end_time"], segment_end)
+        lyric_start = max(get_phrase_time(group, 'start'), segment_start)
+        lyric_end = min(get_phrase_time(group, 'end'), segment_end)
         duration = lyric_end - lyric_start
 
         # Adjust timing to segment-relative (0-based for this segment)
@@ -177,7 +204,7 @@ def build_synchronized_shot_list(
             "media_type": clip.get("media_type", "video"),
             "media_url": clip.get("media_url", ""),
             "description": clip.get("description", ""),
-            "lyrics_match": group.get("topic", ""),
+            "lyrics_match": group.get("text", group.get("topic", "")),  # Support both new (text) and old (topic) formats
             "source": clip.get("source", ""),
             "transition": clip.get("transition", "crossfade"),
             "priority": clip.get("priority", "normal"),
@@ -194,6 +221,49 @@ def build_synchronized_shot_list(
 
         shots.append(shot)
         shot_number += 1
+
+    # GAP FILLING: Detect and fill gaps in lyric coverage
+    # If there are shots but the first one doesn't start at 0 (relative to segment),
+    # there's an instrumental intro that needs visual content
+    if shots and shots[0]["start_time"] > 0.5:  # 0.5s threshold to avoid tiny gaps
+        gap_duration = shots[0]["start_time"]
+        print(f"    🔧 Detected {gap_duration:.1f}s gap before first lyrics (instrumental intro)")
+
+        # Find the first shot's clip to reuse (visual continuity)
+        first_clip = None
+        for group in segment_groups:
+            clip = group.get("matched_clip")
+            if clip:
+                first_clip = clip
+                break
+
+        if first_clip:
+            # Create filler shot for the instrumental intro
+            filler_shot = {
+                "shot_number": 0,  # Will renumber all shots after
+                "local_path": first_clip["local_path"],
+                "media_type": first_clip.get("media_type", "video"),
+                "media_url": first_clip.get("media_url", ""),
+                "description": first_clip.get("description", "") + " (instrumental intro)",
+                "lyrics_match": "[Instrumental]",
+                "source": first_clip.get("source", ""),
+                "transition": "fade",
+                "priority": "normal",
+                "start_time": 0.0,
+                "end_time": gap_duration,
+                "duration": gap_duration,
+                "phrase_group_id": None,
+                "absolute_start": segment_start,
+                "absolute_end": segment_start + gap_duration,
+                "match_score": 0.0
+            }
+
+            # Insert at beginning and renumber all shots
+            shots.insert(0, filler_shot)
+            for i, shot in enumerate(shots):
+                shot["shot_number"] = i + 1
+
+            print(f"    ✅ Added filler shot for instrumental intro (0-{gap_duration:.1f}s)")
 
     return shots
 

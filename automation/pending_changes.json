@@ -1,21 +1,21 @@
 [
   {
-    "change": "Increase video duration to capture more watch time from high-retention viewers",
-    "current_value": "35s",
-    "proposed_value": "50s",
-    "rationale": "Top performers (Photoelectric Effect, Quantum Entanglement) are sustaining attention beyond current length. 50s allows deeper explanation while staying under 1-minute threshold for short-form algorithms.",
+    "change": "Reduce video duration to optimize for high retention pattern",
+    "current_value": 35,
+    "proposed_value": 25,
+    "rationale": "Top retention video (Doppler Effect: 91.29%) was shortest format. Jet Engine at 69% retention suggests sweet spot at 20-30s where viewers complete full watch",
     "confidence": 0.82,
-    "expected_impact": "15-25% increase in total watch time minutes, improved algorithmic promotion",
+    "expected_impact": "Increase avg retention from 40% to 55-65%, triggering YouTube's algorithm for broader distribution",
     "validation_status": "NEEDS_REVIEW",
     "validation_reason": "Change type not in allowed list"
   },
   {
-    "change": "Reduce media items density to improve visual comprehension",
-    "current_value": "12-20",
-    "proposed_value": "8-12",
-    "rationale": "At 35s with 12-20 items, cuts occur every 1.75-2.9s. High retention videos likely benefit from clearer visual storytelling. Fewer, longer clips reduce cognitive load.",
+    "change": "Reduce media item count to strengthen narrative focus",
+    "current_value": 16,
+    "proposed_value": 10,
+    "rationale": "High retention videos likely have tighter visual-concept mapping. Fewer transitions at 25s duration (2.5s per clip) creates smoother viewing experience vs current 2.2s pace",
     "confidence": 0.78,
-    "expected_impact": "5-10% retention improvement, better alignment between audio explanations and visuals",
+    "expected_impact": "Improve viewer comprehension and completion rate, reducing drop-off points during rapid transitions",
     "validation_status": "NEEDS_REVIEW",
     "validation_reason": "Change type not in allowed list"
   }

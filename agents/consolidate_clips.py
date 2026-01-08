@@ -49,23 +49,34 @@ def consolidate_phrase_groups(phrase_groups: List[Dict], config: Dict) -> List[D
     max_duration = config["max_clip_duration"]
     coherence_threshold = config["semantic_coherence_threshold"]
 
+    # Normalize first phrase group - handle both old (startS/endS) and new (start_time/end_time) formats
+    first_group = phrase_groups[0]
+    start_time = first_group.get("start_time", first_group.get("startS"))
+    end_time = first_group.get("end_time", first_group.get("endS"))
+    duration = first_group.get("duration", end_time - start_time if (start_time is not None and end_time is not None) else 0)
+
     consolidated = []
     current_clip = {
         "clip_id": 1,
         "phrase_groups": [phrase_groups[0]],
-        "start_time": phrase_groups[0]["start_time"],
-        "end_time": phrase_groups[0]["end_time"],
-        "duration": phrase_groups[0]["duration"],
-        "topics": [phrase_groups[0]["topic"]],
-        "key_terms": phrase_groups[0].get("key_terms", [])
+        "start_time": start_time,
+        "end_time": end_time,
+        "duration": duration,
+        "topics": [first_group.get("topic", "")],
+        "key_terms": first_group.get("key_terms", [])
     }
 
     for i in range(1, len(phrase_groups)):
         group = phrase_groups[i]
         current_duration = current_clip["duration"]
 
+        # Normalize group timing - handle both old (startS/endS) and new (start_time/end_time) formats
+        group_start = group.get("start_time", group.get("startS"))
+        group_end = group.get("end_time", group.get("endS"))
+        group_duration = group.get("duration", group_end - group_start if (group_start is not None and group_end is not None) else 0)
+
         # Calculate if adding this group would exceed max duration
-        potential_duration = group["end_time"] - current_clip["start_time"]
+        potential_duration = group_end - current_clip["start_time"]
 
         # Check semantic similarity with current clip
         similarity = calculate_topic_similarity(
@@ -84,9 +95,9 @@ def consolidate_phrase_groups(phrase_groups: List[Dict], config: Dict) -> List[D
         if should_merge:
             # Merge into current clip
             current_clip["phrase_groups"].append(group)
-            current_clip["end_time"] = group["end_time"]
+            current_clip["end_time"] = group_end
             current_clip["duration"] = current_clip["end_time"] - current_clip["start_time"]
-            current_clip["topics"].append(group["topic"])
+            current_clip["topics"].append(group.get("topic", ""))
 
             # Add unique key terms
             for term in group.get("key_terms", []):
@@ -99,10 +110,10 @@ def consolidate_phrase_groups(phrase_groups: List[Dict], config: Dict) -> List[D
             current_clip = {
                 "clip_id": len(consolidated) + 1,
                 "phrase_groups": [group],
-                "start_time": group["start_time"],
-                "end_time": group["end_time"],
-                "duration": group["duration"],
-                "topics": [group["topic"]],
+                "start_time": group_start,
+                "end_time": group_end,
+                "duration": group_duration,
+                "topics": [group.get("topic", "")],
                 "key_terms": group.get("key_terms", [])
             }
 

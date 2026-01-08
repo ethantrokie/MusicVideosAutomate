@@ -536,7 +536,7 @@ def main():
                        help='Subtitle engine to use')
     parser.add_argument('--type', choices=['karaoke', 'traditional'], required=True,
                        help='Subtitle style')
-    parser.add_argument('--video', choices=['full', 'short_hook', 'short_educational'], required=True,
+    parser.add_argument('--video', choices=['full', 'short_hook', 'short_educational', 'short_intro'], required=True,
                        help='Which video to subtitle')
     parser.add_argument('--segment', help='Segment name for loading correct timestamps')
 
@@ -580,7 +580,7 @@ def main():
         words = all_words
 
     # Detect if this is a short video (9:16 vertical format)
-    is_short = args.video in ['short_hook', 'short_educational']
+    is_short = args.video in ['short_hook', 'short_educational', 'short_intro']
     
     # Get video dimensions for ASS file
     video_file = output_dir / f"{args.video}.mp4"

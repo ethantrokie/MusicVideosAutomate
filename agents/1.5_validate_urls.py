@@ -185,10 +185,16 @@ class URLValidator:
         print("📊 VALIDATION SUMMARY")
         print("="*60)
         print(f"Total URLs:       {total}")
-        print(f"✅ Validated:     {validated} ({validated/total*100:.1f}%)")
-        print(f"🔄 Replaced:      {replaced} ({replaced/total*100:.1f}%)")
-        print(f"❌ Failed:        {failed} ({failed/total*100:.1f}%)")
-        print(f"\n🎯 Success Rate:  {success_rate:.1f}%")
+
+        if total > 0:
+            print(f"✅ Validated:     {validated} ({validated/total*100:.1f}%)")
+            print(f"🔄 Replaced:      {replaced} ({replaced/total*100:.1f}%)")
+            print(f"❌ Failed:        {failed} ({failed/total*100:.1f}%)")
+            print(f"\n🎯 Success Rate:  {success_rate:.1f}%")
+        else:
+            print("ℹ️  No media_suggestions found in research.json")
+            print("   (This is normal when using lyric-based media search)")
+
         print("="*60)
 
 

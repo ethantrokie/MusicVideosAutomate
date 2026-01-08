@@ -54,7 +54,14 @@ def load_sync_config():
         "min_phrase_duration": 1.5,
         "phrase_gap_threshold": 0.3,
         "keyword_boost_multiplier": 2.0,
-        "transition_duration": 0.3
+        "transition_duration": 0.3,
+        "clip_consolidation": {
+            "enabled": True,
+            "min_clip_duration": 2.0,
+            "max_clip_duration": 4.0,
+            "target_clip_duration": 3.5,
+            "semantic_coherence_threshold": 0.3
+        }
     })
 
 
@@ -89,8 +96,24 @@ def create_clip_from_shot(shot: dict, video_settings: dict):
         MoviePy clip object
     """
     local_path = shot["local_path"]
-    duration = shot["duration"]
-    media_type = shot["media_type"]
+    duration = shot.get("duration")
+
+    # If duration is missing, calculate it from the media file
+    if duration is None:
+        media_type = shot.get("media_type", "video")
+        if media_type == "video":
+            try:
+                temp_clip = VideoFileClip(local_path)
+                duration = temp_clip.duration
+                temp_clip.close()
+            except Exception as e:
+                logger.warning(f"Could not determine duration for {local_path}, defaulting to 3.0s: {e}")
+                duration = 3.0
+        else:
+            # For images, use a default duration
+            duration = shot.get("display_duration", 3.0)
+
+    media_type = shot.get("media_type", "video")
     transition = shot.get("transition", "fade")
 
     target_width, target_height = video_settings["resolution"]
@@ -157,7 +180,7 @@ def create_clip_from_shot(shot: dict, video_settings: dict):
 
 def fetch_and_process_lyrics(music_metadata: dict, research_data: dict, sync_config: dict):
     """
-    Fetch timestamps and create phrase groups.
+    Load existing phrase groups from Stage 3.5, or create them if they don't exist (legacy fallback).
 
     Args:
         music_metadata: Music metadata with task_id and audio_id
@@ -172,6 +195,39 @@ def fetch_and_process_lyrics(music_metadata: dict, research_data: dict, sync_con
     import subprocess
 
     logger = logging.getLogger(__name__)
+
+    # CHECK if phrase_groups.json already exists from Stage 3.5
+    groups_path = get_output_path("phrase_groups.json")
+    aligned_path = get_output_path("lyrics_aligned.json")
+
+    if groups_path.exists():
+        logger.info("✓ Loading existing phrase groups from Stage 3.5...")
+        try:
+            with open(groups_path) as f:
+                phrase_groups = json.load(f)
+
+            # Verify it's valid (not null or empty)
+            if phrase_groups:
+                logger.info(f"✓ Loaded {len(phrase_groups)} phrase groups from Stage 3.5")
+
+                # Also try to load aligned lyrics if available
+                aligned_data = None
+                if aligned_path.exists():
+                    try:
+                        with open(aligned_path) as f:
+                            aligned_data = json.load(f)
+                        logger.info("✓ Loaded existing aligned lyrics")
+                    except Exception as e:
+                        logger.warning(f"Could not load aligned lyrics: {e}")
+
+                return aligned_data, phrase_groups
+            else:
+                logger.warning("⚠️  phrase_groups.json exists but is empty/null, will recreate")
+        except Exception as e:
+            logger.warning(f"⚠️  Could not load phrase_groups.json: {e}, will recreate")
+
+    # LEGACY FALLBACK: Only create if file doesn't exist or is invalid
+    logger.warning("⚠️  phrase_groups.json not found or invalid, creating from scratch (legacy mode)...")
 
     # Fetch timestamps
     try:

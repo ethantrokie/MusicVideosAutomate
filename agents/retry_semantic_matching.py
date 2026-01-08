@@ -64,8 +64,10 @@ def retry_with_adjusted_params(attempt: int = 1) -> bool:
             json.dump(config, f, indent=2)
 
         # Re-run video assembly (which includes semantic matching)
+        # Use the correct venv Python (not venv_video_llm) since 5_assemble_video.py needs moviepy
         print("\n🎬 Re-assembling video with adjusted matching parameters...")
-        result = subprocess.run([sys.executable, 'agents/5_assemble_video.py'])
+        venv_python = get_project_root() / "venv" / "bin" / "python3"
+        result = subprocess.run([str(venv_python), 'agents/5_assemble_video.py'])
 
         if result.returncode != 0:
             print("❌ Video assembly failed")

@@ -47,7 +47,7 @@ def update_video_description(youtube, video_id: str, new_description: str):
     ).execute()
 
 
-def main(full_id: str, hook_id: str, edu_id: str, tiktok_full_id: str = None, tiktok_hook_id: str = None):
+def main(full_id: str, hook_id: str, edu_id: str, intro_id: str = None, tiktok_full_id: str = None, tiktok_hook_id: str = None):
     """Cross-link videos across YouTube and TikTok."""
     print("🔗 Cross-linking videos...")
 
@@ -57,6 +57,7 @@ def main(full_id: str, hook_id: str, edu_id: str, tiktok_full_id: str = None, ti
     full_url = f"https://youtube.com/watch?v={full_id}"
     hook_url = f"https://youtube.com/shorts/{hook_id}"
     edu_url = f"https://youtube.com/shorts/{edu_id}"
+    intro_url = f"https://youtube.com/shorts/{intro_id}" if intro_id else None
 
     # Load topic from research.json (preferred) or fallback to idea.txt
     output_dir = Path(os.environ.get('OUTPUT_DIR', 'outputs/current'))
@@ -98,12 +99,15 @@ def main(full_id: str, hook_id: str, edu_id: str, tiktok_full_id: str = None, ti
         if tiktok_hook_url:
             tiktok_section += f"\n- Musical hook: {tiktok_hook_url}"
 
+    # Build intro section if available
+    intro_section = f"\n- Intro Preview: {intro_url}" if intro_url else ""
+
     # Update full video description
     full_desc = f"""Learn about {topic} through music! Full version.
 
 Watch the Shorts versions:
 - Musical Hook: {hook_url}
-- Educational Highlight: {edu_url}{tiktok_section}
+- Educational Highlight: {edu_url}{intro_section}{tiktok_section}
 
 #education #learning #science"""
 
@@ -132,6 +136,18 @@ See the musical hook: {hook_url}{tiktok_section if tiktok_full_url or tiktok_hoo
     print(f"  Updating educational short description...")
     update_video_description(youtube, edu_id, edu_desc)
 
+    # Update intro short description (if available)
+    if intro_id:
+        intro_desc = f"""{topic} - First minute preview! 🎬
+
+Watch the full version: {full_url}
+See the educational highlight: {edu_url}{tiktok_section if tiktok_full_url or tiktok_hook_url else ''}
+
+#shorts #education #learning"""
+
+        print(f"  Updating intro short description...")
+        update_video_description(youtube, intro_id, intro_desc)
+
     print("✅ Cross-linking complete")
 
     # Save results
@@ -143,6 +159,10 @@ See the musical hook: {hook_url}{tiktok_section if tiktok_full_url or tiktok_hoo
             'educational_short': {'id': edu_id, 'url': edu_url}
         }
     }
+
+    # Add intro short to results if available
+    if intro_id:
+        results['youtube']['intro_short'] = {'id': intro_id, 'url': intro_url}
 
     # Add TikTok results if available
     if tiktok_full_id or tiktok_hook_id:
@@ -157,19 +177,20 @@ See the musical hook: {hook_url}{tiktok_section if tiktok_full_url or tiktok_hoo
 
 
 if __name__ == '__main__':
-    if len(sys.argv) < 4 or len(sys.argv) > 6:
-        print("Usage: crosslink_videos.py <full_video_id> <hook_short_id> <edu_short_id> [tiktok_full_id] [tiktok_hook_id]")
+    if len(sys.argv) < 4 or len(sys.argv) > 7:
+        print("Usage: crosslink_videos.py <full_video_id> <hook_short_id> <edu_short_id> [intro_short_id] [tiktok_full_id] [tiktok_hook_id]")
         sys.exit(1)
 
     try:
-        # Extract arguments
+        # Extract arguments (empty strings are treated as None)
         full_id = sys.argv[1]
         hook_id = sys.argv[2]
         edu_id = sys.argv[3]
-        tiktok_full_id = sys.argv[4] if len(sys.argv) > 4 else None
-        tiktok_hook_id = sys.argv[5] if len(sys.argv) > 5 else None
+        intro_id = sys.argv[4] if len(sys.argv) > 4 and sys.argv[4] else None
+        tiktok_full_id = sys.argv[5] if len(sys.argv) > 5 and sys.argv[5] else None
+        tiktok_hook_id = sys.argv[6] if len(sys.argv) > 6 and sys.argv[6] else None
 
-        main(full_id, hook_id, edu_id, tiktok_full_id, tiktok_hook_id)
+        main(full_id, hook_id, edu_id, intro_id, tiktok_full_id, tiktok_hook_id)
     except Exception as e:
         print(f"❌ Error: {e}", file=sys.stderr)
         import traceback

@@ -34,9 +34,16 @@ if [ ! -f "${OUTPUT_DIR}/lyrics.json" ]; then
     exit 1
 fi
 
+if [ ! -f "${OUTPUT_DIR}/phrase_groups.json" ]; then
+    echo "❌ Error: ${OUTPUT_DIR}/phrase_groups.json not found"
+    echo "Run Stage 3.5 (phrase grouping) first"
+    exit 1
+fi
+
 # Read data
 VISUAL_RANKINGS=$(cat ${OUTPUT_DIR}/visual_rankings.json)
 LYRICS=$(cat ${OUTPUT_DIR}/lyrics.json)
+PHRASE_GROUPS=$(cat ${OUTPUT_DIR}/phrase_groups.json)
 
 echo "  📊 Using lyric-tagged ranked media"
 
@@ -56,6 +63,11 @@ echo "" >> "$TEMP_PROMPT"
 echo "## Lyrics Data" >> "$TEMP_PROMPT"
 echo '```json' >> "$TEMP_PROMPT"
 echo "$LYRICS" >> "$TEMP_PROMPT"
+echo '```' >> "$TEMP_PROMPT"
+echo "" >> "$TEMP_PROMPT"
+echo "## Phrase Groups (with timing)" >> "$TEMP_PROMPT"
+echo '```json' >> "$TEMP_PROMPT"
+echo "$PHRASE_GROUPS" >> "$TEMP_PROMPT"
 echo '```' >> "$TEMP_PROMPT"
 
 # Call Claude Code CLI - it will write directly to outputs/media_plan.json

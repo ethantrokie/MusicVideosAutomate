@@ -1,20 +1,8 @@
 {
-  "timestamp": "2025-12-21T21:13:42.414176",
+  "timestamp": "2026-01-07T09:00:07.184740",
   "cache_hours": 6,
   "trends": {
-    "top": [
-      "how does photosynthesis work",
-      "what is physics",
-      "biology definition",
-      "what is biology",
-      "quantum physics"
-    ],
-    "rising": [
-      "nobel prize physics quantum mechanics",
-      "john clarke physics",
-      "nobel prize quantum physics",
-      "stroma definition biology",
-      "dominant definition biology"
-    ]
+    "top": [],
+    "rising": []
   }
 }

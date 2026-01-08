@@ -66,7 +66,7 @@ class ResearchGapFiller:
             'missing_concepts': missing_fact_texts,
             'target_media_count': len(missing_facts),
             'tone': research_data.get('tone', 'educational'),
-            'existing_media_count': len(research_data.get('media_suggestions', []))
+            'existing_media_count': 0  # No longer using media_suggestions - using lyric-based search
         }
 
 

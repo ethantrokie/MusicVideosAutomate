@@ -231,15 +231,17 @@ def main():
     # Load shorts duration from config
     with open('config/config.json') as f:
         config = json.load(f)
-    shorts_duration = config.get('video_formats', {}).get('shorts', {}).get('hook_duration', 35)
-    min_dur, max_dur = shorts_duration, shorts_duration
+    shorts_config = config.get('video_formats', {}).get('shorts', {})
+    hook_duration = shorts_config.get('hook_duration', 15)
+    educational_duration = shorts_config.get('educational_duration', 33)
+    intro_duration = shorts_config.get('intro_duration', 60)
 
     # Analyze segments
     print("  Detecting musical hook...")
-    hook_segment = detect_musical_hook(lyrics, min_dur, max_dur)
+    hook_segment = detect_musical_hook(lyrics, hook_duration, hook_duration)
 
     print("  Analyzing educational peak...")
-    edu_segment = analyze_educational_peak(lyrics, topic, min_dur, max_dur)
+    edu_segment = analyze_educational_peak(lyrics, topic, educational_duration, educational_duration)
 
     # Full video segment
     full_duration = lyrics['metadata']['duration']
@@ -250,11 +252,21 @@ def main():
         'rationale': 'Complete song for full video'
     }
 
+    # Intro segment - always starts at 0
+    intro_end = min(intro_duration, full_duration)
+    intro_segment = {
+        'start': 0,
+        'end': intro_end,
+        'duration': intro_end,
+        'rationale': 'Opening segment of the song'
+    }
+
     # Save segments
     output = {
         'full': full_segment,
         'hook': hook_segment,
-        'educational': edu_segment
+        'educational': edu_segment,
+        'intro': intro_segment
     }
 
     segments_file = Path(f"{os.environ['OUTPUT_DIR']}/segments.json")
@@ -265,6 +277,7 @@ def main():
     print(f"  Full: 0-{full_duration:.1f}s")
     print(f"  Hook: {hook_segment['start']:.1f}-{hook_segment['end']:.1f}s ({hook_segment['duration']:.1f}s)")
     print(f"  Educational: {edu_segment['start']:.1f}-{edu_segment['end']:.1f}s ({edu_segment['duration']:.1f}s)")
+    print(f"  Intro: {intro_segment['start']:.1f}-{intro_segment['end']:.1f}s ({intro_segment['duration']:.1f}s)")
 
 
 if __name__ == '__main__':

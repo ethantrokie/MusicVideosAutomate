@@ -1,10 +1,10 @@
 #!/usr/bin/env python3 -u
 """
-Uploads video to Dropbox and triggers Zapier webhook for TikTok posting.
+Uploads video to Dropbox and triggers Zapier via email for TikTok posting.
 
 Usage:
   python agents/6_upload_dropbox_zapier.py <video_path> [caption]
-  python agents/6_upload_dropbox_zapier.py --run=TIMESTAMP --type=full|short_hook|short_educational
+  python agents/6_upload_dropbox_zapier.py --run=TIMESTAMP --type=full|short_hook|short_educational|short_intro
 """
 
 import os
@@ -12,11 +12,18 @@ import sys
 import json
 import argparse
 import re
-import requests
+import smtplib
+from email.mime.text import MIMEText
 import dropbox
 from dropbox.exceptions import ApiError, AuthError
 from dropbox.files import WriteMode
 from pathlib import Path
+
+# Email configuration for Zapier
+SENDER_EMAIL = "ethantrokie@gmail.com"
+ZAPIER_EMAIL = "tiktok.rhch0u@zapiermail.com"
+SMTP_SERVER = "smtp.gmail.com"
+SMTP_PORT = 587
 
 # Add shared helpers
 sys.path.insert(0, str(Path(__file__).parent))
@@ -79,6 +86,12 @@ View full video on YouTube {youtube_channel}
 Watch the full version on YouTube {youtube_channel}
 
 {hashtags}"""
+    elif video_type == 'short_intro':
+        return f"""{topic} - First minute preview!
+
+Watch the full version on YouTube {youtube_channel}
+
+{hashtags}"""
     else:
         return f"""Learn about {topic}!
 
@@ -115,17 +128,51 @@ def get_video_path_from_type(run_dir: Path, video_type: str) -> Path:
     type_to_file = {
         'full': 'full.mp4',
         'short_hook': 'short_hook.mp4',
-        'short_educational': 'short_educational.mp4'
+        'short_educational': 'short_educational.mp4',
+        'short_intro': 'short_intro.mp4'
     }
     filename = type_to_file.get(video_type, 'full.mp4')
     return run_dir / filename
 
 
-def upload_to_dropbox(file_path: Path, access_token: str, destination_path: str) -> str:
+def get_valid_access_token(config: dict) -> str:
+    """Get a valid access token, refreshing if necessary."""
+    dropbox_config = config.get('dropbox', {})
+
+    # Check if we have a refresh token
+    refresh_token = dropbox_config.get('refresh_token')
+    app_key = dropbox_config.get('app_key')
+    app_secret = dropbox_config.get('app_secret')
+
+    if refresh_token and app_key and app_secret:
+        # Use refresh token to get a fresh access token
+        try:
+            dbx = dropbox.Dropbox(
+                oauth2_refresh_token=refresh_token,
+                app_key=app_key,
+                app_secret=app_secret
+            )
+            # Test the connection and get current token
+            dbx.users_get_current_account()
+            return dbx._oauth2_access_token
+        except Exception as e:
+            print(f"⚠️ Warning: Failed to use refresh token: {e}")
+            print("   Falling back to access_token from config")
+
+    # Fallback to direct access token (short-lived)
+    access_token = dropbox_config.get('access_token', '')
+    if not access_token:
+        raise ValueError("No Dropbox access_token or refresh_token found in config")
+
+    return access_token
+
+
+def upload_to_dropbox(file_path: Path, config: dict, destination_path: str) -> str:
     """Uploads a file to Dropbox and returns a shared public link."""
     print(f"  Uploading {file_path.name} to Dropbox at {destination_path}...")
-    
+
     try:
+        access_token = get_valid_access_token(config)
         dbx = dropbox.Dropbox(access_token)
         
         with open(file_path, 'rb') as f:
@@ -162,22 +209,57 @@ def upload_to_dropbox(file_path: Path, access_token: str, destination_path: str)
         sys.exit(1)
 
 
-def trigger_zapier(webhook_url: str, video_url: str, caption: str):
-    """Triggers Zapier webhook with video URL and caption."""
-    print(f"  Triggering Zapier webhook...")
-    
-    payload = {
-        "text": caption,
-        "video_url": video_url
-    }
-    
+def get_gmail_app_password(config: dict) -> str:
+    """Get Gmail app password from environment or config."""
+    # Try environment variable first
+    password = os.environ.get("GMAIL_APP_PASSWORD")
+    if password:
+        return password.replace(" ", "")
+
+    # Try config file
+    password = config.get("gmail", {}).get("app_password", "")
+    if password:
+        return password.replace(" ", "")
+
+    return ""
+
+
+def send_to_zapier_email(video_url: str, caption: str, config: dict) -> bool:
+    """Send video URL and caption to Zapier via email."""
+    print(f"  Sending to Zapier via email...")
+
+    app_password = get_gmail_app_password(config)
+    if not app_password:
+        print("❌ Error: Gmail App Password not found.")
+        print("   Set GMAIL_APP_PASSWORD env var or add gmail.app_password to config.json")
+        return False
+
+    # Subject = first line of caption (title/description)
+    # Body = video URL
+    subject = caption.split('\n')[0].strip()
+
+    msg = MIMEText(video_url, 'plain')
+    msg['Subject'] = subject
+    msg['From'] = SENDER_EMAIL
+    msg['To'] = ZAPIER_EMAIL
+
     try:
-        response = requests.post(webhook_url, json=payload)
-        response.raise_for_status()
-        print(f"✅ Successfully triggered Zapier: {response.text}")
+        server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
+        server.starttls()
+        server.login(SENDER_EMAIL, app_password)
+        server.sendmail(SENDER_EMAIL, ZAPIER_EMAIL, msg.as_string())
+        server.quit()
+
+        print(f"✅ Successfully sent to Zapier via email")
+        print(f"   Subject: {subject}")
+        print(f"   To: {ZAPIER_EMAIL}")
         return True
+
+    except smtplib.SMTPAuthenticationError:
+        print("❌ Error: Gmail authentication failed. Check app password.")
+        return False
     except Exception as e:
-        print(f"❌ Error triggering Zapier: {e}")
+        print(f"❌ Error sending email: {e}")
         return False
 
 
@@ -187,7 +269,7 @@ def main():
     parser.add_argument('caption', nargs='?', help='Caption for the video')
     parser.add_argument('--run', help='Run timestamp (e.g., 20251207_080423)')
     parser.add_argument('--type', dest='video_type', default='full',
-                        choices=['full', 'short_hook', 'short_educational'],
+                        choices=['full', 'short_hook', 'short_educational', 'short_intro'],
                         help='Video type to upload')
     
     args = parser.parse_args()
@@ -233,30 +315,29 @@ def main():
         sys.exit(1)
 
     config = load_config()
-    
-    # Check for Dropbox Config (nested under "dropbox" key)
+
+    # Check for Dropbox Config (either refresh_token or access_token)
     dropbox_config = config.get("dropbox", {})
-    dropbox_token = dropbox_config.get("access_token")
-            
-    if not dropbox_token or dropbox_token == "YOUR_ACCESS_TOKEN_HERE":
-        print("❌ Error: 'dropbox.access_token' missing in config/config.json")
-        print("   Generate a token at: https://www.dropbox.com/developers/apps")
+    has_auth = dropbox_config.get("refresh_token") or dropbox_config.get("access_token")
+
+    if not has_auth:
+        print("❌ Error: No Dropbox authentication found in config/config.json")
+        print("   Run: python automation/dropbox_auth_helper.py")
+        print("   Or add 'dropbox.access_token' manually")
         sys.exit(1)
-        
-    # Check for Zapier Config (nested under "zapier" key)
-    zapier_config = config.get("zapier", {})
-    zapier_webhook = zapier_config.get("webhook_url")
-        
-    if not zapier_webhook:
-        print("❌ Error: 'zapier.webhook_url' missing in config/config.json")
+
+    # Check for Gmail config (needed for email to Zapier)
+    if not get_gmail_app_password(config):
+        print("❌ Error: Gmail App Password not found in config/config.json")
+        print("   Add 'gmail.app_password' to config or set GMAIL_APP_PASSWORD env var")
         sys.exit(1)
 
     # For app-scoped folders, root "/" is the app folder (Apps/Upload_Youtube_Vids/)
     destination_path = f"/{video_path.name}"
-    
-    public_url = upload_to_dropbox(video_path, dropbox_token, destination_path)
-    success = trigger_zapier(zapier_webhook, public_url, caption)
-    
+
+    public_url = upload_to_dropbox(video_path, config, destination_path)
+    success = send_to_zapier_email(public_url, caption, config)
+
     if not success:
         sys.exit(1)
 

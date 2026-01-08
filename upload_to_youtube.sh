@@ -7,7 +7,7 @@ set -e
 PRIVACY="unlisted"
 RUN_DIR=""
 CHANNEL=""
-VIDEO_TYPE="full"  # full, short_hook, short_educational
+VIDEO_TYPE="full"  # full, short_hook, short_educational, short_intro
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
@@ -107,6 +107,15 @@ Watch the full version: [PLACEHOLDER_FULL]
 
 ${hashtags}"
             VIDEO_FILE="short_educational.mp4"
+            ;;
+        short_intro)
+            TITLE="${topic} 🎵"
+            DESCRIPTION="${topic} - First minute preview!
+
+Watch the full version: [PLACEHOLDER_FULL]
+
+${hashtags}"
+            VIDEO_FILE="short_intro.mp4"
             ;;
         *)
             # Default fallback

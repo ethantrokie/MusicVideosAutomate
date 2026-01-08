@@ -9,6 +9,16 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
+# Error logging function
+log_error() {
+    local message="$1"
+    echo -e "${RED}❌ ERROR: ${message}${NC}" >&2
+    # Also log to file if LOG_FILE is set
+    if [ -n "$LOG_FILE" ]; then
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] ERROR: ${message}" >> "$LOG_FILE"
+    fi
+}
+
 # Load config for privacy setting (used in express mode)
 CONFIG_FILE="automation/config/automation_config.json"
 if [ -f "$CONFIG_FILE" ]; then
@@ -132,7 +142,7 @@ echo ""
 # Stage 1: Research
 if [ $START_STAGE -le 1 ]; then
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${BLUE}Stage 1/5: Research${NC}"
+    echo -e "${BLUE}Stage 1/7: Research${NC}"
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     ./agents/1_research.sh
     if [ $? -ne 0 ]; then
@@ -141,15 +151,8 @@ if [ $START_STAGE -le 1 ]; then
     fi
     echo ""
 
-    # Stage 1.5: Validate and Fix URLs
-    echo -e "${YELLOW}🔍 Validating URLs and fixing hallucinations...${NC}"
-    python agents/1.5_validate_urls.py "${RUN_DIR}/research.json" --quiet
-    if [ $? -ne 0 ]; then
-        echo -e "${RED}❌ URL validation failed${NC}"
-        exit 1
-    fi
-    echo -e "${GREEN}✅ All URLs validated!${NC}"
-    echo ""
+    # Stage 1.5: URL Validation (REMOVED - obsolete with lyric-based media search)
+    # Media URLs are now validated in Stage 2.5 during lyric-based media search
 fi
 
 # Stage 2: Lyrics
@@ -205,6 +208,14 @@ if [ $START_STAGE -le 3 ]; then
     ./agents/3_compose.py
     if [ $? -ne 0 ]; then
         echo -e "${RED}❌ Music composition failed${NC}"
+        exit 1
+    fi
+
+    # Stage 3.5: Create phrase groups for curator
+    echo "📝 Creating phrase groups from word-level timestamps..."
+    ./agents/3_5_create_phrase_groups.sh
+    if [ $? -ne 0 ]; then
+        echo -e "${RED}❌ Phrase grouping failed${NC}"
         exit 1
     fi
     echo ""
@@ -555,6 +566,9 @@ with open(f'{output_dir}/gap_fill_media.json') as f:
 # Merge gap-fill media into research
 gap_media = gap_data.get('gap_fill_media', [])
 if gap_media:
+    # Initialize media_suggestions if it doesn't exist
+    if 'media_suggestions' not in research:
+        research['media_suggestions'] = []
     research['media_suggestions'].extend(gap_media)
 
     # Save updated research
@@ -762,6 +776,14 @@ if [ $START_STAGE -le 7 ]; then
                 echo -e "${YELLOW}  ⚠️  Educational short subtitles failed, continuing...${NC}"
             fi
         fi
+
+        if [ -f "${RUN_DIR}/short_intro.mp4" ]; then
+            if python3 agents/generate_subtitles.py --engine=pycaps --type=karaoke --video=short_intro --segment=intro; then
+                echo "  ✅ Intro short subtitles applied"
+            else
+                echo -e "${YELLOW}  ⚠️  Intro short subtitles failed, continuing...${NC}"
+            fi
+        fi
     else
         echo -e "${YELLOW}⚠️  No multi-format videos found, skipping subtitles${NC}"
     fi
@@ -781,7 +803,7 @@ if [ $START_STAGE -le 8 ] && [ -f "${RUN_DIR}/full.mp4" ]; then
     # Add overlays to full video
     if [ -f "${RUN_DIR}/full.mp4" ]; then
         echo "  📝 Adding overlays to full video..."
-        if python3 agents/video_overlays.py --video="${RUN_DIR}/full.mp4" --title="${VIDEO_TITLE}" --type=full; then
+        if ./venv/bin/python3 agents/video_overlays.py --video="${RUN_DIR}/full.mp4" --title="${VIDEO_TITLE}" --type=full; then
             echo "  ✅ Full video overlays added"
         else
             echo -e "${YELLOW}  ⚠️  Full video overlays failed, continuing...${NC}"
@@ -791,7 +813,7 @@ if [ $START_STAGE -le 8 ] && [ -f "${RUN_DIR}/full.mp4" ]; then
     # Add overlays to shorts
     if [ -f "${RUN_DIR}/short_hook.mp4" ]; then
         echo "  📝 Adding overlays to hook short..."
-        if python3 agents/video_overlays.py --video="${RUN_DIR}/short_hook.mp4" --title="${VIDEO_TITLE}" --type=short_hook; then
+        if ./venv/bin/python3 agents/video_overlays.py --video="${RUN_DIR}/short_hook.mp4" --title="${VIDEO_TITLE}" --type=short_hook; then
             echo "  ✅ Hook short overlays added"
         else
             echo -e "${YELLOW}  ⚠️  Hook short overlays failed, continuing...${NC}"
@@ -800,10 +822,19 @@ if [ $START_STAGE -le 8 ] && [ -f "${RUN_DIR}/full.mp4" ]; then
 
     if [ -f "${RUN_DIR}/short_educational.mp4" ]; then
         echo "  📝 Adding overlays to educational short..."
-        if python3 agents/video_overlays.py --video="${RUN_DIR}/short_educational.mp4" --title="${VIDEO_TITLE}" --type=short_educational; then
+        if ./venv/bin/python3 agents/video_overlays.py --video="${RUN_DIR}/short_educational.mp4" --title="${VIDEO_TITLE}" --type=short_educational; then
             echo "  ✅ Educational short overlays added"
         else
             echo -e "${YELLOW}  ⚠️  Educational short overlays failed, continuing...${NC}"
+        fi
+    fi
+
+    if [ -f "${RUN_DIR}/short_intro.mp4" ]; then
+        echo "  📝 Adding overlays to intro short..."
+        if ./venv/bin/python3 agents/video_overlays.py --video="${RUN_DIR}/short_intro.mp4" --title="${VIDEO_TITLE}" --type=short_intro; then
+            echo "  ✅ Intro short overlays added"
+        else
+            echo -e "${YELLOW}  ⚠️  Intro short overlays failed, continuing...${NC}"
         fi
     fi
 
@@ -918,7 +949,7 @@ if [ $START_STAGE -le 8 ] && [ -d "venv_video_llm" ] && [ -f "${RUN_DIR}/full.mp
     
     # Generate AI descriptions for all videos
     echo "📝 Generating AI video descriptions..."
-    for VIDEO_TYPE in full short_hook short_educational; do
+    for VIDEO_TYPE in full short_hook short_educational short_intro; do
         if [ -f "${RUN_DIR}/${VIDEO_TYPE}.mp4" ]; then
             if python3 agents/generate_video_description.py --video="${VIDEO_TYPE}" --platform=youtube 2>/dev/null; then
                 echo "  ✅ ${VIDEO_TYPE} YouTube description generated"
@@ -954,6 +985,9 @@ if [ $START_STAGE -le 8 ]; then
         if [ -f "${RUN_DIR}/short_educational.mp4" ]; then
             echo "  - Educational short (${RUN_DIR}/short_educational.mp4)"
         fi
+        if [ -f "${RUN_DIR}/short_intro.mp4" ]; then
+            echo "  - Intro short (${RUN_DIR}/short_intro.mp4)"
+        fi
         echo ""
         read -p "Upload now? [y/N] " -n 1 -r
         echo
@@ -964,6 +998,7 @@ if [ $START_STAGE -le 8 ]; then
             echo "  ./upload_to_youtube.sh --run=${RUN_TIMESTAMP} --type=full"
             echo "  ./upload_to_youtube.sh --run=${RUN_TIMESTAMP} --type=short_hook"
             echo "  ./upload_to_youtube.sh --run=${RUN_TIMESTAMP} --type=short_educational"
+            echo "  ./upload_to_youtube.sh --run=${RUN_TIMESTAMP} --type=short_intro"
             START_STAGE=10  # Skip remaining stages
         fi
     fi
@@ -996,6 +1031,13 @@ if [ $START_STAGE -le 8 ]; then
             echo "  Uploading educational short..."
             ./upload_to_youtube.sh --run="${RUN_TIMESTAMP}" --type=short_educational $UPLOAD_ARGS
             EDU_ID=$(cat "${RUN_DIR}/video_id_short_educational.txt" 2>/dev/null || echo "")
+        fi
+
+        # Upload intro short
+        if [ -f "${RUN_DIR}/short_intro.mp4" ]; then
+            echo "  Uploading intro short..."
+            ./upload_to_youtube.sh --run="${RUN_TIMESTAMP}" --type=short_intro $UPLOAD_ARGS
+            INTRO_ID=$(cat "${RUN_DIR}/video_id_short_intro.txt" 2>/dev/null || echo "")
         fi
 
         echo "✅ YouTube uploads complete"
@@ -1036,6 +1078,16 @@ if [ $START_STAGE -le 8 ]; then
                 fi
             fi
 
+            # Upload intro short to TikTok
+            if [ -f "${RUN_DIR}/short_intro.mp4" ]; then
+                echo "  Uploading intro short to TikTok..."
+                if ./venv/bin/python3 agents/6_upload_dropbox_zapier.py --run="${RUN_TIMESTAMP}" --type=short_intro; then
+                    echo "    ✅ TikTok intro short uploaded via Zapier"
+                else
+                    echo -e "    ${YELLOW}⚠️  TikTok intro short upload failed (non-fatal)${NC}"
+                fi
+            fi
+
             echo "✅ TikTok uploads complete (via Zapier)"
         else
             echo "⏭️  TikTok uploads disabled in config"
@@ -1052,8 +1104,14 @@ if [ $START_STAGE -le 9 ] && [ -n "$FULL_ID" ] && [ -n "$HOOK_ID" ] && [ -n "$ED
 
     echo "🔗 Cross-linking video descriptions..."
 
-    # Build command with optional TikTok IDs
+    # Build command with optional intro and TikTok IDs
     CROSSLINK_CMD="python3 agents/crosslink_videos.py \"$FULL_ID\" \"$HOOK_ID\" \"$EDU_ID\""
+    # Add intro ID if available (required before TikTok IDs due to positional args)
+    if [ -n "$INTRO_ID" ]; then
+        CROSSLINK_CMD="$CROSSLINK_CMD \"$INTRO_ID\""
+    else
+        CROSSLINK_CMD="$CROSSLINK_CMD \"\""  # Empty placeholder for positional args
+    fi
     if [ -n "$TIKTOK_FULL_ID" ]; then
         CROSSLINK_CMD="$CROSSLINK_CMD \"$TIKTOK_FULL_ID\""
     fi
@@ -1084,6 +1142,9 @@ if [ -f "${RUN_DIR}/full.mp4" ]; then
     fi
     if [ -f "${RUN_DIR}/short_educational.mp4" ]; then
         echo "  - ${RUN_DIR}/short_educational.mp4 (Educational short)"
+    fi
+    if [ -f "${RUN_DIR}/short_intro.mp4" ]; then
+        echo "  - ${RUN_DIR}/short_intro.mp4 (Intro short)"
     fi
 else
     echo -e "${GREEN}📹 Final video: ${RUN_DIR}/final_video.mp4${NC}"

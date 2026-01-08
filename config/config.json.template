@@ -32,14 +32,38 @@
     "phrase_gap_threshold": 0.3,
     "keyword_boost_multiplier": 2.0,
     "diversity_penalty": 0.1,
-    "transition_duration": 0.3
+    "transition_duration": 0.3,
+    "clip_consolidation": {
+      "enabled": true,
+      "min_clip_duration": 2.0,
+      "max_clip_duration": 4.0,
+      "target_clip_duration": 3.5,
+      "semantic_coherence_threshold": 0.3
+    }
   },
   "dropbox": {
-    "app_key": "x5fdjkwdfrtt9sn",
+    "app_key": "XXXX",
     "app_secret": "YOUR_APP_SECRET_HERE",
     "access_token": "YOUR_ACCESS_TOKEN_HERE"
   },
+  "gmail": {
+    "app_password": "YOUR_GMAIL_APP_PASSWORD_HERE"
+  },
   "zapier": {
-    "webhook_url": "https://hooks.zapier.com/hooks/catch/25706774/uf7q6vp/"
+    "email": "YOUR_ZAPIER_EMAIL_HERE"
+  },
+  "video_formats": {
+    "full_video": {
+      "enabled": true,
+      "resolution": "1920x1080",
+      "duration": 180
+    },
+    "shorts": {
+      "enabled": true,
+      "resolution": "1080x1920",
+      "hook_duration": 15,
+      "educational_duration": 33,
+      "intro_duration": 60
+    }
   }
 }

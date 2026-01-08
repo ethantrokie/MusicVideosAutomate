@@ -87,7 +87,12 @@ def build_video_with_format_plan(
 
         if result.returncode != 0:
             print(f"  ❌ Video assembly failed")
-            print(f"  Error: {result.stderr[-500:]}")  # Last 500 chars
+            # Print stderr if available, otherwise stdout (many scripts print errors to stdout)
+            error_output = result.stderr.strip() if result.stderr.strip() else result.stdout.strip()
+            if error_output:
+                print(f"  Error: {error_output[-1000:]}")  # Last 1000 chars
+            else:
+                print(f"  Error: No error output captured")
             return False
 
         # Rename final_video.mp4 to format-specific name
@@ -186,6 +191,27 @@ def build_educational_short(start_time: float, duration: float) -> Path:
     return output_dir / "short_educational.mp4"
 
 
+def build_intro_short(start_time: float, duration: float) -> Path:
+    """Build intro short using format-specific media plan."""
+    print(f"🎬 Building intro short (9:16) with {duration}s media plan (start: {start_time}s)...")
+
+    success = build_video_with_format_plan(
+        format_type="intro",
+        resolution="1080x1920",
+        output_name="short_intro.mp4",
+        media_plan_file="media_plan_intro.json",
+        start_time=start_time,
+        duration=duration
+    )
+
+    if not success:
+        print("❌ Failed to build intro short")
+        sys.exit(1)
+
+    output_dir = Path(os.getenv("OUTPUT_DIR", "outputs"))
+    return output_dir / "short_intro.mp4"
+
+
 def main():
     """Main execution."""
     print("🎥 Multi-Format Video Builder")
@@ -206,6 +232,7 @@ def main():
         print(f"  Full: {segments['full']['duration']:.1f}s")
         print(f"  Hook: {segments['hook']['start']:.1f}-{segments['hook']['end']:.1f}s")
         print(f"  Educational: {segments['educational']['start']:.1f}-{segments['educational']['end']:.1f}s")
+        print(f"  Intro: {segments['intro']['start']:.1f}-{segments['intro']['end']:.1f}s")
         print()
 
         # Build format-specific media plans based on segments
@@ -234,6 +261,8 @@ def main():
         print()
         build_educational_short(segments['educational']['start'], segments['educational']['duration'])
         print()
+        build_intro_short(segments['intro']['start'], segments['intro']['duration'])
+        print()
 
         print("✅ All videos built successfully!")
         print()
@@ -242,6 +271,7 @@ def main():
         print(f"  {output_dir}/full.mp4")
         print(f"  {output_dir}/short_hook.mp4")
         print(f"  {output_dir}/short_educational.mp4")
+        print(f"  {output_dir}/short_intro.mp4")
 
     except Exception as e:
         print(f"❌ Error: {e}", file=sys.stderr)

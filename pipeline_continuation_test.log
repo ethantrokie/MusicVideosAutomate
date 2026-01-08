@@ -327,4 +327,255 @@ MoviePy - Writing audio in short_hook.overlayTEMP_MPY_wvf_snd.mp4
 chunk:   0%|          | 0/772 [00:00<?, ?it/s, now=None]chunk:  26%|██▌       | 200/772 [00:00<00:00, 1976.62it/s, now=None]chunk:  63%|██████▎   | 487/772 [00:00<00:00, 2487.61it/s, now=None]                                                                    MoviePy - Done.
 Moviepy - Writing video outputs/runs/20251221_212854/short_hook.overlay.mp4
 
-t:   0%|          | 0/1050 [00:00<?, ?it/s, now=None]t:   1%|          | 10/1050 [00:00<00:11, 91.51it/s, now=None]t:   2%|▏         | 20/1050 [00:00<00:11, 85.99it/s, now=None]t:   3%|▎         | 29/1050 [00:00<00:11, 86.75it/s, now=None]t:   4%|▎         | 38/1050 [00:00<00:11, 86.65it/s, now=None]t:   4%|▍         | 47/1050 [00:00<00:11, 86.83it/s, now=None]t:   5%|▌         | 56/1050 [00:00<00:11, 86.68it/s, now=None]t:   6%|▌         | 65/1050 [00:00<00:11, 87.05it/s, now=None]t:   7%|▋         | 75/1050 [00:00<00:10, 90.92it/s, now=None]t:   8%|▊         | 86/1050 [00:00<00:10, 95.35it/s, now=None]t:   9%|▉         | 96/1050 [00:01<00:09, 96.26it/s, now=None]t:  10%|█         | 107/1050 [00:01<00:09, 98.44it/s, now=None]t:  11%|█         | 117/1050 [00:01<00:09, 97.27it/s, now=None]t:  12%|█▏        | 127/1050 [00:01<00:09, 97.42it/s, now=None]t:  13%|█▎        | 138/1050 [00:01<00:09, 98.91it/s, now=None]t:  14%|█▍        | 148/1050 [00:01<00:09, 99.13it/s, now=None]t:  15%|█▌        | 159/1050 [00:01<00:08, 100.03it/s, now=None]t:  16%|█▌        | 170/1050 [00:01<00:08, 100.24it/s, now=None]t:  17%|█▋        | 181/1050 [00:01<00:08, 100.29it/s, now=None]t:  18%|█▊        | 192/1050 [00:02<00:08, 100.81it/s, now=None]t:  19%|█▉        | 203/1050 [00:02<00:08, 101.20it/s, now=None]t:  20%|██        | 214/1050 [00:02<00:08, 99.46it/s, now=None] t:  21%|██▏       | 224/1050 [00:02<00:08, 99.45it/s, now=None]t:  22%|██▏       | 235/1050 [00:02<00:08, 100.03it/s, now=None]t:  23%|██▎       | 246/1050 [00:02<00:08, 99.96it/s, now=None] t:  24%|██▍       | 257/1050 [00:02<00:07, 100.16it/s, now=None]t:  26%|██▌       | 268/1050 [00:02<00:07, 100.67it/s, now=None]t:  27%|██▋       | 279/1050 [00:02<00:07, 96.97it/s, now=None] 
+t:   0%|          | 0/1050 [00:00<?, ?it/s, now=None]t:   1%|          | 10/1050 [00:00<00:11, 91.51it/s, now=None]t:   2%|▏         | 20/1050 [00:00<00:11, 85.99it/s, now=None]t:   3%|▎         | 29/1050 [00:00<00:11, 86.75it/s, now=None]t:   4%|▎         | 38/1050 [00:00<00:11, 86.65it/s, now=None]t:   4%|▍         | 47/1050 [00:00<00:11, 86.83it/s, now=None]t:   5%|▌         | 56/1050 [00:00<00:11, 86.68it/s, now=None]t:   6%|▌         | 65/1050 [00:00<00:11, 87.05it/s, now=None]t:   7%|▋         | 75/1050 [00:00<00:10, 90.92it/s, now=None]t:   8%|▊         | 86/1050 [00:00<00:10, 95.35it/s, now=None]t:   9%|▉         | 96/1050 [00:01<00:09, 96.26it/s, now=None]t:  10%|█         | 107/1050 [00:01<00:09, 98.44it/s, now=None]t:  11%|█         | 117/1050 [00:01<00:09, 97.27it/s, now=None]t:  12%|█▏        | 127/1050 [00:01<00:09, 97.42it/s, now=None]t:  13%|█▎        | 138/1050 [00:01<00:09, 98.91it/s, now=None]t:  14%|█▍        | 148/1050 [00:01<00:09, 99.13it/s, now=None]t:  15%|█▌        | 159/1050 [00:01<00:08, 100.03it/s, now=None]t:  16%|█▌        | 170/1050 [00:01<00:08, 100.24it/s, now=None]t:  17%|█▋        | 181/1050 [00:01<00:08, 100.29it/s, now=None]t:  18%|█▊        | 192/1050 [00:02<00:08, 100.81it/s, now=None]t:  19%|█▉        | 203/1050 [00:02<00:08, 101.20it/s, now=None]t:  20%|██        | 214/1050 [00:02<00:08, 99.46it/s, now=None] t:  21%|██▏       | 224/1050 [00:02<00:08, 99.45it/s, now=None]t:  22%|██▏       | 235/1050 [00:02<00:08, 100.03it/s, now=None]t:  23%|██▎       | 246/1050 [00:02<00:08, 99.96it/s, now=None] t:  24%|██▍       | 257/1050 [00:02<00:07, 100.16it/s, now=None]t:  26%|██▌       | 268/1050 [00:02<00:07, 100.67it/s, now=None]t:  27%|██▋       | 279/1050 [00:02<00:07, 96.97it/s, now=None] t:  28%|██▊       | 289/1050 [00:03<00:07, 95.53it/s, now=None]t:  28%|██▊       | 299/1050 [00:03<00:07, 95.43it/s, now=None]t:  29%|██▉       | 309/1050 [00:03<00:07, 96.25it/s, now=None]t:  30%|███       | 319/1050 [00:03<00:07, 95.61it/s, now=None]t:  31%|███▏      | 329/1050 [00:03<00:07, 91.10it/s, now=None]t:  32%|███▏      | 339/1050 [00:03<00:08, 87.12it/s, now=None]t:  33%|███▎      | 349/1050 [00:03<00:07, 87.97it/s, now=None]t:  34%|███▍      | 359/1050 [00:03<00:07, 90.74it/s, now=None]t:  35%|███▌      | 369/1050 [00:03<00:07, 93.17it/s, now=None]t:  36%|███▌      | 379/1050 [00:03<00:07, 95.10it/s, now=None]t:  37%|███▋      | 389/1050 [00:04<00:07, 93.00it/s, now=None]t:  38%|███▊      | 399/1050 [00:04<00:07, 91.39it/s, now=None]t:  39%|███▉      | 409/1050 [00:04<00:06, 91.86it/s, now=None]t:  40%|███▉      | 419/1050 [00:04<00:06, 90.27it/s, now=None]t:  41%|████      | 429/1050 [00:04<00:06, 92.04it/s, now=None]t:  42%|████▏     | 439/1050 [00:04<00:06, 93.72it/s, now=None]t:  43%|████▎     | 449/1050 [00:04<00:06, 95.24it/s, now=None]t:  44%|████▎     | 459/1050 [00:04<00:06, 95.60it/s, now=None]t:  45%|████▍     | 469/1050 [00:04<00:06, 95.31it/s, now=None]t:  46%|████▌     | 479/1050 [00:05<00:05, 95.26it/s, now=None]t:  47%|████▋     | 489/1050 [00:05<00:06, 93.15it/s, now=None]t:  48%|████▊     | 500/1050 [00:05<00:05, 95.83it/s, now=None]t:  49%|████▊     | 511/1050 [00:05<00:05, 97.81it/s, now=None]t:  50%|████▉     | 522/1050 [00:05<00:05, 99.18it/s, now=None]t:  51%|█████     | 533/1050 [00:05<00:05, 100.12it/s, now=None]t:  52%|█████▏    | 544/1050 [00:05<00:05, 100.81it/s, now=None]t:  53%|█████▎    | 555/1050 [00:05<00:04, 101.67it/s, now=None]t:  54%|█████▍    | 566/1050 [00:05<00:04, 101.52it/s, now=None]t:  55%|█████▍    | 577/1050 [00:06<00:04, 101.41it/s, now=None]t:  56%|█████▌    | 588/1050 [00:06<00:04, 100.45it/s, now=None]t:  57%|█████▋    | 599/1050 [00:06<00:04, 100.30it/s, now=None]t:  58%|█████▊    | 610/1050 [00:06<00:04, 100.72it/s, now=None]t:  59%|█████▉    | 621/1050 [00:06<00:04, 101.13it/s, now=None]t:  60%|██████    | 632/1050 [00:06<00:04, 101.58it/s, now=None]t:  61%|██████    | 643/1050 [00:06<00:04, 97.57it/s, now=None] t:  62%|██████▏   | 653/1050 [00:06<00:04, 94.87it/s, now=None]t:  63%|██████▎   | 663/1050 [00:06<00:04, 95.72it/s, now=None]t:  64%|██████▍   | 674/1050 [00:07<00:03, 97.13it/s, now=None]t:  65%|██████▌   | 684/1050 [00:07<00:03, 96.89it/s, now=None]t:  66%|██████▌   | 695/1050 [00:07<00:03, 98.16it/s, now=None]t:  67%|██████▋   | 705/1050 [00:07<00:03, 98.27it/s, now=None]t:  68%|██████▊   | 715/1050 [00:07<00:03, 98.00it/s, now=None]t:  69%|██████▉   | 725/1050 [00:07<00:03, 96.04it/s, now=None]t:  70%|███████   | 735/1050 [00:07<00:03, 95.45it/s, now=None]t:  71%|███████   | 745/1050 [00:07<00:03, 95.93it/s, now=None]t:  72%|███████▏  | 755/1050 [00:07<00:03, 96.27it/s, now=None]t:  73%|███████▎  | 766/1050 [00:07<00:02, 97.37it/s, now=None]t:  74%|███████▍  | 776/1050 [00:08<00:02, 97.75it/s, now=None]t:  75%|███████▍  | 786/1050 [00:08<00:02, 98.36it/s, now=None]t:  76%|███████▌  | 797/1050 [00:08<00:02, 99.37it/s, now=None]t:  77%|███████▋  | 807/1050 [00:08<00:02, 98.83it/s, now=None]t:  78%|███████▊  | 817/1050 [00:08<00:02, 96.79it/s, now=None]t:  79%|███████▉  | 827/1050 [00:08<00:02, 96.32it/s, now=None]t:  80%|███████▉  | 837/1050 [00:08<00:02, 96.84it/s, now=None]t:  81%|████████  | 847/1050 [00:08<00:02, 97.52it/s, now=None]t:  82%|████████▏ | 857/1050 [00:08<00:02, 94.12it/s, now=None]t:  83%|████████▎ | 868/1050 [00:09<00:01, 96.81it/s, now=None]t:  84%|████████▎ | 878/1050 [00:09<00:01, 97.58it/s, now=None]t:  85%|████████▍ | 888/1050 [00:09<00:01, 97.55it/s, now=None]t:  86%|████████▌ | 898/1050 [00:09<00:01, 96.87it/s, now=None]t:  87%|████████▋ | 909/1050 [00:09<00:01, 98.31it/s, now=None]t:  88%|████████▊ | 920/1050 [00:09<00:01, 99.06it/s, now=None]t:  89%|████████▊ | 930/1050 [00:09<00:01, 98.01it/s, now=None]t:  90%|████████▉ | 940/1050 [00:09<00:01, 98.31it/s, now=None]t:  91%|█████████ | 951/1050 [00:09<00:01, 98.91it/s, now=None]t:  92%|█████████▏| 961/1050 [00:09<00:00, 96.12it/s, now=None]t:  92%|█████████▏| 971/1050 [00:10<00:02, 33.05it/s, now=None]t:  93%|█████████▎| 979/1050 [00:11<00:02, 24.15it/s, now=None]t:  94%|█████████▍| 985/1050 [00:11<00:03, 20.59it/s, now=None]t:  94%|█████████▍| 990/1050 [00:12<00:03, 18.37it/s, now=None]t:  95%|█████████▍| 994/1050 [00:12<00:03, 17.11it/s, now=None]t:  95%|█████████▍| 997/1050 [00:12<00:03, 16.38it/s, now=None]t:  95%|█████████▌| 1000/1050 [00:12<00:03, 15.68it/s, now=None]t:  96%|█████████▌| 1003/1050 [00:13<00:03, 15.14it/s, now=None]t:  96%|█████████▌| 1005/1050 [00:13<00:03, 14.70it/s, now=None]t:  96%|█████████▌| 1007/1050 [00:13<00:02, 14.44it/s, now=None]t:  96%|█████████▌| 1009/1050 [00:13<00:02, 14.08it/s, now=None]t:  96%|█████████▋| 1011/1050 [00:13<00:02, 13.92it/s, now=None]t:  96%|█████████▋| 1013/1050 [00:13<00:02, 13.74it/s, now=None]t:  97%|█████████▋| 1015/1050 [00:14<00:02, 13.61it/s, now=None]t:  97%|█████████▋| 1017/1050 [00:14<00:02, 13.48it/s, now=None]t:  97%|█████████▋| 1019/1050 [00:14<00:02, 13.44it/s, now=None]t:  97%|█████████▋| 1021/1050 [00:14<00:02, 13.41it/s, now=None]t:  97%|█████████▋| 1023/1050 [00:14<00:02, 13.41it/s, now=None]t:  98%|█████████▊| 1025/1050 [00:14<00:01, 13.39it/s, now=None]t:  98%|█████████▊| 1027/1050 [00:14<00:01, 13.20it/s, now=None]t:  98%|█████████▊| 1029/1050 [00:15<00:01, 13.08it/s, now=None]t:  98%|█████████▊| 1031/1050 [00:15<00:01, 13.11it/s, now=None]t:  98%|█████████▊| 1033/1050 [00:15<00:01, 13.14it/s, now=None]t:  99%|█████████▊| 1035/1050 [00:15<00:01, 13.17it/s, now=None]t:  99%|█████████▉| 1037/1050 [00:15<00:00, 13.28it/s, now=None]t:  99%|█████████▉| 1039/1050 [00:15<00:00, 13.34it/s, now=None]t:  99%|█████████▉| 1041/1050 [00:16<00:00, 13.32it/s, now=None]t:  99%|█████████▉| 1043/1050 [00:16<00:00, 13.38it/s, now=None]t: 100%|█████████▉| 1045/1050 [00:16<00:00, 13.36it/s, now=None]t: 100%|█████████▉| 1047/1050 [00:16<00:00, 13.42it/s, now=None]t: 100%|█████████▉| 1049/1050 [00:16<00:00, 13.39it/s, now=None]                                                                Moviepy - Done !
+Moviepy - video ready outputs/runs/20251221_212854/short_hook.overlay.mp4
+  ✅ Overlays added successfully
+  Replaced original video
+✅ Overlay processing complete!
+  ✅ Hook short overlays added
+  📝 Adding overlays to educational short...
+🎬 Adding overlays to video...
+  Type: short_educational
+  Title: How Steel I-Beams Are Made Explained
+  Loading video: outputs/runs/20251221_212854/short_educational.mp4
+  Video size: 1080x1920, duration: 35.0s
+  Creating title overlay: 'How Steel I-Beams Are Made Explained'
+  Creating end screen (shorts)...
+  Compositing overlays...
+  Rendering to outputs/runs/20251221_212854/short_educational.overlay.mp4...
+Moviepy - Building video outputs/runs/20251221_212854/short_educational.overlay.mp4.
+MoviePy - Writing audio in short_educational.overlayTEMP_MPY_wvf_snd.mp4
+chunk:   0%|          | 0/772 [00:00<?, ?it/s, now=None]chunk:  28%|██▊       | 220/772 [00:00<00:00, 2191.19it/s, now=None]chunk:  72%|███████▏  | 553/772 [00:00<00:00, 2848.66it/s, now=None]                                                                    MoviePy - Done.
+Moviepy - Writing video outputs/runs/20251221_212854/short_educational.overlay.mp4
+
+t:   0%|          | 0/1050 [00:00<?, ?it/s, now=None]t:   1%|          | 10/1050 [00:00<00:11, 90.62it/s, now=None]t:   2%|▏         | 20/1050 [00:00<00:11, 87.82it/s, now=None]t:   3%|▎         | 29/1050 [00:00<00:11, 87.47it/s, now=None]t:   4%|▎         | 38/1050 [00:00<00:11, 87.31it/s, now=None]t:   4%|▍         | 47/1050 [00:00<00:11, 87.18it/s, now=None]t:   5%|▌         | 56/1050 [00:00<00:11, 85.41it/s, now=None]t:   6%|▌         | 65/1050 [00:00<00:11, 86.47it/s, now=None]t:   7%|▋         | 76/1050 [00:00<00:10, 91.43it/s, now=None]t:   8%|▊         | 86/1050 [00:00<00:10, 91.52it/s, now=None]t:   9%|▉         | 96/1050 [00:01<00:10, 93.91it/s, now=None]t:  10%|█         | 107/1050 [00:01<00:09, 96.12it/s, now=None]t:  11%|█         | 117/1050 [00:01<00:09, 94.61it/s, now=None]t:  12%|█▏        | 127/1050 [00:01<00:09, 95.39it/s, now=None]t:  13%|█▎        | 137/1050 [00:01<00:09, 95.81it/s, now=None]t:  14%|█▍        | 148/1050 [00:01<00:09, 97.33it/s, now=None]t:  15%|█▌        | 159/1050 [00:01<00:09, 98.69it/s, now=None]t:  16%|█▌        | 169/1050 [00:01<00:08, 98.98it/s, now=None]t:  17%|█▋        | 180/1050 [00:01<00:08, 100.07it/s, now=None]t:  18%|█▊        | 191/1050 [00:02<00:08, 97.79it/s, now=None] t:  19%|█▉        | 202/1050 [00:02<00:08, 98.37it/s, now=None]t:  20%|██        | 212/1050 [00:02<00:08, 96.10it/s, now=None]t:  21%|██        | 223/1050 [00:02<00:08, 97.83it/s, now=None]t:  22%|██▏       | 234/1050 [00:02<00:08, 99.51it/s, now=None]t:  23%|██▎       | 244/1050 [00:02<00:08, 98.95it/s, now=None]t:  24%|██▍       | 254/1050 [00:02<00:08, 99.08it/s, now=None]t:  25%|██▌       | 264/1050 [00:02<00:07, 99.23it/s, now=None]t:  26%|██▌       | 275/1050 [00:02<00:07, 100.12it/s, now=None]t:  27%|██▋       | 286/1050 [00:02<00:07, 101.26it/s, now=None]t:  28%|██▊       | 297/1050 [00:03<00:07, 99.78it/s, now=None] t:  29%|██▉       | 308/1050 [00:03<00:07, 100.13it/s, now=None]t:  30%|███       | 319/1050 [00:03<00:07, 100.53it/s, now=None]t:  31%|███▏      | 330/1050 [00:03<00:07, 100.16it/s, now=None]t:  32%|███▏      | 341/1050 [00:03<00:07, 100.06it/s, now=None]t:  34%|███▎      | 352/1050 [00:03<00:06, 100.45it/s, now=None]t:  35%|███▍      | 363/1050 [00:03<00:06, 101.46it/s, now=None]t:  36%|███▌      | 374/1050 [00:03<00:06, 101.67it/s, now=None]t:  37%|███▋      | 385/1050 [00:03<00:06, 101.92it/s, now=None]t:  38%|███▊      | 396/1050 [00:04<00:06, 100.03it/s, now=None]t:  39%|███▉      | 407/1050 [00:04<00:06, 101.05it/s, now=None]t:  40%|███▉      | 418/1050 [00:04<00:06, 101.01it/s, now=None]t:  41%|████      | 429/1050 [00:04<00:06, 101.39it/s, now=None]t:  42%|████▏     | 440/1050 [00:04<00:06, 100.67it/s, now=None]t:  43%|████▎     | 451/1050 [00:04<00:06, 99.56it/s, now=None] t:  44%|████▍     | 461/1050 [00:04<00:05, 99.54it/s, now=None]t:  45%|████▍     | 471/1050 [00:04<00:05, 99.53it/s, now=None]t:  46%|████▌     | 481/1050 [00:04<00:05, 98.57it/s, now=None]t:  47%|████▋     | 491/1050 [00:05<00:05, 98.89it/s, now=None]t:  48%|████▊     | 502/1050 [00:05<00:05, 99.76it/s, now=None]t:  49%|████▉     | 512/1050 [00:05<00:05, 99.69it/s, now=None]t:  50%|████▉     | 523/1050 [00:05<00:05, 100.23it/s, now=None]t:  51%|█████     | 534/1050 [00:05<00:05, 100.15it/s, now=None]t:  52%|█████▏    | 545/1050 [00:05<00:05, 97.63it/s, now=None] t:  53%|█████▎    | 555/1050 [00:05<00:05, 96.61it/s, now=None]t:  54%|█████▍    | 565/1050 [00:05<00:05, 96.90it/s, now=None]t:  55%|█████▍    | 576/1050 [00:05<00:04, 98.79it/s, now=None]t:  56%|█████▌    | 587/1050 [00:06<00:04, 99.50it/s, now=None]t:  57%|█████▋    | 597/1050 [00:06<00:04, 96.04it/s, now=None]t:  58%|█████▊    | 608/1050 [00:06<00:04, 97.69it/s, now=None]t:  59%|█████▉    | 618/1050 [00:06<00:04, 97.47it/s, now=None]t:  60%|█████▉    | 629/1050 [00:06<00:04, 98.67it/s, now=None]t:  61%|██████    | 640/1050 [00:06<00:04, 99.59it/s, now=None]t:  62%|██████▏   | 651/1050 [00:06<00:03, 99.82it/s, now=None]t:  63%|██████▎   | 661/1050 [00:06<00:03, 98.81it/s, now=None]t:  64%|██████▍   | 672/1050 [00:06<00:03, 99.81it/s, now=None]t:  65%|██████▍   | 682/1050 [00:06<00:03, 99.30it/s, now=None]t:  66%|██████▌   | 692/1050 [00:07<00:03, 96.00it/s, now=None]t:  67%|██████▋   | 702/1050 [00:07<00:03, 96.75it/s, now=None]t:  68%|██████▊   | 712/1050 [00:07<00:03, 94.77it/s, now=None]t:  69%|██████▉   | 723/1050 [00:07<00:03, 97.14it/s, now=None]t:  70%|██████▉   | 734/1050 [00:07<00:03, 98.48it/s, now=None]t:  71%|███████   | 745/1050 [00:07<00:03, 100.14it/s, now=None]t:  72%|███████▏  | 756/1050 [00:07<00:02, 101.95it/s, now=None]t:  73%|███████▎  | 767/1050 [00:07<00:02, 101.71it/s, now=None]t:  74%|███████▍  | 778/1050 [00:07<00:02, 101.93it/s, now=None]t:  75%|███████▌  | 789/1050 [00:08<00:02, 100.93it/s, now=None]t:  76%|███████▌  | 800/1050 [00:08<00:02, 97.51it/s, now=None] t:  77%|███████▋  | 810/1050 [00:08<00:02, 91.82it/s, now=None]t:  78%|███████▊  | 820/1050 [00:08<00:02, 93.88it/s, now=None]t:  79%|███████▉  | 830/1050 [00:08<00:02, 93.15it/s, now=None]t:  80%|████████  | 840/1050 [00:08<00:02, 92.94it/s, now=None]t:  81%|████████  | 850/1050 [00:08<00:02, 93.68it/s, now=None]t:  82%|████████▏ | 860/1050 [00:08<00:02, 90.84it/s, now=None]t:  83%|████████▎ | 870/1050 [00:08<00:01, 90.81it/s, now=None]t:  84%|████████▍ | 880/1050 [00:09<00:01, 91.38it/s, now=None]t:  85%|████████▍ | 890/1050 [00:09<00:01, 92.38it/s, now=None]t:  86%|████████▌ | 900/1050 [00:09<00:01, 91.87it/s, now=None]t:  87%|████████▋ | 910/1050 [00:09<00:01, 90.30it/s, now=None]t:  88%|████████▊ | 920/1050 [00:09<00:01, 92.27it/s, now=None]t:  89%|████████▊ | 930/1050 [00:09<00:01, 93.64it/s, now=None]t:  90%|████████▉ | 941/1050 [00:09<00:01, 95.71it/s, now=None]t:  91%|█████████ | 951/1050 [00:09<00:01, 95.17it/s, now=None]t:  92%|█████████▏| 962/1050 [00:09<00:01, 80.63it/s, now=None]t:  92%|█████████▏| 971/1050 [00:10<00:02, 33.86it/s, now=None]t:  93%|█████████▎| 978/1050 [00:11<00:02, 24.93it/s, now=None]t:  94%|█████████▎| 983/1050 [00:11<00:03, 21.42it/s, now=None]t:  94%|█████████▍| 987/1050 [00:11<00:03, 19.39it/s, now=None]t:  94%|█████████▍| 991/1050 [00:12<00:03, 17.70it/s, now=None]t:  95%|█████████▍| 994/1050 [00:12<00:03, 16.56it/s, now=None]t:  95%|█████████▍| 997/1050 [00:12<00:03, 15.81it/s, now=None]t:  95%|█████████▌| 999/1050 [00:12<00:03, 15.38it/s, now=None]t:  95%|█████████▌| 1001/1050 [00:12<00:03, 14.98it/s, now=None]t:  96%|█████████▌| 1003/1050 [00:13<00:03, 14.57it/s, now=None]t:  96%|█████████▌| 1005/1050 [00:13<00:03, 14.31it/s, now=None]t:  96%|█████████▌| 1007/1050 [00:13<00:03, 14.05it/s, now=None]t:  96%|█████████▌| 1009/1050 [00:13<00:02, 13.87it/s, now=None]t:  96%|█████████▋| 1011/1050 [00:13<00:02, 13.73it/s, now=None]t:  96%|█████████▋| 1013/1050 [00:13<00:02, 13.63it/s, now=None]t:  97%|█████████▋| 1015/1050 [00:13<00:02, 13.62it/s, now=None]t:  97%|█████████▋| 1017/1050 [00:14<00:02, 13.60it/s, now=None]t:  97%|█████████▋| 1019/1050 [00:14<00:02, 13.53it/s, now=None]t:  97%|█████████▋| 1021/1050 [00:14<00:02, 13.53it/s, now=None]t:  97%|█████████▋| 1023/1050 [00:14<00:01, 13.53it/s, now=None]t:  98%|█████████▊| 1025/1050 [00:14<00:01, 13.50it/s, now=None]t:  98%|█████████▊| 1027/1050 [00:14<00:01, 13.46it/s, now=None]t:  98%|█████████▊| 1029/1050 [00:15<00:01, 13.45it/s, now=None]t:  98%|█████████▊| 1031/1050 [00:15<00:01, 13.42it/s, now=None]t:  98%|█████████▊| 1033/1050 [00:15<00:01, 13.30it/s, now=None]t:  99%|█████████▊| 1035/1050 [00:15<00:01, 13.37it/s, now=None]t:  99%|█████████▉| 1037/1050 [00:15<00:00, 13.40it/s, now=None]t:  99%|█████████▉| 1039/1050 [00:15<00:00, 13.25it/s, now=None]t:  99%|█████████▉| 1041/1050 [00:15<00:00, 13.31it/s, now=None]t:  99%|█████████▉| 1043/1050 [00:16<00:00, 13.00it/s, now=None]t: 100%|█████████▉| 1045/1050 [00:16<00:00, 13.14it/s, now=None]t: 100%|█████████▉| 1047/1050 [00:16<00:00, 13.19it/s, now=None]t: 100%|█████████▉| 1049/1050 [00:16<00:00, 13.29it/s, now=None]                                                                Moviepy - Done !
+Moviepy - video ready outputs/runs/20251221_212854/short_educational.overlay.mp4
+  ✅ Overlays added successfully
+  Replaced original video
+✅ Overlay processing complete!
+  ✅ Educational short overlays added
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[0;34mStage 7.6: Video LLM Analysis[0m
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+🔍 Validating visual-lyric synchronization...
+🔍 Validating visual-lyric sync for 5 segments...
+  [1] Checking 'Steel I-beams start as solid m...'... ✅ (7/10)
+  [2] Checking 'The billets are loaded into a ...'... ✅ (7/10)
+  [3] Checking 'At this extreme temperature, s...'... ✅ (8/10)
+  [4] Checking 'High-pressure water jets at 1,...'... ❌ (2/10 - poor match)
+  [5] Checking 'The glowing hot billet enters ...'... ✅ (8/10)
+
+📊 Average sync score: 6.4/10
+📁 Results saved to outputs/runs/20251221_212854/sync_validation.json
+✅ Good visual-lyric synchronization
+  ✅ Sync validation complete
+📝 Generating AI video descriptions...
+📝 Generating youtube description for full...
+   Topic: How steel I-beams are manufactured through hot rolling mills that heat metal billets to 2200°F and compress them into structural shapes.
+✅ Description saved to outputs/runs/20251221_212854/description_full_youtube.txt
+
+--- Generated Description ---
+Discover how steel I-beams are forged from raw metal into towering structural giants! 🏗️🔥
+
+In this video, you’ll learn:
+✔️ How hot rolling mills transform heated billets (at 2200°F!) into I-beams  
+✔️ The role of compression and rollers in shaping steel  
+✔️ Why this process is vital for bridges, skyscrapers, and infrastructure
+
+From furnace to finished beam — see the magic of industrial engineering unfold!
+
+👇 LIKE this video if you learned something new, and SUBSCRIBE for more deep dives into the world of materials and manufacturing!
+
+#SteelBeams #HotRolling #ManufacturingProcess
+==========
+Prompt: 312 tokens, 246.755 tokens-per-sec
+Generation: 135 tokens, 48.593 tokens-per-sec
+Peak memory: 6.407 GB
+
+  ✅ full YouTube description generated
+📝 Generating tiktok description for full...
+   Topic: How steel I-beams are manufactured through hot rolling mills that heat metal billets to 2200°F and compress them into structural shapes.
+✅ Description saved to outputs/runs/20251221_212854/description_full_tiktok.txt
+
+--- Generated Description ---
+Did you know steel I-beams start as hot metal blobs? 🤯 Turned into giants by rolling mills at 2200°F! 🔥 #SteelEngineering #HotRolling #ManufacturingMagic #FYP #IronStrength
+==========
+Prompt: 309 tokens, 253.685 tokens-per-sec
+Generation: 51 tokens, 48.955 tokens-per-sec
+Peak memory: 6.403 GB
+
+  ✅ full TikTok description generated
+📝 Generating youtube description for short_hook...
+   Topic: How steel I-beams are manufactured through hot rolling mills that heat metal billets to 2200°F and compress them into structural shapes.
+✅ Description saved to outputs/runs/20251221_212854/description_short_hook_youtube.txt
+
+--- Generated Description ---
+🔍 Ever wonder how massive steel I-beams are forged? In this video, you’ll witness firsthand how metal billets are heated to 2200°F and compressed through hot rolling mills to form structural giants!
+
+✅ Learn the step-by-step process from raw material to finished I-beam  
+✅ See the intense heat, precision rollers, and dramatic sparks in action  
+✅ Understand why hot rolling creates stronger, more durable beams for skyscrapers and bridges
+
+📌 Don’t miss this jaw-dropping industrial journey — it’s engineering at its most powerful!
+
+👉 LIKE & SUBSCRIBE for more deep dives into the world of heavy machinery and metal manufacturing!  
+#SteelBeams #HotRolling #ManufacturingMagic
+==========
+Prompt: 206 tokens, 232.664 tokens-per-sec
+Generation: 145 tokens, 48.803 tokens-per-sec
+Peak memory: 6.174 GB
+
+  ✅ short_hook YouTube description generated
+📝 Generating tiktok description for short_hook...
+   Topic: How steel I-beams are manufactured through hot rolling mills that heat metal billets to 2200°F and compress them into structural shapes.
+✅ Description saved to outputs/runs/20251221_212854/description_short_hook_tiktok.txt
+
+--- Generated Description ---
+Did you know steel I-beams start as hot metal blobs? 🔥 Turned into giants by insane rollers! 🏗️ #SteelMaking #HotRolling #EngineeringMagic #FYP #MetalCraft
+==========
+Prompt: 203 tokens, 241.361 tokens-per-sec
+Generation: 44 tokens, 49.923 tokens-per-sec
+Peak memory: 6.170 GB
+
+  ✅ short_hook TikTok description generated
+📝 Generating youtube description for short_educational...
+   Topic: How steel I-beams are manufactured through hot rolling mills that heat metal billets to 2200°F and compress them into structural shapes.
+✅ Description saved to outputs/runs/20251221_212854/description_short_educational_youtube.txt
+
+--- Generated Description ---
+🔥 Ever Wonder How I-Beams Are Made? You’ll Be Amazed! 🔥
+
+In this video, you’ll discover the intense process behind steel I-beam manufacturing — from hot billets at 2200°F to sleek structural shapes. Watch as massive rollers compress molten metal into the backbone of skyscrapers and bridges!
+
+✅ How hot rolling mills transform metal  
+✅ The science of compression & cooling  
+✅ Why temperature & precision matter
+
+Subscribe & hit the bell — we break down industrial wonders like this every week!  
+Like this video? Smash that LIKE button and share with fellow engineering fans!
+
+#SteelManufacturing #HotRolling #IBeamProduction #EngineeringWonders
+==========
+Prompt: 206 tokens, 244.868 tokens-per-sec
+Generation: 143 tokens, 48.736 tokens-per-sec
+Peak memory: 6.174 GB
+
+  ✅ short_educational YouTube description generated
+📝 Generating tiktok description for short_educational...
+   Topic: How steel I-beams are manufactured through hot rolling mills that heat metal billets to 2200°F and compress them into structural shapes.
+✅ Description saved to outputs/runs/20251221_212854/description_short_educational_tiktok.txt
+
+--- Generated Description ---
+Did you know steel I-beams are forged at 2200°F? 🔥 From billet to beast—hot rolling magic! 🏗️ #SteelEngineering #HotRolling #ManufacturingMagic #FYP #IndustrialWonders
+==========
+Prompt: 203 tokens, 240.579 tokens-per-sec
+Generation: 52 tokens, 49.365 tokens-per-sec
+Peak memory: 6.170 GB
+
+  ✅ short_educational TikTok description generated
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[0;34mStage 8/9: YouTube Upload[0m
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+📤 Uploading all videos...
+  Uploading full video...
+📤 Uploading to YouTube...
+  Type: full
+  Video: outputs/runs/20251221_212854/full.mp4
+  Title: How Steel I-Beams Are Made Explained
+  Privacy: public
+  Channel: @learningsciencemusic
+Uploading to channel: @learningsciencemusic (ID: UCzpO9KaCvSKA_Lrm0orMVrw)
+✅ Video uploaded: https://youtube.com/watch?v=9s6FCh5n9aM
+  Video ID: 9s6FCh5n9aM
+  Saved to: outputs/runs/20251221_212854/video_id_full.txt
+✅ Upload complete!
+  Uploading hook short...
+📤 Uploading to YouTube...
+  Type: short_hook
+  Video: outputs/runs/20251221_212854/short_hook.mp4
+  Title: How Steel I-Beams Are Made Explained 🎵
+  Privacy: public
+  Channel: @learningsciencemusic
+Uploading to channel: @learningsciencemusic (ID: UCzpO9KaCvSKA_Lrm0orMVrw)
+✅ Video uploaded: https://youtube.com/watch?v=fVcqZaNfFtk
+  Video ID: fVcqZaNfFtk
+  Saved to: outputs/runs/20251221_212854/video_id_short_hook.txt
+✅ Upload complete!
+  Uploading educational short...
+📤 Uploading to YouTube...
+  Type: short_educational
+  Video: outputs/runs/20251221_212854/short_educational.mp4
+  Title: How Steel I-Beams Are Made Explained 🎵
+  Privacy: public
+  Channel: @learningsciencemusic
+Uploading to channel: @learningsciencemusic (ID: UCzpO9KaCvSKA_Lrm0orMVrw)
+✅ Video uploaded: https://youtube.com/watch?v=PrKTNlTf-40
+  Video ID: PrKTNlTf-40
+  Saved to: outputs/runs/20251221_212854/video_id_short_educational.txt
+✅ Upload complete!
+✅ YouTube uploads complete
+
+📤 Uploading to TikTok via Zapier...
+  Uploading full video to TikTok...
+📤 Uploading full to TikTok via Zapier...
+  Topic: How Steel I-Beams Are Made Explained
+  Uploading full.mp4 to Dropbox at /full.mp4...
+Unable to refresh access token without                 refresh token and app key
+❌ Error: Invalid Dropbox access token
+    [1;33m⚠️  TikTok full video upload failed (non-fatal)[0m
+  Uploading hook short to TikTok...
+📤 Uploading short_hook to TikTok via Zapier...
+  Topic: How Steel I-Beams Are Made Explained
+  Uploading short_hook.mp4 to Dropbox at /short_hook.mp4...
+Unable to refresh access token without                 refresh token and app key
+❌ Error: Invalid Dropbox access token
+    [1;33m⚠️  TikTok hook short upload failed (non-fatal)[0m
+  Uploading educational short to TikTok...
+📤 Uploading short_educational to TikTok via Zapier...
+  Topic: How Steel I-Beams Are Made Explained
+  Uploading short_educational.mp4 to Dropbox at /short_educational.mp4...
+Unable to refresh access token without                 refresh token and app key
+❌ Error: Invalid Dropbox access token
+    [1;33m⚠️  TikTok educational short upload failed (non-fatal)[0m
+✅ TikTok uploads complete (via Zapier)
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[0;34mStage 9/9: Cross-Link Videos[0m
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+🔗 Cross-linking video descriptions...
+🔗 Cross-linking videos...
+  Updating full video description...
+  Updating hook short description...
+  Updating educational short description...
+✅ Cross-linking complete
+✅ Cross-linking complete
+
+[0;32m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[0;32m✅ Pipeline Complete![0m
+[0;32m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+
+[0;32m📹 Videos Generated:[0m
+  - outputs/runs/20251221_212854/full.mp4 (Full horizontal video)
+  - outputs/runs/20251221_212854/short_hook.mp4 (Hook short)
+  - outputs/runs/20251221_212854/short_educational.mp4 (Educational short)
+
+[0;32m🔗 YouTube URLs:[0m
+  Full: https://youtube.com/watch?v=9s6FCh5n9aM
+  Hook: https://youtube.com/shorts/fVcqZaNfFtk
+  Educational: https://youtube.com/shorts/PrKTNlTf-40
+
+Generated files:
+  - outputs/runs/20251221_212854/research.json       (research data)
+  - outputs/runs/20251221_212854/lyrics.txt          (song lyrics)
+  - outputs/runs/20251221_212854/song.mp3            (AI-generated music)
+  - outputs/runs/20251221_212854/media_plan.json     (shot list)
+  - outputs/runs/20251221_212854/segments.json       (segment analysis)
+
+Next steps:
+  - Preview: open outputs/runs/20251221_212854/full.mp4
+  - Preview shorts: open outputs/runs/20251221_212854/short_hook.mp4
+  - Edit in iMovie if needed
+
+[0;34mCost estimate for this pipeline run: ~$0.02-$0.04[0m
