@@ -99,7 +99,7 @@ DO NOT ask questions. Analyze and act. Output only the result line at the end.""
     
     try:
         result = subprocess.run(
-            ["/Users/ethantrokie/.npm-global/bin/claude", "-p", prompt, "--model", "claude-sonnet-4-5", "--dangerously-skip-permissions"],
+            ["/Users/ethantrokie/.local/bin/claude", "-p", prompt, "--model", "claude-sonnet-4-5", "--dangerously-skip-permissions"],
             capture_output=True,
             text=True,
             timeout=300,  # 5 minute timeout for debugging

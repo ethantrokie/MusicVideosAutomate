@@ -542,7 +542,7 @@ EOF
 
                 # Run gap-filling research
                 echo "  Finding media for $TARGET_COUNT missing concepts..."
-                /Users/ethantrokie/.npm-global/bin/claude -p "$(cat $TEMP_GAP_PROMPT)" --model claude-sonnet-4-5 --dangerously-skip-permissions
+                /Users/ethantrokie/.local/bin/claude -p "$(cat $TEMP_GAP_PROMPT)" --model claude-sonnet-4-5 --dangerously-skip-permissions
 
                 rm "$TEMP_GAP_PROMPT"
 

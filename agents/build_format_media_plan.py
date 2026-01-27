@@ -159,16 +159,23 @@ def match_clips_to_phrase_groups(
 def build_synchronized_shot_list(
     matched_groups: List[Dict],
     segment_start: float,
-    segment_end: float
+    segment_end: float,
+    max_shot_duration: float = None,
+    available_clips: List[Dict] = None
 ) -> List[Dict]:
     """
     Build shot list with lyric-synchronized timing.
     Filters phrase groups to segment time range and creates shots with actual timestamps.
 
+    For shorts (when max_shot_duration is set), splits long phrase groups into multiple
+    shorter shots for faster pacing while maintaining lyric sync.
+
     Args:
         matched_groups: Phrase groups with matched clips
         segment_start: Segment start time in seconds (e.g., 30 for hook)
         segment_end: Segment end time in seconds (e.g., 45 for hook)
+        max_shot_duration: Maximum duration per shot (e.g., 3.0 for shorts). If None, uses phrase duration.
+        available_clips: List of all available clips for variety when splitting long phrases
 
     Returns:
         List of shots with synchronized start_time, end_time from lyrics
@@ -184,6 +191,18 @@ def build_synchronized_shot_list(
 
     print(f"    📍 Found {len(segment_groups)} phrase groups in segment range {segment_start}-{segment_end}s")
 
+    # Track used clips for variety when splitting
+    used_clip_indices = set()
+    if available_clips:
+        # Mark clips already used in matched groups
+        for g in segment_groups:
+            clip = g.get("matched_clip")
+            if clip:
+                for i, c in enumerate(available_clips):
+                    if c.get("local_path") == clip.get("local_path"):
+                        used_clip_indices.add(i)
+                        break
+
     for group in segment_groups:
         clip = group.get("matched_clip")
         if not clip:
@@ -192,35 +211,89 @@ def build_synchronized_shot_list(
         # Use ACTUAL lyric timestamps from phrase group
         lyric_start = max(get_phrase_time(group, 'start'), segment_start)
         lyric_end = min(get_phrase_time(group, 'end'), segment_end)
-        duration = lyric_end - lyric_start
+        total_duration = lyric_end - lyric_start
 
-        # Adjust timing to segment-relative (0-based for this segment)
-        relative_start = lyric_start - segment_start
-        relative_end = lyric_end - segment_start
+        # Split long phrases into multiple shots for faster pacing (shorts only)
+        if max_shot_duration and total_duration > max_shot_duration:
+            num_sub_shots = int(total_duration / max_shot_duration) + 1
+            sub_duration = total_duration / num_sub_shots
 
-        shot = {
-            "shot_number": shot_number,
-            "local_path": clip["local_path"],
-            "media_type": clip.get("media_type", "video"),
-            "media_url": clip.get("media_url", ""),
-            "description": clip.get("description", ""),
-            "lyrics_match": group.get("text", group.get("topic", "")),  # Support both new (text) and old (topic) formats
-            "source": clip.get("source", ""),
-            "transition": clip.get("transition", "crossfade"),
-            "priority": clip.get("priority", "normal"),
-            # SYNCHRONIZED TIMING - from actual lyrics
-            "start_time": relative_start,
-            "end_time": relative_end,
-            "duration": duration,
-            # Preserve phrase group for debugging
-            "phrase_group_id": group.get("group_id"),
-            "absolute_start": lyric_start,  # For debugging
-            "absolute_end": lyric_end,
-            "match_score": group.get("match_score", 0)
-        }
+            print(f"    🔀 Splitting {total_duration:.1f}s phrase into {num_sub_shots} shots (~{sub_duration:.1f}s each)")
 
-        shots.append(shot)
-        shot_number += 1
+            for sub_idx in range(num_sub_shots):
+                sub_start = lyric_start + (sub_idx * sub_duration)
+                sub_end = lyric_start + ((sub_idx + 1) * sub_duration)
+
+                # Clamp to segment boundaries
+                sub_start = max(sub_start, segment_start)
+                sub_end = min(sub_end, segment_end)
+
+                # For variety, try to use different clips for sub-shots
+                sub_clip = clip
+                if available_clips and sub_idx > 0:
+                    # Find an unused clip for visual variety
+                    for i, alt_clip in enumerate(available_clips):
+                        if i not in used_clip_indices:
+                            sub_clip = alt_clip
+                            used_clip_indices.add(i)
+                            break
+
+                # Adjust timing to segment-relative (0-based for this segment)
+                relative_start = sub_start - segment_start
+                relative_end = sub_end - segment_start
+
+                shot = {
+                    "shot_number": shot_number,
+                    "local_path": sub_clip["local_path"],
+                    "media_type": sub_clip.get("media_type", "video"),
+                    "media_url": sub_clip.get("media_url", ""),
+                    "description": sub_clip.get("description", ""),
+                    "lyrics_match": group.get("text", group.get("topic", "")),
+                    "source": sub_clip.get("source", ""),
+                    "transition": "cut" if sub_idx > 0 else clip.get("transition", "crossfade"),
+                    "priority": clip.get("priority", "normal"),
+                    "start_time": relative_start,
+                    "end_time": relative_end,
+                    "duration": sub_end - sub_start,
+                    "phrase_group_id": group.get("group_id"),
+                    "absolute_start": sub_start,
+                    "absolute_end": sub_end,
+                    "match_score": group.get("match_score", 0),
+                    "sub_shot": sub_idx + 1,
+                    "sub_shot_total": num_sub_shots
+                }
+
+                shots.append(shot)
+                shot_number += 1
+        else:
+            # Single shot for this phrase group (original behavior)
+            # Adjust timing to segment-relative (0-based for this segment)
+            relative_start = lyric_start - segment_start
+            relative_end = lyric_end - segment_start
+
+            shot = {
+                "shot_number": shot_number,
+                "local_path": clip["local_path"],
+                "media_type": clip.get("media_type", "video"),
+                "media_url": clip.get("media_url", ""),
+                "description": clip.get("description", ""),
+                "lyrics_match": group.get("text", group.get("topic", "")),  # Support both new (text) and old (topic) formats
+                "source": clip.get("source", ""),
+                "transition": clip.get("transition", "crossfade"),
+                "priority": clip.get("priority", "normal"),
+                # SYNCHRONIZED TIMING - from actual lyrics
+                "start_time": relative_start,
+                "end_time": relative_end,
+                "duration": total_duration,
+                # Preserve phrase group for debugging
+                "phrase_group_id": group.get("group_id"),
+                "absolute_start": lyric_start,  # For debugging
+                "absolute_end": lyric_end,
+                "match_score": group.get("match_score", 0)
+            }
+
+            shots.append(shot)
+            shot_number += 1
 
     # GAP FILLING: Detect and fill gaps in lyric coverage
     # If there are shots but the first one doesn't start at 0 (relative to segment),
@@ -599,11 +672,17 @@ def build_format_plan(format_type: FormatType, target_duration: float,
         segment_start = segment_info.get("start", 0)
         segment_end = segment_info.get("end", target_duration)
 
+        # For shorts, enforce max shot duration to achieve fast pacing
+        # For full video, allow phrase-length shots
+        max_shot_dur = MAX_SHOT_DURATION if format_type != "full" else None
+
         # Build synchronized shots
         shot_list = build_synchronized_shot_list(
             matched_groups,
             segment_start,
-            segment_end
+            segment_end,
+            max_shot_duration=max_shot_dur,
+            available_clips=available_clips
         )
 
         # Calculate total duration from shots

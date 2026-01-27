@@ -38,7 +38,7 @@ echo '```' >> "$TEMP_PROMPT"
 
 # Call Claude Code CLI
 echo "  Calling Claude Code for lyric-based media search..."
-/Users/ethantrokie/.npm-global/bin/claude -p "$(cat $TEMP_PROMPT)" --model claude-sonnet-4-5 --dangerously-skip-permissions
+/Users/ethantrokie/.local/bin/claude -p "$(cat $TEMP_PROMPT)" --model claude-sonnet-4-5 --dangerously-skip-permissions
 
 # Clean up temp prompt
 rm "$TEMP_PROMPT"

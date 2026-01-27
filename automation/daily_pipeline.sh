@@ -66,13 +66,15 @@ detect_resume_stage() {
     fi
 
     # Stage 4.5: Segment analysis complete (segments.json exists)
-    if [ -f "$run_dir/segments.json" ]; then
+    # BUT: We also need phrase_groups.json from stage 3.5 for media curation to work
+    if [ -f "$run_dir/segments.json" ] && [ -f "$run_dir/phrase_groups.json" ]; then
         echo "5"  # Resume from media curation
         return
     fi
 
     # Stage 4: Music complete (song.mp3 exists)
-    if [ -f "$run_dir/song.mp3" ]; then
+    # Also verify phrase_groups.json exists (created in stage 3.5)
+    if [ -f "$run_dir/song.mp3" ] && [ -f "$run_dir/phrase_groups.json" ]; then
         echo "5"  # Resume from segment analysis (Stage 4.5 in pipeline.sh is stage 5 for --start)
         return
     fi

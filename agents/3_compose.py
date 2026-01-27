@@ -73,11 +73,34 @@ class SunoAPIClient:
         }
 
         print(f"  Sending request to Suno API...")
-        response = requests.post(endpoint, headers=self.headers, json=payload)
 
-        if response.status_code != 200:
-            print(f"❌ API Error Response: {response.text}")
-            raise Exception(f"Suno API error: {response.status_code} - {response.text}")
+        # Retry logic for initial generation request
+        transient_errors = {502, 503, 504, 429, 408, 520, 521, 522, 523, 524, 525, 526}
+        max_retries = 5
+
+        for attempt in range(max_retries):
+            try:
+                response = requests.post(endpoint, headers=self.headers, json=payload, timeout=60)
+
+                if response.status_code == 200:
+                    break
+
+                if response.status_code in transient_errors and attempt < max_retries - 1:
+                    wait_time = (2 ** attempt) * 2
+                    print(f"  ⚠️ Transient error {response.status_code}, retrying in {wait_time}s (attempt {attempt + 1}/{max_retries})")
+                    time.sleep(wait_time)
+                    continue
+
+                print(f"❌ API Error Response: {response.text}")
+                raise Exception(f"Suno API error: {response.status_code} - {response.text}")
+
+            except requests.exceptions.RequestException as e:
+                if attempt < max_retries - 1:
+                    wait_time = (2 ** attempt) * 2
+                    print(f"  ⚠️ Connection error: {type(e).__name__}, retrying in {wait_time}s (attempt {attempt + 1}/{max_retries})")
+                    time.sleep(wait_time)
+                    continue
+                raise Exception(f"Suno API connection failed after {max_retries} retries: {e}")
 
         result = response.json()
         print(f"  API Response: {json.dumps(result, indent=2)}")
@@ -88,16 +111,37 @@ class SunoAPIClient:
 
         return result
 
-    def check_status(self, task_id: str) -> dict:
-        """Check generation status using taskId."""
+    def check_status(self, task_id: str, max_retries: int = 5) -> dict:
+        """Check generation status using taskId with retry logic for transient errors."""
         endpoint = f"{self.base_url}/api/v1/generate/record-info"
         params = {"taskId": task_id}
-        response = requests.get(endpoint, headers=self.headers, params=params)
 
-        if response.status_code != 200:
-            raise Exception(f"Status check error: {response.status_code}")
+        transient_errors = {502, 503, 504, 429, 408, 520, 521, 522, 523, 524, 525, 526}  # Gateway + Cloudflare errors
 
-        return response.json()
+        for attempt in range(max_retries):
+            try:
+                response = requests.get(endpoint, headers=self.headers, params=params, timeout=60)
+
+                if response.status_code == 200:
+                    return response.json()
+
+                if response.status_code in transient_errors and attempt < max_retries - 1:
+                    wait_time = (2 ** attempt) * 2  # Exponential backoff: 2, 4, 8, 16, 32 seconds
+                    print(f"  ⚠️ Transient error {response.status_code}, retrying in {wait_time}s (attempt {attempt + 1}/{max_retries})")
+                    time.sleep(wait_time)
+                    continue
+
+                raise Exception(f"Status check error: {response.status_code}")
+
+            except requests.exceptions.RequestException as e:
+                if attempt < max_retries - 1:
+                    wait_time = (2 ** attempt) * 2
+                    print(f"  ⚠️ Connection error: {type(e).__name__}, retrying in {wait_time}s (attempt {attempt + 1}/{max_retries})")
+                    time.sleep(wait_time)
+                    continue
+                raise Exception(f"Status check connection failed after {max_retries} retries: {e}")
+
+        raise Exception(f"Status check failed after {max_retries} retries")
 
     def download_audio(self, audio_url: str, output_path: str):
         """Download generated audio file."""

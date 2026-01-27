@@ -80,7 +80,7 @@ generate_metadata() {
 
     case $video_type in
         full)
-            TITLE="${topic}"
+            TITLE="${topic} 🎵"
             DESCRIPTION="Learn about ${topic} through music! Full version.
 
 Watch the Shorts versions:

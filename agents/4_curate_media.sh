@@ -72,7 +72,7 @@ echo '```' >> "$TEMP_PROMPT"
 
 # Call Claude Code CLI - it will write directly to outputs/media_plan.json
 echo "  Calling Claude Code for media curation..."
-/Users/ethantrokie/.npm-global/bin/claude -p "$(cat $TEMP_PROMPT)" --model claude-sonnet-4-5 --dangerously-skip-permissions
+/Users/ethantrokie/.local/bin/claude -p "$(cat $TEMP_PROMPT)" --model claude-sonnet-4-5 --dangerously-skip-permissions
 
 # Clean up temp prompt
 rm "$TEMP_PROMPT"
