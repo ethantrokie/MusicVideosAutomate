@@ -255,6 +255,22 @@ EOF
     echo ""
 fi
 
+# Stage 4.5: AI Video Clip Generation
+if [ $START_STAGE -le 4 ]; then
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${BLUE}Stage 4.5/7: AI Video Clip Generation${NC}"
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+
+    echo "🎬 Generating AI video clips with lip-sync..."
+    if python3 agents/generate_ai_clips.py; then
+        echo "✅ AI clip generation complete"
+    else
+        echo -e "${YELLOW}⚠️  AI clip generation failed or skipped, will use stock footage only${NC}"
+        # Non-critical failure - continue pipeline
+    fi
+    echo ""
+fi
+
 # Stage 5: Media Curation
 # Note: This creates initial media_plan.json for backwards compatibility.
 # Multi-format builds create format-specific plans (media_plan_full.json, etc.) in Stage 6.
@@ -965,28 +981,29 @@ if [ $START_STAGE -le 8 ] && [ -d "venv_video_llm" ] && [ -f "${RUN_DIR}/full.mp
     echo ""
 fi
 
-# Stage 8: Upload to YouTube
+# Stage 8: Upload to YouTube (Staggered Release)
+# Day 0: full + hook (immediate) - uploaded now
+# Day 1: educational (queued for 8 AM next day)
+# Day 2: intro (queued for 8 AM in 2 days)
+# Cross-linking happens after queue processor uploads final video
 if [ $START_STAGE -le 8 ]; then
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${BLUE}Stage 8/9: YouTube Upload${NC}"
+    echo -e "${BLUE}Stage 8/9: YouTube Upload (Staggered Release)${NC}"
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 
     # Ask user if they want to upload
     if [ "$EXPRESS_MODE" = false ]; then
         echo "📤 Upload videos to YouTube?"
         echo ""
-        echo "Videos ready:"
+        echo "Staggered release schedule:"
         if [ -f "${RUN_DIR}/full.mp4" ]; then
-            echo "  - Full video (${RUN_DIR}/full.mp4)"
-        fi
-        if [ -f "${RUN_DIR}/short_hook.mp4" ]; then
-            echo "  - Hook short (${RUN_DIR}/short_hook.mp4)"
+            echo "  Day 0 (now):     Full video + Hook short"
         fi
         if [ -f "${RUN_DIR}/short_educational.mp4" ]; then
-            echo "  - Educational short (${RUN_DIR}/short_educational.mp4)"
+            echo "  Day 1 (8 AM):    Educational short"
         fi
         if [ -f "${RUN_DIR}/short_intro.mp4" ]; then
-            echo "  - Intro short (${RUN_DIR}/short_intro.mp4)"
+            echo "  Day 2 (8 AM):    Intro short"
         fi
         echo ""
         read -p "Upload now? [y/N] " -n 1 -r
@@ -997,20 +1014,21 @@ if [ $START_STAGE -le 8 ]; then
             echo "To upload later, run:"
             echo "  ./upload_to_youtube.sh --run=${RUN_TIMESTAMP} --type=full"
             echo "  ./upload_to_youtube.sh --run=${RUN_TIMESTAMP} --type=short_hook"
-            echo "  ./upload_to_youtube.sh --run=${RUN_TIMESTAMP} --type=short_educational"
-            echo "  ./upload_to_youtube.sh --run=${RUN_TIMESTAMP} --type=short_intro"
+            echo "  # Then add to queue for staggered release:"
+            echo "  python3 automation/youtube_queue_processor.py --add --run-dir=\"${RUN_DIR}\" --topic=\"TOPIC\" --full-id=\"ID\" --hook-id=\"ID\""
             START_STAGE=10  # Skip remaining stages
         fi
     fi
 
     if [ $START_STAGE -le 8 ]; then
-        echo "📤 Uploading all videos..."
-
         # Build upload args
         UPLOAD_ARGS="--privacy=${YOUTUBE_PRIVACY}"
         if [ -n "$YOUTUBE_CHANNEL" ]; then
             UPLOAD_ARGS="$UPLOAD_ARGS --channel=${YOUTUBE_CHANNEL}"
         fi
+
+        # ========== Day 0: Upload full + hook immediately ==========
+        echo "📤 Uploading Day 0 videos (full + hook)..."
 
         # Upload full video
         if [ -f "${RUN_DIR}/full.mp4" ]; then
@@ -1026,51 +1044,43 @@ if [ $START_STAGE -le 8 ]; then
             HOOK_ID=$(cat "${RUN_DIR}/video_id_short_hook.txt" 2>/dev/null || echo "")
         fi
 
-        # Upload educational short
-        if [ -f "${RUN_DIR}/short_educational.mp4" ]; then
-            echo "  Uploading educational short..."
-            ./upload_to_youtube.sh --run="${RUN_TIMESTAMP}" --type=short_educational $UPLOAD_ARGS
-            EDU_ID=$(cat "${RUN_DIR}/video_id_short_educational.txt" 2>/dev/null || echo "")
+        echo "✅ Day 0 uploads complete"
+
+        # ========== Queue Day 1/2 videos for staggered release ==========
+        if [ -f "${RUN_DIR}/short_educational.mp4" ] || [ -f "${RUN_DIR}/short_intro.mp4" ]; then
+            echo ""
+            echo "📋 Queuing Day 1/2 videos for staggered release..."
+
+            # Get topic from research.json
+            TOPIC=$(python3 -c "import json; print(json.load(open('${RUN_DIR}/research.json')).get('video_title', 'Unknown'))" 2>/dev/null || echo "Unknown")
+
+            if [ -n "$FULL_ID" ] && [ -n "$HOOK_ID" ]; then
+                python3 automation/youtube_queue_processor.py --add \
+                    --run-dir="${RUN_DIR}" \
+                    --topic="${TOPIC}" \
+                    --full-id="${FULL_ID}" \
+                    --hook-id="${HOOK_ID}"
+
+                echo "✅ Educational short queued for tomorrow 8 AM Central"
+                echo "✅ Intro short queued for day after tomorrow 8 AM Central"
+                echo ""
+                echo "ℹ️  Cross-linking will happen after all videos are uploaded (Day 2)"
+            else
+                echo -e "${YELLOW}⚠️  Could not queue videos: missing full or hook video ID${NC}"
+            fi
         fi
 
-        # Upload intro short
-        if [ -f "${RUN_DIR}/short_intro.mp4" ]; then
-            echo "  Uploading intro short..."
-            ./upload_to_youtube.sh --run="${RUN_TIMESTAMP}" --type=short_intro $UPLOAD_ARGS
-            INTRO_ID=$(cat "${RUN_DIR}/video_id_short_intro.txt" 2>/dev/null || echo "")
-        fi
-
-        echo "✅ YouTube uploads complete"
         echo ""
 
-        # Upload to TikTok (if enabled) - via Dropbox + Zapier
+        # ========== TikTok/Instagram: Upload only 30s short ==========
+        # Skip full video, 15s hook, and 1min intro - only upload educational (30s)
         TIKTOK_ENABLED=$(jq -r '.tiktok.enabled // false' "$CONFIG_FILE" 2>/dev/null)
         if [ "$TIKTOK_ENABLED" = "true" ]; then
-            echo "📤 Uploading to TikTok via Zapier..."
+            echo "📤 Uploading 30s short to TikTok/Instagram via Zapier..."
 
-            # Upload full video to TikTok
-            if [ -f "${RUN_DIR}/full.mp4" ]; then
-                echo "  Uploading full video to TikTok..."
-                if ./venv/bin/python3 agents/6_upload_dropbox_zapier.py --run="${RUN_TIMESTAMP}" --type=full; then
-                    echo "    ✅ TikTok full video uploaded via Zapier"
-                else
-                    echo -e "    ${YELLOW}⚠️  TikTok full video upload failed (non-fatal)${NC}"
-                fi
-            fi
-
-            # Upload hook short to TikTok
-            if [ -f "${RUN_DIR}/short_hook.mp4" ]; then
-                echo "  Uploading hook short to TikTok..."
-                if ./venv/bin/python3 agents/6_upload_dropbox_zapier.py --run="${RUN_TIMESTAMP}" --type=short_hook; then
-                    echo "    ✅ TikTok hook short uploaded via Zapier"
-                else
-                    echo -e "    ${YELLOW}⚠️  TikTok hook short upload failed (non-fatal)${NC}"
-                fi
-            fi
-
-            # Upload educational short to TikTok
+            # Upload educational short (30s) to TikTok
             if [ -f "${RUN_DIR}/short_educational.mp4" ]; then
-                echo "  Uploading educational short to TikTok..."
+                echo "  Uploading educational short (30s) to TikTok..."
                 if ./venv/bin/python3 agents/6_upload_dropbox_zapier.py --run="${RUN_TIMESTAMP}" --type=short_educational; then
                     echo "    ✅ TikTok educational short uploaded via Zapier"
                 else
@@ -1078,17 +1088,7 @@ if [ $START_STAGE -le 8 ]; then
                 fi
             fi
 
-            # Upload intro short to TikTok
-            if [ -f "${RUN_DIR}/short_intro.mp4" ]; then
-                echo "  Uploading intro short to TikTok..."
-                if ./venv/bin/python3 agents/6_upload_dropbox_zapier.py --run="${RUN_TIMESTAMP}" --type=short_intro; then
-                    echo "    ✅ TikTok intro short uploaded via Zapier"
-                else
-                    echo -e "    ${YELLOW}⚠️  TikTok intro short upload failed (non-fatal)${NC}"
-                fi
-            fi
-
-            echo "✅ TikTok uploads complete (via Zapier)"
+            echo "✅ TikTok upload complete (via Zapier)"
         else
             echo "⏭️  TikTok uploads disabled in config"
         fi
@@ -1097,33 +1097,15 @@ if [ $START_STAGE -le 8 ]; then
 fi
 
 # Stage 9: Cross-Link Videos
-if [ $START_STAGE -le 9 ] && [ -n "$FULL_ID" ] && [ -n "$HOOK_ID" ] && [ -n "$EDU_ID" ]; then
+# NOTE: Cross-linking is now handled by youtube_queue_processor.py
+# after all staggered uploads complete (Day 2)
+if [ $START_STAGE -le 9 ]; then
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo -e "${BLUE}Stage 9/9: Cross-Link Videos${NC}"
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 
-    echo "🔗 Cross-linking video descriptions..."
-
-    # Build command with optional intro and TikTok IDs
-    CROSSLINK_CMD="python3 agents/crosslink_videos.py \"$FULL_ID\" \"$HOOK_ID\" \"$EDU_ID\""
-    # Add intro ID if available (required before TikTok IDs due to positional args)
-    if [ -n "$INTRO_ID" ]; then
-        CROSSLINK_CMD="$CROSSLINK_CMD \"$INTRO_ID\""
-    else
-        CROSSLINK_CMD="$CROSSLINK_CMD \"\""  # Empty placeholder for positional args
-    fi
-    if [ -n "$TIKTOK_FULL_ID" ]; then
-        CROSSLINK_CMD="$CROSSLINK_CMD \"$TIKTOK_FULL_ID\""
-    fi
-    if [ -n "$TIKTOK_HOOK_ID" ]; then
-        CROSSLINK_CMD="$CROSSLINK_CMD \"$TIKTOK_HOOK_ID\""
-    fi
-
-    if eval "$CROSSLINK_CMD"; then
-        echo "✅ Cross-linking complete"
-    else
-        echo -e "${YELLOW}⚠️  Cross-linking failed${NC}"
-    fi
+    echo "⏭️  Cross-linking will happen after all staggered uploads complete (Day 2)"
+    echo "    The queue processor runs hourly and handles cross-linking automatically."
     echo ""
 fi
 
