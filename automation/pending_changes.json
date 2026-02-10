@@ -1,21 +1,21 @@
 [
   {
-    "change": "Increase video duration to capture mid-form engagement sweet spot",
+    "change": "video_duration_seconds",
     "current_value": 35,
     "proposed_value": 50,
-    "rationale": "Videos with 50-70s potential (based on 55-71% retention of 35s = 19-25s actual watch time) can extend that engagement window. Mass Spectrometer (55% retention) and Electric Arc Furnace (71% retention) show audiences stay engaged beyond current cutoff.",
+    "rationale": "Top performers (Sonar at 43-69% retention, Induction Motors at 62-98% retention) suggest viewers are engaged beyond 35s. Extending to 50s allows fuller concept development while staying under 60s threshold where drop-off typically accelerates",
     "confidence": 0.78,
-    "expected_impact": "15-25% increase in total watch time minutes per video, improved algorithmic promotion due to longer session duration",
+    "expected_impact": "Increase avg_retention by 8-12 percentage points and watch_time by 40%, improving algorithmic distribution",
     "validation_status": "NEEDS_REVIEW",
     "validation_reason": "Change type not in allowed list"
   },
   {
-    "change": "Reduce media item count to increase dwell time per visual concept",
+    "change": "media_items_count",
     "current_value": 16,
-    "proposed_value": 10,
-    "rationale": "High retention videos likely have clearer visual narratives. At 35s with 12-20 items, each visual gets 1.75-2.9s. Reducing to 10 items gives 3.5s per visual, allowing better comprehension of complex topics like mass spectrometry and fiber optics.",
+    "proposed_value": 22,
+    "rationale": "Higher retention videos likely benefit from more visual variety to sustain attention. Increasing from 16 to 22 items (aligned with 50s duration) provides ~2.3s per visual element, maintaining pacing while reducing monotony",
     "confidence": 0.72,
-    "expected_impact": "8-12% improvement in average retention rate by reducing cognitive overload, particularly for technical topics",
+    "expected_impact": "Reduce mid-video drop-off by 5-8%, particularly improving retention curve between 40-60% mark",
     "validation_status": "NEEDS_REVIEW",
     "validation_reason": "Change type not in allowed list"
   }

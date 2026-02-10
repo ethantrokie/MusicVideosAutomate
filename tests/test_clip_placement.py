@@ -44,8 +44,8 @@ class TestClipPlacement:
         for clip in clips:
             assert clip["end_time"] <= 60, f"Clip {clip['id']} ends at {clip['end_time']}s"
 
-    def test_clips_are_8_seconds(self):
-        """Test each clip is 8 seconds long."""
+    def test_clips_are_5_seconds(self):
+        """Test each clip is 5 seconds long (default for Kling API)."""
         from clip_placement import determine_clip_placements
 
         aligned_words = [{"word": "Test ", "startS": 0.5, "endS": 1.0}]
@@ -54,7 +54,7 @@ class TestClipPlacement:
 
         for clip in clips:
             duration = clip["end_time"] - clip["start_time"]
-            assert duration == 8, f"Clip {clip['id']} is {duration}s, expected 8s"
+            assert duration == 5, f"Clip {clip['id']} is {duration}s, expected 5s"
 
     def test_extract_lyrics_for_window(self):
         """Test lyrics extraction for time window."""

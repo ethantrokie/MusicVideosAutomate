@@ -3,10 +3,10 @@
 Kling AI API client for video generation and lip-sync.
 Uses fal.ai as the API provider for pay-as-you-go pricing.
 
-Pricing (identical to direct Kling API):
-- Video generation: $0.07/second (Kling 2.6 Pro)
-- Lip-sync: $0.014/second (rounded to 5s increments)
-- Total for 8s clip with lip-sync: ~$0.70
+Pricing:
+- Video generation: ~$0.14/second (Kling 2.1 Pro)
+- Lip-sync: ~$0.04/second (Sync Lipsync v2)
+- Total for 5s clip with lip-sync: ~$0.90
 """
 
 import os
@@ -38,31 +38,34 @@ class KlingAPIClient:
         self,
         image_url: str,
         prompt: str,
-        duration: int = 8,
+        duration: int = 5,
         aspect_ratio: str = "16:9"
     ) -> Dict:
         """
-        Generate video from image using Kling 2.6 Pro.
+        Generate video from image using Kling 2.1 Pro.
 
         Args:
             image_url: URL of reference image (performer)
             prompt: Environment/scene description
-            duration: Video duration in seconds (max 10 for v2.6)
+            duration: Video duration in seconds (5 or 10)
             aspect_ratio: "16:9" for landscape, "9:16" for portrait
 
         Returns:
             Dict with video_url, duration, status
         """
+        # Duration must be "5" or "10" as a string
+        duration_str = "10" if duration > 5 else "5"
+
         for attempt in range(self.max_retries):
             try:
                 print(f"    Calling Kling API (attempt {attempt + 1}/{self.max_retries})...")
 
                 result = fal_client.subscribe(
-                    "fal-ai/kling-video/v2.6/pro/image-to-video",
+                    "fal-ai/kling-video/v2.1/pro/image-to-video",
                     arguments={
-                        "start_image_url": image_url,
+                        "image_url": image_url,
                         "prompt": prompt,
-                        "duration": str(min(duration, 10)),
+                        "duration": duration_str,
                         "aspect_ratio": aspect_ratio,
                         "negative_prompt": "blur, distort, low quality, static face, frozen expression"
                     }
@@ -90,7 +93,7 @@ class KlingAPIClient:
         audio_url: str
     ) -> Dict:
         """
-        Apply lip-sync to video using audio.
+        Apply lip-sync to video using audio via Sync Lipsync v2.
 
         Args:
             video_url: URL of generated video
@@ -104,10 +107,12 @@ class KlingAPIClient:
                 print(f"    Applying lip-sync (attempt {attempt + 1}/{self.max_retries})...")
 
                 result = fal_client.subscribe(
-                    "fal-ai/kling-video/lipsync/audio-to-video",
+                    "fal-ai/sync-lipsync/v2",
                     arguments={
                         "video_url": video_url,
-                        "audio_url": audio_url
+                        "audio_url": audio_url,
+                        "model": "lipsync-2",
+                        "sync_mode": "cut_off"
                     }
                 )
 

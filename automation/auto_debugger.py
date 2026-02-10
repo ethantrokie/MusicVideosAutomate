@@ -31,8 +31,16 @@ def get_log_tail(log_file, lines=100):
 
 def get_failed_stage_info(run_dir):
     """Analyze the failed run directory to determine what failed."""
-    run_path = Path(run_dir)
-    
+    run_path = Path(run_dir) if run_dir else None
+
+    # If no run directory exists or it's empty, failure was at research/topic generation
+    if not run_path or not run_dir or not run_path.exists():
+        return {
+            "completed_stages": [],
+            "failed_at": "research",
+            "run_dir": str(run_dir) if run_dir else ""
+        }
+
     stages_status = {
         "research": run_path / "research.json",
         "visual_ranking": run_path / "visual_rankings.json",
@@ -44,17 +52,17 @@ def get_failed_stage_info(run_dir):
         "subtitles": run_path / "subtitles",
         "upload": run_path / "video_id_full.txt",
     }
-    
+
     completed = []
     failed_at = None
-    
+
     for stage, artifact in stages_status.items():
         if artifact.exists():
             completed.append(stage)
         else:
             if failed_at is None:
                 failed_at = stage
-    
+
     return {
         "completed_stages": completed,
         "failed_at": failed_at or "unknown",
@@ -180,17 +188,43 @@ def main():
     if fixed:
         print(f"✅ Fix applied: {message}")
         print(f"  Debug log: {debug_log}")
-        
-        # Attempt to resume the pipeline
-        print("  Attempting to resume pipeline...")
-        run_dir_name = Path(failed_run_dir).name
-        
-        result = subprocess.run(
-            ["./pipeline.sh", f"--resume={run_dir_name}", "--express"],
-            capture_output=True,
-            text=True,
-            cwd=str(project_dir)
-        )
+
+        # Check if failure was at research stage (before any run directory was created)
+        # In this case, we need to generate a NEW topic, not resume with stale idea.txt
+        if stage_info['failed_at'] == 'research' and not stage_info['completed_stages']:
+            print("  Failure was at research stage - generating new topic...")
+
+            # Generate a new topic first
+            topic_result = subprocess.run(
+                ["./automation/topic_generator.py"],
+                capture_output=True,
+                text=True,
+                cwd=str(project_dir)
+            )
+
+            if topic_result.returncode != 0:
+                print(f"❌ Topic generation failed: {topic_result.stderr}")
+                send_notification(f"🔧 Auto-debug fix applied but topic generation failed.\nFix: {message}")
+                sys.exit(1)
+
+            print("  New topic generated, starting fresh pipeline...")
+            result = subprocess.run(
+                ["./pipeline.sh", "--express"],
+                capture_output=True,
+                text=True,
+                cwd=str(project_dir)
+            )
+        else:
+            # Normal resume - failure was after research stage
+            print("  Attempting to resume pipeline...")
+            run_dir_name = Path(failed_run_dir).name
+
+            result = subprocess.run(
+                ["./pipeline.sh", f"--resume={run_dir_name}", "--express"],
+                capture_output=True,
+                text=True,
+                cwd=str(project_dir)
+            )
         
         if result.returncode == 0:
             send_notification(f"🔧 Auto-debug fixed pipeline!\nFix: {message}\nPipeline resumed successfully.")

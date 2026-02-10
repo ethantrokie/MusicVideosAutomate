@@ -160,20 +160,23 @@ def main() -> int:
             print(f"    🎥 Generating video...")
             full_prompt = f"A {gender} performer singing with emotion and energy. {clip['environment_prompt']}"
 
+            # Use 5s duration (Kling supports 5 or 10 seconds)
+            clip_duration = 5
+
             video_result = client.generate_video(
                 image_url=performer_image,
                 prompt=full_prompt,
-                duration=8,
+                duration=clip_duration,
                 aspect_ratio="16:9"
             )
 
             clip_data["generation_status"] = video_result.get("status", "success")
-            clip_data["cost_usd"] += 0.56  # $0.07/sec * 8 sec
+            clip_data["cost_usd"] += 0.70  # ~$0.14/sec * 5 sec for video generation
 
             # Slice audio for lip-sync
             audio_slice_path = str(audio_slices_dir / f"slice_{clip['id']}.mp3")
 
-            if slice_audio(str(song_path), clip["start_time"], 8, audio_slice_path):
+            if slice_audio(str(song_path), clip["start_time"], clip_duration, audio_slice_path):
                 print(f"    🎵 Applying lip-sync...")
 
                 # Upload audio slice
@@ -186,7 +189,7 @@ def main() -> int:
                 )
 
                 clip_data["lipsync_status"] = lipsync_result.get("status", "success")
-                clip_data["cost_usd"] += 0.14  # $0.014/sec * 10 sec (rounded)
+                clip_data["cost_usd"] += 0.20  # ~$0.04/sec * 5 sec for lipsync
 
                 final_video_url = lipsync_result["video_url"]
             else:

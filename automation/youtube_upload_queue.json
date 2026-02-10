@@ -1,0 +1,466 @@
+{
+  "queue": [
+    {
+      "run_id": "20260128_090021",
+      "run_dir": "outputs/runs/20260128_090021",
+      "topic": "How Laser Cutters Vaporize Metal Explained",
+      "created_at": "2026-01-28T09:28:17.439889-06:00",
+      "videos": {
+        "full": {
+          "status": "uploaded",
+          "scheduled_date": "2026-01-28",
+          "uploaded_at": "2026-01-28T09:28:17.439889-06:00",
+          "video_id": "Q0DfGF1iHb8"
+        },
+        "short_hook": {
+          "status": "uploaded",
+          "scheduled_date": "2026-01-28",
+          "uploaded_at": "2026-01-28T09:28:17.439889-06:00",
+          "video_id": "ydRE0e6j11I"
+        },
+        "short_educational": {
+          "status": "uploaded",
+          "scheduled_date": "2026-01-29",
+          "uploaded_at": "2026-01-29T08:00:05.921167-06:00",
+          "video_id": "OuUo0fRAkWw"
+        },
+        "short_intro": {
+          "status": "uploaded",
+          "scheduled_date": "2026-01-30",
+          "uploaded_at": "2026-01-30T08:00:05.699600-06:00",
+          "video_id": "5TNRTmSRnfI"
+        }
+      },
+      "crosslink_status": "pending"
+    },
+    {
+      "run_id": "20260129_090020",
+      "run_dir": "outputs/runs/20260129_090020",
+      "topic": "How Turbofan Jet Engines Work Explained",
+      "created_at": "2026-01-29T09:29:35.894536-06:00",
+      "videos": {
+        "full": {
+          "status": "uploaded",
+          "scheduled_date": "2026-01-29",
+          "uploaded_at": "2026-01-29T09:29:35.894536-06:00",
+          "video_id": "B1QRSoOfaro"
+        },
+        "short_hook": {
+          "status": "uploaded",
+          "scheduled_date": "2026-01-29",
+          "uploaded_at": "2026-01-29T09:29:35.894536-06:00",
+          "video_id": "unXQ8fagqoI"
+        },
+        "short_educational": {
+          "status": "uploaded",
+          "scheduled_date": "2026-01-30",
+          "uploaded_at": "2026-01-30T08:00:05.699600-06:00",
+          "video_id": "_FuZj_AY_ns"
+        },
+        "short_intro": {
+          "status": "uploaded",
+          "scheduled_date": "2026-01-31",
+          "uploaded_at": "2026-01-31T08:00:05.710167-06:00",
+          "video_id": "ujtxoyPTaKc"
+        }
+      },
+      "crosslink_status": "pending"
+    },
+    {
+      "run_id": "20260130_090016",
+      "run_dir": "outputs/runs/20260130_090016",
+      "topic": "How CNC Machines Cut Metal Explained",
+      "created_at": "2026-01-30T09:31:52.734719-06:00",
+      "videos": {
+        "full": {
+          "status": "uploaded",
+          "scheduled_date": "2026-01-30",
+          "uploaded_at": "2026-01-30T09:31:52.734719-06:00",
+          "video_id": "s7bpE0Aru98"
+        },
+        "short_hook": {
+          "status": "uploaded",
+          "scheduled_date": "2026-01-30",
+          "uploaded_at": "2026-01-30T09:31:52.734719-06:00",
+          "video_id": "dBXlx03_duE"
+        },
+        "short_educational": {
+          "status": "uploaded",
+          "scheduled_date": "2026-01-31",
+          "uploaded_at": "2026-01-31T08:00:05.710167-06:00",
+          "video_id": "4_V1TuMrwJY"
+        },
+        "short_intro": {
+          "status": "uploaded",
+          "scheduled_date": "2026-02-01",
+          "uploaded_at": "2026-02-01T08:00:05.873598-06:00",
+          "video_id": "nVdilMVLNlg"
+        }
+      },
+      "crosslink_status": "pending"
+    },
+    {
+      "run_id": "20260131_090030",
+      "run_dir": "outputs/runs/20260131_090030",
+      "topic": "How Transformers Control Voltage Explained",
+      "created_at": "2026-01-31T09:38:05.346694-06:00",
+      "videos": {
+        "full": {
+          "status": "uploaded",
+          "scheduled_date": "2026-01-31",
+          "uploaded_at": "2026-01-31T09:38:05.346694-06:00",
+          "video_id": "_SuND3-DzpY"
+        },
+        "short_hook": {
+          "status": "uploaded",
+          "scheduled_date": "2026-01-31",
+          "uploaded_at": "2026-01-31T09:38:05.346694-06:00",
+          "video_id": "UifnWVi6KLc"
+        },
+        "short_educational": {
+          "status": "uploaded",
+          "scheduled_date": "2026-02-01",
+          "uploaded_at": "2026-02-01T08:00:05.873598-06:00",
+          "video_id": "Sa7W9yiqnEM"
+        },
+        "short_intro": {
+          "status": "uploaded",
+          "scheduled_date": "2026-02-02",
+          "uploaded_at": "2026-02-02T08:00:04.378431-06:00",
+          "video_id": "JjyPHMKSBVw"
+        }
+      },
+      "crosslink_status": "pending"
+    },
+    {
+      "run_id": "20260201_090030",
+      "run_dir": "outputs/runs/20260201_090030",
+      "topic": "How Induction Motors Work Explained",
+      "created_at": "2026-02-01T09:30:49.284735-06:00",
+      "videos": {
+        "full": {
+          "status": "uploaded",
+          "scheduled_date": "2026-02-01",
+          "uploaded_at": "2026-02-01T09:30:49.284735-06:00",
+          "video_id": "Gbe69CPTBIc"
+        },
+        "short_hook": {
+          "status": "uploaded",
+          "scheduled_date": "2026-02-01",
+          "uploaded_at": "2026-02-01T09:30:49.284735-06:00",
+          "video_id": "pDCNmKFBHC8"
+        },
+        "short_educational": {
+          "status": "uploaded",
+          "scheduled_date": "2026-02-02",
+          "uploaded_at": "2026-02-02T08:00:04.378431-06:00",
+          "video_id": "TSWWpDzkYkQ"
+        },
+        "short_intro": {
+          "status": "uploaded",
+          "scheduled_date": "2026-02-03",
+          "uploaded_at": "2026-02-03T08:00:05.518963-06:00",
+          "video_id": "-OAUytUtA38"
+        }
+      },
+      "crosslink_status": "pending"
+    },
+    {
+      "run_id": "20260202_091132",
+      "run_dir": "outputs/runs/20260202_091132",
+      "topic": "How Induction Motors Work Explained",
+      "created_at": "2026-02-02T10:16:43.939977-06:00",
+      "videos": {
+        "full": {
+          "status": "uploaded",
+          "scheduled_date": "2026-02-02",
+          "uploaded_at": "2026-02-02T10:16:43.939977-06:00",
+          "video_id": "_a9FYgfDe2I"
+        },
+        "short_hook": {
+          "status": "uploaded",
+          "scheduled_date": "2026-02-02",
+          "uploaded_at": "2026-02-02T10:16:43.939977-06:00",
+          "video_id": "aG_KfkAwPpg"
+        },
+        "short_educational": {
+          "status": "uploaded",
+          "scheduled_date": "2026-02-03",
+          "uploaded_at": "2026-02-03T08:00:05.518963-06:00",
+          "video_id": "gzBwYBnkuIw"
+        },
+        "short_intro": {
+          "status": "uploaded",
+          "scheduled_date": "2026-02-04",
+          "uploaded_at": "2026-02-04T08:00:05.121850-06:00",
+          "video_id": "Z-FFwfldvoA"
+        }
+      },
+      "crosslink_status": "pending"
+    },
+    {
+      "run_id": "20260203_090021",
+      "run_dir": "outputs/runs/20260203_090021",
+      "topic": "How Aluminum Anodizing Works Explained",
+      "created_at": "2026-02-03T09:35:28.913444-06:00",
+      "videos": {
+        "full": {
+          "status": "uploaded",
+          "scheduled_date": "2026-02-03",
+          "uploaded_at": "2026-02-03T09:35:28.913444-06:00",
+          "video_id": "oksbogs8UVs"
+        },
+        "short_hook": {
+          "status": "uploaded",
+          "scheduled_date": "2026-02-03",
+          "uploaded_at": "2026-02-03T09:35:28.913444-06:00",
+          "video_id": "HkRLciK8Yms"
+        },
+        "short_educational": {
+          "status": "uploaded",
+          "scheduled_date": "2026-02-04",
+          "uploaded_at": "2026-02-04T08:00:05.121850-06:00",
+          "video_id": "ON3Liox7b3s"
+        },
+        "short_intro": {
+          "status": "uploaded",
+          "scheduled_date": "2026-02-05",
+          "uploaded_at": "2026-02-05T08:00:05.225231-06:00",
+          "video_id": "y7Vn_Ye_epY"
+        }
+      },
+      "crosslink_status": "pending"
+    },
+    {
+      "run_id": "20260204_090033",
+      "run_dir": "outputs/runs/20260204_090033",
+      "topic": "How Sonar Detects Underwater Objects Explained",
+      "created_at": "2026-02-04T09:29:45.464845-06:00",
+      "videos": {
+        "full": {
+          "status": "uploaded",
+          "scheduled_date": "2026-02-04",
+          "uploaded_at": "2026-02-04T09:29:45.464845-06:00",
+          "video_id": "oj9nW0gzPYE"
+        },
+        "short_hook": {
+          "status": "uploaded",
+          "scheduled_date": "2026-02-04",
+          "uploaded_at": "2026-02-04T09:29:45.464845-06:00",
+          "video_id": "kyB7JGKj__Y"
+        },
+        "short_educational": {
+          "status": "uploaded",
+          "scheduled_date": "2026-02-05",
+          "uploaded_at": "2026-02-05T08:00:05.225231-06:00",
+          "video_id": "Nir6i4v1PjM"
+        },
+        "short_intro": {
+          "status": "uploaded",
+          "scheduled_date": "2026-02-06",
+          "uploaded_at": "2026-02-06T08:00:04.622100-06:00",
+          "video_id": "eDSsc9UQbiM"
+        }
+      },
+      "crosslink_status": "pending"
+    },
+    {
+      "run_id": "20260205_090033",
+      "run_dir": "outputs/runs/20260205_090033",
+      "topic": "How Microchips Are Patterned Explained",
+      "created_at": "2026-02-05T09:35:40.227418-06:00",
+      "videos": {
+        "full": {
+          "status": "uploaded",
+          "scheduled_date": "2026-02-05",
+          "uploaded_at": "2026-02-05T09:35:40.227418-06:00",
+          "video_id": "vfSBGIY-1ME"
+        },
+        "short_hook": {
+          "status": "uploaded",
+          "scheduled_date": "2026-02-05",
+          "uploaded_at": "2026-02-05T09:35:40.227418-06:00",
+          "video_id": "f5oktqdTpeE"
+        },
+        "short_educational": {
+          "status": "uploaded",
+          "scheduled_date": "2026-02-06",
+          "uploaded_at": "2026-02-06T08:00:04.622100-06:00",
+          "video_id": "VWY-_ZSi_qU"
+        },
+        "short_intro": {
+          "status": "uploaded",
+          "scheduled_date": "2026-02-07",
+          "uploaded_at": "2026-02-07T08:00:05.128486-06:00",
+          "video_id": "a7WXchuMZQI"
+        }
+      },
+      "crosslink_status": "pending"
+    },
+    {
+      "run_id": "20260206_090011",
+      "run_dir": "outputs/runs/20260206_090011",
+      "topic": "How Industrial Forging Shapes Metal Explained",
+      "created_at": "2026-02-06T09:27:10.280580-06:00",
+      "videos": {
+        "full": {
+          "status": "uploaded",
+          "scheduled_date": "2026-02-06",
+          "uploaded_at": "2026-02-06T09:27:10.280580-06:00",
+          "video_id": "B-jxyw3aUoY"
+        },
+        "short_hook": {
+          "status": "uploaded",
+          "scheduled_date": "2026-02-06",
+          "uploaded_at": "2026-02-06T09:27:10.280580-06:00",
+          "video_id": "P_AC4jXl5rg"
+        },
+        "short_educational": {
+          "status": "uploaded",
+          "scheduled_date": "2026-02-07",
+          "uploaded_at": "2026-02-07T08:00:05.128486-06:00",
+          "video_id": "2pk1sbvt7_c"
+        },
+        "short_intro": {
+          "status": "uploaded",
+          "scheduled_date": "2026-02-08",
+          "uploaded_at": "2026-02-08T08:00:05.564523-06:00",
+          "video_id": "CMYLLUHWCtE"
+        }
+      },
+      "crosslink_status": "pending"
+    },
+    {
+      "run_id": "20260207_090034",
+      "run_dir": "outputs/runs/20260207_090034",
+      "topic": "How Induction Heating Forges Metal Explained",
+      "created_at": "2026-02-07T09:26:29.900417-06:00",
+      "videos": {
+        "full": {
+          "status": "uploaded",
+          "scheduled_date": "2026-02-07",
+          "uploaded_at": "2026-02-07T09:26:29.900417-06:00",
+          "video_id": "8ovJQ17pbrM"
+        },
+        "short_hook": {
+          "status": "uploaded",
+          "scheduled_date": "2026-02-07",
+          "uploaded_at": "2026-02-07T09:26:29.900417-06:00",
+          "video_id": "WPrK-u6LOxc"
+        },
+        "short_educational": {
+          "status": "uploaded",
+          "scheduled_date": "2026-02-08",
+          "uploaded_at": "2026-02-08T08:00:05.564523-06:00",
+          "video_id": "2drUlRwC6OY"
+        },
+        "short_intro": {
+          "status": "uploaded",
+          "scheduled_date": "2026-02-09",
+          "uploaded_at": "2026-02-09T08:00:04.990505-06:00",
+          "video_id": "hwA368k5S1w"
+        }
+      },
+      "crosslink_status": "pending"
+    },
+    {
+      "run_id": "20260208_090029",
+      "run_dir": "outputs/runs/20260208_090029",
+      "topic": "How SQL Databases Find Your Data Explained",
+      "created_at": "2026-02-08T09:28:10.469796-06:00",
+      "videos": {
+        "full": {
+          "status": "uploaded",
+          "scheduled_date": "2026-02-08",
+          "uploaded_at": "2026-02-08T09:28:10.469796-06:00",
+          "video_id": "FO-aEVpY5_k"
+        },
+        "short_hook": {
+          "status": "uploaded",
+          "scheduled_date": "2026-02-08",
+          "uploaded_at": "2026-02-08T09:28:10.469796-06:00",
+          "video_id": "lngdXz5dIss"
+        },
+        "short_educational": {
+          "status": "uploaded",
+          "scheduled_date": "2026-02-09",
+          "uploaded_at": "2026-02-09T08:00:04.990505-06:00",
+          "video_id": "lFSAjp7uDeE"
+        },
+        "short_intro": {
+          "status": "uploaded",
+          "scheduled_date": "2026-02-10",
+          "uploaded_at": "2026-02-10T08:00:05.327479-06:00",
+          "video_id": "ClhSbcrns-4"
+        }
+      },
+      "crosslink_status": "pending"
+    },
+    {
+      "run_id": "20260209_090015",
+      "run_dir": "outputs/runs/20260209_090015",
+      "topic": "How Ball Bearings Reduce Friction Explained",
+      "created_at": "2026-02-09T09:25:49.567666-06:00",
+      "videos": {
+        "full": {
+          "status": "uploaded",
+          "scheduled_date": "2026-02-09",
+          "uploaded_at": "2026-02-09T09:25:49.567666-06:00",
+          "video_id": "w8hWa8vy0qE"
+        },
+        "short_hook": {
+          "status": "uploaded",
+          "scheduled_date": "2026-02-09",
+          "uploaded_at": "2026-02-09T09:25:49.567666-06:00",
+          "video_id": "q46SFVkwWRY"
+        },
+        "short_educational": {
+          "status": "uploaded",
+          "scheduled_date": "2026-02-10",
+          "uploaded_at": "2026-02-10T08:00:05.327479-06:00",
+          "video_id": "j7cyzVgco6E"
+        },
+        "short_intro": {
+          "status": "pending",
+          "scheduled_date": "2026-02-11",
+          "uploaded_at": null,
+          "video_id": null
+        }
+      },
+      "crosslink_status": "pending"
+    },
+    {
+      "run_id": "20260210_090039",
+      "run_dir": "outputs/runs/20260210_090039",
+      "topic": "How Fiberglass Insulation Works Explained",
+      "created_at": "2026-02-10T09:31:10.588431-06:00",
+      "videos": {
+        "full": {
+          "status": "uploaded",
+          "scheduled_date": "2026-02-10",
+          "uploaded_at": "2026-02-10T09:31:10.588431-06:00",
+          "video_id": "mKdb-dXGLf4"
+        },
+        "short_hook": {
+          "status": "uploaded",
+          "scheduled_date": "2026-02-10",
+          "uploaded_at": "2026-02-10T09:31:10.588431-06:00",
+          "video_id": "6QewAXZ_1Vs"
+        },
+        "short_educational": {
+          "status": "pending",
+          "scheduled_date": "2026-02-11",
+          "uploaded_at": null,
+          "video_id": null
+        },
+        "short_intro": {
+          "status": "pending",
+          "scheduled_date": "2026-02-12",
+          "uploaded_at": null,
+          "video_id": null
+        }
+      },
+      "crosslink_status": "pending"
+    }
+  ]
+}

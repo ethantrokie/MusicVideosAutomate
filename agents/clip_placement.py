@@ -4,7 +4,7 @@
 from typing import Dict, List
 
 
-def determine_clip_placements(aligned_words: List[Dict], clip_duration: int = 8) -> List[Dict]:
+def determine_clip_placements(aligned_words: List[Dict], clip_duration: int = 5) -> List[Dict]:
     """
     Determine 3 clip placements within first 60 seconds based on song structure.
 
