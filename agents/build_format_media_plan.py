@@ -24,6 +24,93 @@ CLIP_COVERAGE_BUFFER_SECONDS = 15
 FormatType = Literal["full", "hook", "educational", "intro"]
 
 
+def integrate_ai_clips(shots: List[Dict], output_dir: str) -> List[Dict]:
+    """
+    Integrate AI-generated clips into the shot list at their designated times.
+    AI clips take priority over stock footage at their placement times.
+
+    Args:
+        shots: Existing shot list from stock footage
+        output_dir: Output directory path
+
+    Returns:
+        Modified shot list with AI clips integrated
+    """
+    ai_manifest_path = Path(output_dir) / "ai_clips" / "ai_clip_manifest.json"
+
+    if not ai_manifest_path.exists():
+        return shots  # No AI clips available
+
+    try:
+        with open(ai_manifest_path) as f:
+            manifest = json.load(f)
+    except Exception as e:
+        print(f"  ⚠️ Could not load AI clip manifest: {e}")
+        return shots
+
+    # Get successful AI clips
+    ai_clips = [
+        clip for clip in manifest.get("clips", [])
+        if clip.get("generation_status") == "success"
+    ]
+
+    if not ai_clips:
+        return shots
+
+    print(f"  📎 Integrating {len(ai_clips)} AI clips into media plan")
+
+    # Create AI clip shots
+    ai_shots = []
+    for clip in ai_clips:
+        ai_shot = {
+            "shot_number": 0,  # Will be renumbered
+            "local_path": str(Path(output_dir) / "ai_clips" / clip["file"]),
+            "media_type": "video",
+            "source": "ai_generated",
+            "description": clip.get("environment_prompt", "AI generated clip"),
+            "lyrics_match": clip.get("lyrics_excerpt", ""),
+            "start_time": clip["start_time"],
+            "end_time": clip["end_time"],
+            "duration": clip["end_time"] - clip["start_time"],
+            "absolute_start": clip["start_time"],
+            "absolute_end": clip["end_time"],
+            "priority": "high",
+            "transition": "cut"
+        }
+        ai_shots.append(ai_shot)
+
+    # Remove stock shots that overlap with AI clip times
+    filtered_shots = []
+    for shot in shots:
+        shot_start = shot.get("absolute_start", shot.get("start_time", 0))
+        shot_end = shot.get("absolute_end", shot.get("end_time", shot_start + shot.get("duration", 3)))
+
+        # Check if this shot overlaps with any AI clip
+        overlaps = False
+        for ai_shot in ai_shots:
+            ai_start = ai_shot["start_time"]
+            ai_end = ai_shot["end_time"]
+
+            if shot_start < ai_end and shot_end > ai_start:
+                overlaps = True
+                break
+
+        if not overlaps:
+            filtered_shots.append(shot)
+
+    # Combine and sort by start time
+    all_shots = filtered_shots + ai_shots
+    all_shots.sort(key=lambda s: s.get("absolute_start", s.get("start_time", 0)))
+
+    # Renumber shots
+    for i, shot in enumerate(all_shots, 1):
+        shot["shot_number"] = i
+
+    print(f"  ✓ Final shot count: {len(all_shots)} (was {len(shots)}, +{len(ai_shots)} AI, -{len(shots) - len(filtered_shots)} replaced)")
+
+    return all_shots
+
+
 def get_output_path(filename: str) -> Path:
     """Get path in OUTPUT_DIR."""
     output_dir = os.getenv("OUTPUT_DIR", "outputs")
@@ -749,7 +836,12 @@ def build_format_plan(format_type: FormatType, target_duration: float,
 
         total_duration = current_duration
         print(f"    ✓ Created {len(shot_list)} sequential shots (duration: {total_duration:.1f}s)")
-    
+
+    # Integrate AI clips if available (only for full and intro formats that use first 60s)
+    if format_type in ["full", "intro"]:
+        shot_list = integrate_ai_clips(shot_list, os.getenv("OUTPUT_DIR", "outputs"))
+        total_duration = sum(s.get("duration", 0) for s in shot_list)
+
     # Create the media plan
     media_plan = {
         "format": format_type,
