@@ -303,11 +303,11 @@ EXAMPLE DIVERSE TOPICS:
 
 CRITICAL OUTPUT FORMAT - Output EXACTLY these two lines with no other text:
 Topic: [specific educational science concept]
-Tone: energetic pop punk with driving guitars, fast tempo, and rebellious educational energy
+Tone: upbeat pop rock with catchy hooks, bright guitars, steady driving beat, and enthusiastic educational energy
 
 EXAMPLE OUTPUT:
 Topic: How DNA replication works in cells
-Tone: energetic pop punk with driving guitars, fast tempo, and rebellious educational energy
+Tone: upbeat pop rock with catchy hooks, bright guitars, steady driving beat, and enthusiastic educational energy
 
 CRITICAL: This is scenario 1 - an automated system. DO NOT brainstorm. DO NOT ask questions. DO NOT offer choices. DO NOT use markdown formatting. ALWAYS use the exact tone specified above. Just output the two lines directly.
 Generate ONE topic now:"""
@@ -316,7 +316,7 @@ Generate ONE topic now:"""
         ["/Users/ethantrokie/.local/bin/claude", "-p", prompt, "--model", "claude-sonnet-4-5", "--dangerously-skip-permissions"],
         capture_output=True,
         text=True,
-        timeout=30
+        timeout=120
     )
 
     if result.returncode != 0:
