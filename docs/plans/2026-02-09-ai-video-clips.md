@@ -8,6 +8,10 @@
 
 **Tech Stack:** Python 3, fal-client (Kling API), ffmpeg (audio slicing), Claude CLI (environment prompts), MoviePy (assembly)
 
+**Branch:** `feature/scientific-video-generation`
+
+> **IMPORTANT:** Commit after each major task (Tasks 3, 4, 5, 6, 7, 8, 9, 11). Each task has a commit step at the end - do not skip these.
+
 ---
 
 ## Task 1: Install Dependencies
