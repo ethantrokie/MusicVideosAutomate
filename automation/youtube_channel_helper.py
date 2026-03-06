@@ -103,8 +103,47 @@ def get_channel_id_by_handle(youtube, handle):
     raise ValueError(f"Channel with handle '{handle}' not found. Available: {channels}")
 
 
-def upload_video(youtube, video_path, title, description, category, privacy, channel_id=None):
-    """Upload video to YouTube."""
+def _validate_tags(tags):
+    """Validate and truncate tags to fit YouTube's 500-character limit.
+
+    Args:
+        tags: List of tag strings.
+
+    Returns:
+        A new list of tags that fit within 500 total characters.
+    """
+    if not tags:
+        return []
+
+    validated = []
+    total_chars = 0
+    for tag in tags:
+        tag_stripped = tag.strip()
+        if not tag_stripped:
+            continue
+        # Each tag contributes its length; commas between tags add 1 char each
+        separator_cost = 1 if validated else 0
+        if total_chars + separator_cost + len(tag_stripped) > 500:
+            break
+        total_chars += separator_cost + len(tag_stripped)
+        validated.append(tag_stripped)
+
+    return validated
+
+
+def upload_video(youtube, video_path, title, description, category, privacy, channel_id=None, tags=None):
+    """Upload video to YouTube.
+
+    Args:
+        youtube: Authenticated YouTube API service.
+        video_path: Path to the video file.
+        title: Video title (max 100 characters, truncated if longer).
+        description: Video description.
+        category: YouTube category ID.
+        privacy: Privacy status (public, unlisted, private).
+        channel_id: Optional channel ID to upload to.
+        tags: Optional list of tag strings (max 500 chars total, truncated if needed).
+    """
     # YouTube title limit is 100 characters
     if len(title) > 100:
         print(f"  ⚠️  Title too long ({len(title)} chars), truncating to 100...")
@@ -120,6 +159,14 @@ def upload_video(youtube, video_path, title, description, category, privacy, cha
             'privacyStatus': privacy
         }
     }
+
+    # Add tags if provided (YouTube supports up to 500 characters total)
+    if tags:
+        validated_tags = _validate_tags(tags)
+        if validated_tags:
+            body['snippet']['tags'] = validated_tags
+            if len(validated_tags) < len(tags):
+                print(f"  ⚠️  Tags truncated from {len(tags)} to {len(validated_tags)} to fit 500-char limit")
 
     # If channel_id provided, set it (though mine=True should handle this)
     if channel_id:
@@ -162,6 +209,8 @@ def main():
     parser.add_argument('--privacy', type=str, default='private',
                        choices=['public', 'private', 'unlisted'],
                        help='Privacy status')
+    parser.add_argument('--tags', type=str, default='',
+                       help='Comma-separated list of tags')
 
     args = parser.parse_args()
 
@@ -184,6 +233,9 @@ def main():
             channel_id = get_channel_id_by_handle(youtube, args.channel)
             print(f"Uploading to channel: {args.channel} (ID: {channel_id})")
 
+        # Parse comma-separated tags into list
+        tags = [t.strip() for t in args.tags.split(',') if t.strip()] if args.tags else None
+
         video_id = upload_video(
             youtube,
             args.video,
@@ -191,7 +243,8 @@ def main():
             args.description,
             args.category,
             args.privacy,
-            channel_id
+            channel_id,
+            tags
         )
         print(f"✅ Video uploaded: https://youtube.com/watch?v={video_id}")
 

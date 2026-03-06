@@ -27,7 +27,7 @@
     "notify_on_pending_changes": true
   },
   "optimization": {
-    "enabled": false,
+    "enabled": true,
     "auto_apply_high_confidence": true,
     "confidence_threshold": 0.8,
     "max_changes_per_week": 2

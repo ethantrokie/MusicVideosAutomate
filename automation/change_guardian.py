@@ -34,10 +34,12 @@ class ChangeGuardian:
             if forbidden.lower() in change_type.lower():
                 return "REJECTED", f"Forbidden change type: {forbidden}"
 
-        # Check if allowed
+        # Check if allowed - match if ANY keyword from allowed list appears in change description
         allowed = False
+        change_lower = change_type.lower()
         for allowed_pattern in self.guardrails["allowed_changes"]:
-            if allowed_pattern.split("(")[0].strip().lower() in change_type.lower():
+            keywords = allowed_pattern.lower().split()
+            if any(keyword in change_lower for keyword in keywords):
                 allowed = True
                 break
 

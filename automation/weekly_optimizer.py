@@ -106,7 +106,7 @@ def get_video_analytics(analytics, video_ids):
         ids='channel==MINE',
         startDate=start_date.isoformat(),
         endDate=end_date.isoformat(),
-        metrics='views,estimatedMinutesWatched,likes,comments,shares,averageViewPercentage',
+        metrics='views,estimatedMinutesWatched,likes,comments,shares,averageViewPercentage,subscribersGained,subscribersLost',
         dimensions='video',
         filters=f'video=={video_ids_str}'
     )
@@ -122,10 +122,64 @@ def get_video_analytics(analytics, video_ids):
             'likes': int(row[3]),
             'comments': int(row[4]),
             'shares': int(row[5]),
-            'avg_retention': float(row[6])
+            'avg_retention': float(row[6]),
+            'subscribers_gained': int(row[7]),
+            'subscribers_lost': int(row[8])
         }
 
     return metrics
+
+
+def save_analytics_history(metrics_data, report_date):
+    """Persist weekly analytics data for historical trend analysis."""
+    history_path = Path("automation/state/analytics_history.json")
+
+    if history_path.exists():
+        with open(history_path) as f:
+            history = json.load(f)
+    else:
+        history = {"weeks": []}
+
+    total_views = sum(m.get('views', 0) for m in metrics_data.values())
+    total_engagement = sum(
+        m.get('likes', 0) + m.get('comments', 0) + m.get('shares', 0)
+        for m in metrics_data.values()
+    )
+    total_subs_gained = sum(m.get('subscribers_gained', 0) for m in metrics_data.values())
+    total_subs_lost = sum(m.get('subscribers_lost', 0) for m in metrics_data.values())
+    avg_retention = (
+        sum(m.get('avg_retention', 0) for m in metrics_data.values()) / len(metrics_data)
+        if metrics_data else 0
+    )
+    engagement_rate = (total_engagement / total_views * 100) if total_views > 0 else 0
+
+    week_entry = {
+        "date": report_date,
+        "videos_analyzed": len(metrics_data),
+        "total_views": total_views,
+        "total_engagement": total_engagement,
+        "engagement_rate": round(engagement_rate, 2),
+        "avg_retention": round(avg_retention, 2),
+        "subscribers_gained": total_subs_gained,
+        "subscribers_lost": total_subs_lost,
+        "net_subscribers": total_subs_gained - total_subs_lost,
+        "per_video_metrics": {
+            vid: {
+                "title": data.get("title", ""),
+                "views": data.get("views", 0),
+                "avg_retention": data.get("avg_retention", 0),
+                "engagement": data.get("likes", 0) + data.get("comments", 0) + data.get("shares", 0)
+            }
+            for vid, data in metrics_data.items()
+        }
+    }
+
+    history["weeks"].append(week_entry)
+
+    with open(history_path, 'w') as f:
+        json.dump(history, f, indent=2)
+
+    return week_entry
 
 
 def load_config():
@@ -157,12 +211,19 @@ RULES:
    - Duration: 15-120 seconds
    - Media items: 5-30
    - Tone: Any educational style (no profanity)
-3. Output JSON ONLY with this exact schema:
+3. The "change" field MUST be one of these exact standardized strings:
+   - "video_duration" for duration changes
+   - "max_media_items" for max media item changes
+   - "min_media_items" for min media item changes
+   - "tone" for tone changes
+   - "posting_time" for scheduling changes
+   Do NOT use free-form descriptions. Use ONLY the strings listed above.
+4. Output JSON ONLY with this exact schema:
 {{
   "insights": ["insight 1", "insight 2"],
   "recommendations": [
     {{
-      "change": "description of what to change",
+      "change": "video_duration|max_media_items|min_media_items|tone|posting_time",
       "current_value": current_value,
       "proposed_value": proposed_value,
       "rationale": "why this change",
@@ -401,6 +462,13 @@ def main():
 
     # Update optimization state
     save_optimization_state(changes_applied, analysis)
+
+    # Save analytics history for trend analysis
+    report_date = datetime.now().strftime('%Y-%m-%d')
+    print("Saving analytics history...")
+    week_summary = save_analytics_history(metrics_data, report_date)
+    print(f"  Engagement rate: {week_summary['engagement_rate']}%")
+    print(f"  Net subscribers: {week_summary['net_subscribers']:+d}")
 
     # Generate report
     print("Generating report...")

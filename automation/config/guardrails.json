@@ -7,10 +7,15 @@
     "tone_description_max_length": 200
   },
   "allowed_changes": [
-    "tone adjustments",
-    "duration tweaks",
-    "media variety",
-    "posting time"
+    "tone",
+    "duration",
+    "media",
+    "posting time",
+    "title",
+    "description",
+    "tags",
+    "video_duration",
+    "media_items"
   ],
   "forbidden_changes": [
     "API keys",

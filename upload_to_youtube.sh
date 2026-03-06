@@ -4,7 +4,7 @@
 set -e
 
 # Default values
-PRIVACY="unlisted"
+PRIVACY="public"
 RUN_DIR=""
 CHANNEL=""
 VIDEO_TYPE="full"  # full, short_hook, short_educational, short_intro
@@ -33,7 +33,7 @@ while [[ $# -gt 0 ]]; do
             echo ""
             echo "Options:"
             echo "  --run=TIMESTAMP        Upload specific run"
-            echo "  --privacy=STATUS       Privacy: public, unlisted, private (default: unlisted)"
+            echo "  --privacy=STATUS       Privacy: public, unlisted, private (default: public)"
             echo "  --channel=HANDLE       Channel handle (e.g., @LearningScienceMusic)"
             echo "  --help                 Show this help"
             exit 0
@@ -70,6 +70,49 @@ generate_hashtags() {
     fi
 }
 
+# Function to generate an optimized curiosity-gap title via agents/title_optimizer.py
+generate_optimized_title() {
+    local topic=$1
+    local fallback="${topic} (Music Video)"
+
+    # Try the title optimizer agent; fall back to the simple format on failure
+    if [ -f "agents/title_optimizer.py" ]; then
+        local optimized
+        optimized=$(python3 agents/title_optimizer.py "$topic" 2>/dev/null)
+        if [ $? -eq 0 ] && [ -n "$optimized" ]; then
+            echo "$optimized"
+            return
+        fi
+    fi
+
+    echo "$fallback"
+}
+
+# Function to generate comma-separated tags from the topic
+generate_tags() {
+    local topic=$1
+    local channel_name="Learning Science Music"
+
+    # Start with base tags
+    local tag_list="science,education,music,explained,how it works,${channel_name}"
+
+    # Split topic into individual keywords (words 3+ chars, lowercased, no dupes with base)
+    local keywords
+    keywords=$(echo "$topic" | tr '[:upper:]' '[:lower:]' | grep -oE '\b[a-z]{3,}\b' | head -8)
+
+    for word in $keywords; do
+        # Skip words already covered by base tags or common stop words
+        if [[ ! "$word" =~ ^(the|and|for|with|from|into|that|this|have|will|your|their|about|through|music|science|education|explained)$ ]]; then
+            tag_list="${tag_list},${word}"
+        fi
+    done
+
+    # Add the full topic as a tag (if it fits)
+    tag_list="${tag_list},${topic}"
+
+    echo "$tag_list"
+}
+
 # Function to generate metadata based on video type
 generate_metadata() {
     local video_type=$1
@@ -78,9 +121,12 @@ generate_metadata() {
     # Generate hashtags
     local hashtags=$(generate_hashtags "$topic" "$video_type")
 
+    # Generate tags for YouTube API
+    TAGS=$(generate_tags "$topic")
+
     case $video_type in
         full)
-            TITLE="${topic} (Music Video)"
+            TITLE=$(generate_optimized_title "$topic")
             DESCRIPTION="Learn about ${topic} through music! Full version.
 
 Watch the Shorts versions:
@@ -91,7 +137,7 @@ ${hashtags}"
             VIDEO_FILE="full.mp4"
             ;;
         short_hook)
-            TITLE="${topic} (Music Video)"
+            TITLE=$(generate_optimized_title "$topic")
             DESCRIPTION="${topic}
 
 Watch the full version: [PLACEHOLDER_FULL]
@@ -100,7 +146,7 @@ ${hashtags}"
             VIDEO_FILE="short_hook.mp4"
             ;;
         short_educational)
-            TITLE="${topic} (Music Video)"
+            TITLE=$(generate_optimized_title "$topic")
             DESCRIPTION="${topic} - Key concept explained!
 
 Watch the full version: [PLACEHOLDER_FULL]
@@ -109,7 +155,7 @@ ${hashtags}"
             VIDEO_FILE="short_educational.mp4"
             ;;
         short_intro)
-            TITLE="${topic} (Music Video)"
+            TITLE=$(generate_optimized_title "$topic")
             DESCRIPTION="${topic} - First minute preview!
 
 Watch the full version: [PLACEHOLDER_FULL]
@@ -166,12 +212,13 @@ echo "  Type: $VIDEO_TYPE"
 echo "  Video: $VIDEO_PATH"
 echo "  Title: $TITLE"
 echo "  Privacy: $PRIVACY"
+echo "  Tags: $TAGS"
 if [ -n "$CHANNEL" ]; then
     echo "  Channel: $CHANNEL"
 fi
 
 # Upload using Python helper
-UPLOAD_CMD="./automation/youtube_channel_helper.py --video \"$VIDEO_PATH\" --title \"$TITLE\" --description \"$DESCRIPTION\" --privacy \"$PRIVACY\""
+UPLOAD_CMD="./automation/youtube_channel_helper.py --video \"$VIDEO_PATH\" --title \"$TITLE\" --description \"$DESCRIPTION\" --privacy \"$PRIVACY\" --tags \"$TAGS\""
 
 if [ -n "$CHANNEL" ]; then
     UPLOAD_CMD="$UPLOAD_CMD --channel \"$CHANNEL\""

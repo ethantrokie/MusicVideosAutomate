@@ -21,7 +21,7 @@
     "min_media_items": 12
   },
   "youtube": {
-    "default_privacy": "unlisted",
+    "default_privacy": "public",
     "default_category": "Education",
     "credentials_path": "config/youtube_credentials.json"
   },

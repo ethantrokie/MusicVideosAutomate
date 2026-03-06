@@ -303,13 +303,26 @@ EXAMPLE DIVERSE TOPICS:
 
 CRITICAL OUTPUT FORMAT - Output EXACTLY these two lines with no other text:
 Topic: [specific educational science concept]
-Tone: upbeat pop rock with catchy hooks, bright guitars, steady driving beat, and enthusiastic educational energy
+Tone: [musical tone matched to the topic - see guidelines below]
 
-EXAMPLE OUTPUT:
-Topic: How DNA replication works in cells
-Tone: upbeat pop rock with catchy hooks, bright guitars, steady driving beat, and enthusiastic educational energy
+TONE GUIDELINES - Match the musical tone to the topic category:
+- Manufacturing/forging/industrial: heavy industrial rock with metallic percussion, driving bass, and powerful energy
+- Biology/nature/ecology: organic flowing pop with ambient textures, melodic hooks, and warm educational energy
+- Physics/optics/waves: electronic synth-pop with precise beats, crystalline melodies, and futuristic energy
+- Everyday objects/consumer products: upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy
+- Computer science/algorithms: lo-fi electronic with digital glitch textures, steady beats, and curious energy
+- Chemistry/materials science: dynamic progressive rock with building intensity, layered sounds, and discovery energy
+- Earth science/geology: epic orchestral rock with sweeping melodies, thundering drums, and awe-inspiring energy
+- Engineering/mechanical systems: driving rock with mechanical rhythms, powerful guitars, and energetic momentum
 
-CRITICAL: This is scenario 1 - an automated system. DO NOT brainstorm. DO NOT ask questions. DO NOT offer choices. DO NOT use markdown formatting. ALWAYS use the exact tone specified above. Just output the two lines directly.
+EXAMPLE OUTPUTS:
+Topic: How injection molding creates plastic parts through high-pressure manufacturing
+Tone: heavy industrial rock with metallic percussion, driving bass, and powerful energy
+
+Topic: How photosynthesis converts sunlight into chemical energy in plant cells
+Tone: organic flowing pop with ambient textures, melodic hooks, and warm educational energy
+
+CRITICAL: This is scenario 1 - an automated system. DO NOT brainstorm. DO NOT ask questions. DO NOT offer choices. DO NOT use markdown formatting. Choose a tone that MATCHES the topic category from the guidelines above. Just output the two lines directly.
 Generate ONE topic now:"""
 
     result = subprocess.run(
@@ -400,13 +413,16 @@ def main():
     total = category_analysis['total']
     eng_mfg_pct = (total_eng_mfg / total * 100) if total > 0 else 0
 
-    # Preference for engineering/manufacturing if they're under-represented (target ~30%)
-    if eng_mfg_pct < 30:  # Less than 30% of recent videos
+    # Preference for engineering/manufacturing — target ~70% (strongest performing category)
+    if eng_mfg_pct < 70:
         category_guidance = f"""CATEGORY BALANCE PREFERENCE:
 Engineering and manufacturing topics are currently at {eng_mfg_pct:.1f}% of recent videos.
-PREFER engineering or manufacturing topics to improve variety.
-Consider: "How it's made" production processes, engineering mechanisms, industrial systems.
-Balance with: physics, biology, computer science, chemistry topics to maintain scientific diversity.
+TARGET: 70% engineering/manufacturing, 30% everyday science.
+STRONGLY PREFER engineering or manufacturing topics — these are the channel's best performers
+(laser cutters: 84% retention, tempered glass: 2,455 views, ball bearings: 62% retention).
+Consider: "How it's made" production processes, engineering mechanisms, industrial systems, materials science.
+The remaining 30% should be everyday science topics with broad appeal and search volume.
+AVOID abstract quantum physics and highly specialized biology — stock footage cannot visualize these well.
 """
 
     # Add diversity requirements if categories are over-represented
@@ -445,8 +461,8 @@ AVOID quantum mechanics topics unless it's been 7+ videos since the last quantum
         output = generate_topic_via_claude(config, recent_topics, trends_text, category_guidance)
         topic, tone = parse_topic_output(output)
 
-        # Check 1: Exact duplicate against ALL history
-        is_similar, similar_topic, similarity = check_topic_similarity(topic, all_topics, threshold=0.2)
+        # Check 1: Duplicate/near-duplicate against ALL history (stricter threshold)
+        is_similar, similar_topic, similarity = check_topic_similarity(topic, all_topics, threshold=0.3)
 
         if is_similar and similarity == 1.0:
             # Exact duplicate found

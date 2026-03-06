@@ -1,20 +1,20 @@
 {
-  "timestamp": "2026-03-06T09:00:26.542722",
+  "timestamp": "2026-03-06T15:03:49.057035",
   "cache_hours": 6,
   "trends": {
     "top": [
       "what is physics",
-      "what is biology",
       "biology definition",
       "mechanical engineering",
-      "computer engineering"
+      "computer engineering",
+      "computer science engineering"
     ],
     "rising": [
       "what is a social engineering attack",
+      "engineering guide tbc",
       "best colleges for computer science",
-      "tbc engineering guide",
-      "the truth physics can no longer ignore",
-      "what is prompt engineering"
+      "what is prompt engineering",
+      "the truth physics can no longer ignore"
     ]
   }
 }

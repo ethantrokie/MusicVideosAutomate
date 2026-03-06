@@ -63,12 +63,16 @@ Deliver one of these:
 This section should make viewers want to tell someone else what they just learned.
 
 ### 5. THE PAYOFF (Final Chorus/Outro - ~15-20 seconds)
-**PURPOSE**: Satisfying conclusion that validates their time spent watching.
+**PURPOSE**: Satisfying conclusion that validates their time spent watching + drives engagement.
 
 - Tie back to the hook: "So next time you hear X, you'll know..."
 - Give them a "Now I understand" moment
 - End with something they can use or think about: "Now YOU know the secret..."
 - The listener should feel SMARTER than they did 60 seconds ago
+- **ENGAGEMENT CTA (REQUIRED)**: The very last line or two MUST include a call-to-action that prompts comments. Work it naturally into the lyrics:
+  - "Tell me what to break down next..." / "Drop a comment, what's the topic..." / "What should we explain tomorrow..."
+  - Make it feel like part of the song, not a tacked-on ask
+  - This is critical: the channel's engagement rate is 1.47% vs 5.9% industry benchmark
 
 ---
 
