@@ -5,6 +5,7 @@ Extends StockPhotoResolver with search capabilities to find real videos.
 """
 
 import re
+import time
 import requests
 from typing import List, Dict, Optional
 from stock_photo_api import StockPhotoResolver
@@ -43,6 +44,32 @@ class MediaSearcher(StockPhotoResolver):
         else:
             return []
 
+    # Transient HTTP errors worth retrying
+    TRANSIENT_ERRORS = {408, 429, 500, 502, 503, 504, 520, 521, 522, 523, 524, 525, 526}
+    MAX_RETRIES = 3
+
+    def _api_request_with_retry(self, url: str, headers: dict = None, params: dict = None) -> requests.Response:
+        """Make an API GET request with exponential backoff retry on transient errors."""
+        for attempt in range(self.MAX_RETRIES):
+            try:
+                response = requests.get(url, headers=headers, params=params, timeout=15)
+                if response.status_code == 200:
+                    return response
+                if response.status_code in self.TRANSIENT_ERRORS and attempt < self.MAX_RETRIES - 1:
+                    wait_time = (2 ** attempt) * 2
+                    print(f"  ⚠️  API returned {response.status_code}, retrying in {wait_time}s (attempt {attempt + 1}/{self.MAX_RETRIES})...")
+                    time.sleep(wait_time)
+                    continue
+                return response
+            except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as e:
+                if attempt < self.MAX_RETRIES - 1:
+                    wait_time = (2 ** attempt) * 2
+                    print(f"  ⚠️  Request failed ({type(e).__name__}), retrying in {wait_time}s (attempt {attempt + 1}/{self.MAX_RETRIES})...")
+                    time.sleep(wait_time)
+                    continue
+                raise
+        return response
+
     def _search_pexels_videos(
         self,
         query: str,
@@ -63,7 +90,7 @@ class MediaSearcher(StockPhotoResolver):
                 'orientation': 'landscape'  # Prefer landscape for educational videos
             }
 
-            response = requests.get(url, headers=headers, params=params, timeout=10)
+            response = self._api_request_with_retry(url, headers=headers, params=params)
 
             if response.status_code == 200:
                 data = response.json()
@@ -121,7 +148,7 @@ class MediaSearcher(StockPhotoResolver):
                 'video_type': 'all'
             }
 
-            response = requests.get(url, params=params, timeout=10)
+            response = self._api_request_with_retry(url, params=params)
 
             if response.status_code == 200:
                 data = response.json()
@@ -179,7 +206,7 @@ class MediaSearcher(StockPhotoResolver):
                 'rating': 'g'  # Family-friendly content
             }
 
-            response = requests.get(url, params=params, timeout=10)
+            response = self._api_request_with_retry(url, params=params)
 
             if response.status_code == 200:
                 data = response.json()

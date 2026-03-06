@@ -82,6 +82,11 @@ fi
 
 source venv/bin/activate
 
+# Pre-flight: Check API credit balances
+echo -e "${BLUE}🔍 Pre-flight: Checking API credits...${NC}"
+./venv/bin/python3 automation/credit_monitor.py
+echo ""
+
 # Determine run directory
 if [ -n "$RESUME_DIR" ]; then
     # Resuming from existing run
@@ -262,7 +267,7 @@ if [ $START_STAGE -le 4 ]; then
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 
     echo "🎬 Generating AI video clips with lip-sync..."
-    if python3 agents/generate_ai_clips.py; then
+    if ./venv/bin/python3 agents/generate_ai_clips.py; then
         echo "✅ AI clip generation complete"
     else
         echo -e "${YELLOW}⚠️  AI clip generation failed or skipped, will use stock footage only${NC}"
@@ -301,6 +306,26 @@ except:
         echo -e "${RED}❌ Media curation failed${NC}"
         exit 1
     fi
+
+    # Check if any media was actually downloaded
+    DOWNLOADED_COUNT=$(./venv/bin/python3 -c "
+import json, os
+manifest_path = os.path.join(os.getenv('OUTPUT_DIR', 'outputs/current'), 'media_manifest.json')
+try:
+    with open(manifest_path) as f:
+        manifest = json.load(f)
+    count = len(manifest.get('downloaded', []))
+    print(count)
+except:
+    print(0)
+")
+    if [ "$DOWNLOADED_COUNT" -eq 0 ]; then
+        echo -e "${RED}❌ FATAL: No media clips were downloaded. Cannot proceed with 0 clips.${NC}"
+        echo -e "${RED}   Check API keys and connectivity for Pexels/Pixabay/Giphy.${NC}"
+        log_error "Pipeline stopped: 0 media clips downloaded after curation"
+        exit 1
+    fi
+    echo "📥 Downloaded: ${DOWNLOADED_COUNT} clips"
     echo ""
 
     # Stage 4.5: Media Approval (unless express mode)

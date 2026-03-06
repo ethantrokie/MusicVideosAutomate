@@ -2,6 +2,7 @@
 """Environment prompt generation for AI video clips."""
 
 import subprocess
+from pathlib import Path
 from typing import Dict, List
 
 
@@ -126,18 +127,36 @@ def detect_voice_gender(suno_data: Dict) -> str:
         return "male"  # Default
 
 
-def get_performer_image_url(gender: str) -> str:
+def get_performer_image_path(gender: str, config: dict = None) -> str:
     """
-    Get a stock performer image URL for video generation.
+    Get performer image path or URL for video generation.
+    Checks for local images in assets/performers/ first, then falls back to URLs.
 
     Args:
         gender: "male" or "female"
+        config: Optional config dict with ai_clips.performer_images
 
     Returns:
-        URL to performer reference image
+        Local path or URL to performer reference image
     """
-    # Stock images for performer reference
-    if gender == "female":
-        return "https://images.pexels.com/photos/3771089/pexels-photo-3771089.jpeg"
-    else:
-        return "https://images.pexels.com/photos/2531728/pexels-photo-2531728.jpeg"
+    # Check for local performer images first
+    local_paths = {
+        "male": Path("assets/performers/male.png"),
+        "female": Path("assets/performers/female.png")
+    }
+
+    if gender in local_paths and local_paths[gender].exists():
+        return str(local_paths[gender].absolute())
+
+    # Check config for custom performer images (URLs)
+    if config:
+        performer_images = config.get("ai_clips", {}).get("performer_images", {})
+        if gender in performer_images:
+            return performer_images[gender]
+
+    # Default stock images (URLs)
+    defaults = {
+        "male": "https://images.pexels.com/photos/1681010/pexels-photo-1681010.jpeg",
+        "female": "https://images.pexels.com/photos/3771089/pexels-photo-3771089.jpeg"
+    }
+    return defaults.get(gender, defaults["male"])

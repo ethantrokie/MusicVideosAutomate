@@ -24,14 +24,22 @@ CLIP_COVERAGE_BUFFER_SECONDS = 15
 FormatType = Literal["full", "hook", "educational", "intro"]
 
 
-def integrate_ai_clips(shots: List[Dict], output_dir: str) -> List[Dict]:
+def integrate_ai_clips(shots: List[Dict], output_dir: str,
+                       segment_start: float = 0.0,
+                       segment_end: float = None) -> List[Dict]:
     """
     Integrate AI-generated clips into the shot list at their designated times.
     AI clips take priority over stock footage at their placement times.
 
+    For shorts (hook, educational), only AI clips that overlap the segment's
+    absolute time range are included, and their times are converted to
+    segment-relative (0-based) coordinates matching the stock shots.
+
     Args:
         shots: Existing shot list from stock footage
         output_dir: Output directory path
+        segment_start: Absolute start time of the segment (0.0 for full video)
+        segment_end: Absolute end time of the segment (None = no filtering)
 
     Returns:
         Modified shot list with AI clips integrated
@@ -57,11 +65,35 @@ def integrate_ai_clips(shots: List[Dict], output_dir: str) -> List[Dict]:
     if not ai_clips:
         return shots
 
+    # Filter AI clips to segment time range (if segment bounds provided)
+    if segment_end is not None:
+        ai_clips = [
+            clip for clip in ai_clips
+            if clip["start_time"] < segment_end and clip["end_time"] > segment_start
+        ]
+
+    if not ai_clips:
+        return shots
+
     print(f"  📎 Integrating {len(ai_clips)} AI clips into media plan")
 
-    # Create AI clip shots
+    # Create AI clip shots with segment-relative timing
     ai_shots = []
     for clip in ai_clips:
+        # Convert absolute times to segment-relative
+        rel_start = clip["start_time"] - segment_start
+        rel_end = clip["end_time"] - segment_start
+
+        # Clamp to segment boundaries (in relative coords: 0 to segment_duration)
+        if segment_end is not None:
+            segment_duration = segment_end - segment_start
+            rel_start = max(0.0, rel_start)
+            rel_end = min(segment_duration, rel_end)
+
+        duration = rel_end - rel_start
+        if duration < 0.5:
+            continue  # Skip if overlap is too small
+
         ai_shot = {
             "shot_number": 0,  # Will be renumbered
             "local_path": str(Path(output_dir) / "ai_clips" / clip["file"]),
@@ -69,9 +101,9 @@ def integrate_ai_clips(shots: List[Dict], output_dir: str) -> List[Dict]:
             "source": "ai_generated",
             "description": clip.get("environment_prompt", "AI generated clip"),
             "lyrics_match": clip.get("lyrics_excerpt", ""),
-            "start_time": clip["start_time"],
-            "end_time": clip["end_time"],
-            "duration": clip["end_time"] - clip["start_time"],
+            "start_time": rel_start,
+            "end_time": rel_end,
+            "duration": duration,
             "absolute_start": clip["start_time"],
             "absolute_end": clip["end_time"],
             "priority": "high",
@@ -79,28 +111,54 @@ def integrate_ai_clips(shots: List[Dict], output_dir: str) -> List[Dict]:
         }
         ai_shots.append(ai_shot)
 
-    # Remove stock shots that overlap with AI clip times
+    if not ai_shots:
+        return shots
+
+    # Split stock shots around AI clip times, preserving non-overlapping portions
+    # Use segment-relative times since stock shots are already relative
+    ai_intervals = sorted(
+        [(s["start_time"], s["end_time"]) for s in ai_shots],
+        key=lambda x: x[0]
+    )
+
     filtered_shots = []
     for shot in shots:
-        shot_start = shot.get("absolute_start", shot.get("start_time", 0))
-        shot_end = shot.get("absolute_end", shot.get("end_time", shot_start + shot.get("duration", 3)))
+        shot_start = shot.get("start_time", 0)
+        shot_end = shot.get("end_time", shot_start + shot.get("duration", 3))
 
-        # Check if this shot overlaps with any AI clip
-        overlaps = False
-        for ai_shot in ai_shots:
-            ai_start = ai_shot["start_time"]
-            ai_end = ai_shot["end_time"]
+        # Carve out AI intervals from this shot's time range
+        remaining = [(shot_start, shot_end)]
+        for ai_start, ai_end in ai_intervals:
+            new_remaining = []
+            for seg_start, seg_end in remaining:
+                if seg_end <= ai_start or seg_start >= ai_end:
+                    # No overlap — keep segment as-is
+                    new_remaining.append((seg_start, seg_end))
+                else:
+                    # Overlap — split around the AI clip
+                    if seg_start < ai_start:
+                        new_remaining.append((seg_start, ai_start))
+                    if seg_end > ai_end:
+                        new_remaining.append((ai_end, seg_end))
+            remaining = new_remaining
 
-            if shot_start < ai_end and shot_end > ai_start:
-                overlaps = True
-                break
+        # Create shots for remaining (non-overlapping) portions
+        for seg_start, seg_end in remaining:
+            seg_duration = seg_end - seg_start
+            if seg_duration < 0.5:
+                continue  # Skip tiny fragments
 
-        if not overlaps:
-            filtered_shots.append(shot)
+            split_shot = shot.copy()
+            split_shot["start_time"] = seg_start
+            split_shot["end_time"] = seg_end
+            split_shot["duration"] = seg_duration
+            split_shot["absolute_start"] = segment_start + seg_start
+            split_shot["absolute_end"] = segment_start + seg_end
+            filtered_shots.append(split_shot)
 
     # Combine and sort by start time
     all_shots = filtered_shots + ai_shots
-    all_shots.sort(key=lambda s: s.get("absolute_start", s.get("start_time", 0)))
+    all_shots.sort(key=lambda s: s.get("start_time", 0))
 
     # Renumber shots
     for i, shot in enumerate(all_shots, 1):
@@ -837,10 +895,19 @@ def build_format_plan(format_type: FormatType, target_duration: float,
         total_duration = current_duration
         print(f"    ✓ Created {len(shot_list)} sequential shots (duration: {total_duration:.1f}s)")
 
-    # Integrate AI clips if available (only for full and intro formats that use first 60s)
-    if format_type in ["full", "intro"]:
-        shot_list = integrate_ai_clips(shot_list, os.getenv("OUTPUT_DIR", "outputs"))
-        total_duration = sum(s.get("duration", 0) for s in shot_list)
+    # Integrate AI clips if available (all formats benefit from performer clips)
+    # Pass segment boundaries so AI clips are filtered and time-adjusted
+    seg_start = 0.0
+    seg_end = None
+    if segments is not None:
+        segment_info = segments.get(format_type, {})
+        seg_start = segment_info.get("start", 0.0)
+        seg_end = segment_info.get("end", None)
+    shot_list = integrate_ai_clips(
+        shot_list, os.getenv("OUTPUT_DIR", "outputs"),
+        segment_start=seg_start, segment_end=seg_end
+    )
+    total_duration = sum(s.get("duration", 0) for s in shot_list)
 
     # Create the media plan
     media_plan = {

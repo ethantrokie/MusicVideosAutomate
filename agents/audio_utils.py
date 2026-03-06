@@ -1,11 +1,23 @@
 #!/usr/bin/env python3
 """Audio utilities for AI clip generation."""
 
+import shutil
 import subprocess
 from pathlib import Path
 
 
-def slice_audio(song_path: str, start: float, duration: float, output_path: str) -> bool:
+def _find_binary(name: str) -> str:
+    """Find ffmpeg/ffprobe binary, checking common Homebrew paths as fallback."""
+    path = shutil.which(name)
+    if path:
+        return path
+    for candidate in [f"/opt/homebrew/bin/{name}", f"/usr/local/bin/{name}"]:
+        if Path(candidate).exists():
+            return candidate
+    return name  # Fall back to bare name, will raise FileNotFoundError if missing
+
+
+def slice_audio(song_path: str, start: float, duration: float, output_path: str, offset_ms: float = 0) -> bool:
     """
     Slice audio segment from song using ffmpeg.
 
@@ -14,6 +26,8 @@ def slice_audio(song_path: str, start: float, duration: float, output_path: str)
         start: Start time in seconds
         duration: Duration of slice in seconds
         output_path: Path to save sliced audio
+        offset_ms: Offset in milliseconds to compensate for lipsync latency.
+                   Positive values start the audio earlier (for models with lag).
 
     Returns:
         True if successful, False otherwise
@@ -22,11 +36,19 @@ def slice_audio(song_path: str, start: float, duration: float, output_path: str)
         print(f"    ⚠️ Source audio not found: {song_path}")
         return False
 
+    # Apply offset: positive offset means we start earlier in the song
+    # so the lipsync model's output aligns with the actual audio position
+    adjusted_start = max(0, start - (offset_ms / 1000.0))
+
+    if offset_ms != 0:
+        print(f"    📍 Lipsync offset: {offset_ms}ms (audio starts at {adjusted_start:.3f}s instead of {start:.3f}s)")
+
     try:
+        ffmpeg = _find_binary("ffmpeg")
         cmd = [
-            "ffmpeg", "-y",
+            ffmpeg, "-y",
             "-i", song_path,
-            "-ss", str(start),
+            "-ss", str(adjusted_start),
             "-t", str(duration),
             "-acodec", "libmp3lame",
             "-ar", "44100",
@@ -65,8 +87,9 @@ def get_audio_duration(audio_path: str) -> float:
         Duration in seconds, or 0.0 on error
     """
     try:
+        ffprobe = _find_binary("ffprobe")
         result = subprocess.run([
-            'ffprobe', '-v', 'error',
+            ffprobe, '-v', 'error',
             '-show_entries', 'format=duration',
             '-of', 'default=noprint_wrappers=1:nokey=1',
             audio_path

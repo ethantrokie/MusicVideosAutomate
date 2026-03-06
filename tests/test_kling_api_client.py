@@ -33,8 +33,8 @@ class TestKlingAPIClient:
         assert 429 in client.transient_errors
 
     @patch('kling_api_client.fal_client')
-    def test_generate_video_success(self, mock_fal):
-        """Test successful video generation."""
+    def test_generate_avatar_video_success(self, mock_fal):
+        """Test successful avatar video generation with lip-sync."""
         from kling_api_client import KlingAPIClient
 
         mock_fal.subscribe.return_value = {
@@ -42,36 +42,26 @@ class TestKlingAPIClient:
         }
 
         client = KlingAPIClient("test_key")
-        result = client.generate_video(
+        result = client.generate_avatar_video(
             image_url="https://example.com/image.png",
-            prompt="Test environment",
-            duration=8
+            audio_url="https://example.com/audio.mp3",
+            prompt="A singer performing expressively"
         )
 
         assert result["status"] == "success"
         assert result["video_url"] == "https://example.com/video.mp4"
-
-    @patch('kling_api_client.fal_client')
-    def test_apply_lipsync_success(self, mock_fal):
-        """Test successful lip-sync application."""
-        from kling_api_client import KlingAPIClient
-
-        mock_fal.subscribe.return_value = {
-            "video": {"url": "https://example.com/synced.mp4"}
-        }
-
-        client = KlingAPIClient("test_key")
-        result = client.apply_lipsync(
-            video_url="https://example.com/video.mp4",
-            audio_url="https://example.com/audio.mp3"
+        mock_fal.subscribe.assert_called_once_with(
+            "fal-ai/kling-video/ai-avatar/v2/pro",
+            arguments={
+                "image_url": "https://example.com/image.png",
+                "audio_url": "https://example.com/audio.mp3",
+                "prompt": "A singer performing expressively"
+            }
         )
 
-        assert result["status"] == "success"
-        assert result["video_url"] == "https://example.com/synced.mp4"
-
     @patch('kling_api_client.fal_client')
-    def test_apply_lipsync_failure_returns_original(self, mock_fal):
-        """Test lip-sync failure returns original video."""
+    def test_generate_avatar_video_failure_raises(self, mock_fal):
+        """Test avatar generation raises after retries exhausted."""
         from kling_api_client import KlingAPIClient
 
         mock_fal.subscribe.side_effect = Exception("API Error")
@@ -79,13 +69,11 @@ class TestKlingAPIClient:
         client = KlingAPIClient("test_key")
         client.max_retries = 1  # Speed up test
 
-        result = client.apply_lipsync(
-            video_url="https://example.com/video.mp4",
-            audio_url="https://example.com/audio.mp3"
-        )
-
-        assert result["status"] == "lipsync_failed"
-        assert result["video_url"] == "https://example.com/video.mp4"
+        with pytest.raises(Exception, match="Avatar video generation failed"):
+            client.generate_avatar_video(
+                image_url="https://example.com/image.png",
+                audio_url="https://example.com/audio.mp3"
+            )
 
 
 if __name__ == "__main__":

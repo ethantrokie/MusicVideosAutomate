@@ -572,6 +572,87 @@ def assemble_video(approved_data: dict, video_settings: dict, audio_path: str, a
     return output_path
 
 
+def integrate_ai_clips_into_plan(shots: List[Dict], ai_clips: List[Dict]) -> List[Dict]:
+    """
+    Integrate AI-generated performer clips into a synchronized shot list.
+    AI clips take priority at their designated times, carving out space
+    from stock footage shots.
+
+    Args:
+        shots: Synchronized shot list from semantic matching (stock footage only)
+        ai_clips: AI-generated clips with absolute_start/absolute_end times
+
+    Returns:
+        Combined shot list with AI clips at their designated positions
+    """
+    # Build AI clip time intervals
+    ai_intervals = sorted(
+        [(clip.get("absolute_start", clip.get("start_time", 0)),
+          clip.get("absolute_end", clip.get("end_time", 0)))
+         for clip in ai_clips],
+        key=lambda x: x[0]
+    )
+
+    # Carve out AI clip intervals from stock shots
+    filtered_shots = []
+    for shot in shots:
+        shot_start = shot.get("start_time", 0)
+        shot_end = shot.get("end_time", shot_start + shot.get("duration", 3))
+
+        remaining = [(shot_start, shot_end)]
+        for ai_start, ai_end in ai_intervals:
+            new_remaining = []
+            for seg_start, seg_end in remaining:
+                if seg_end <= ai_start or seg_start >= ai_end:
+                    new_remaining.append((seg_start, seg_end))
+                else:
+                    if seg_start < ai_start:
+                        new_remaining.append((seg_start, ai_start))
+                    if seg_end > ai_end:
+                        new_remaining.append((ai_end, seg_end))
+            remaining = new_remaining
+
+        for seg_start, seg_end in remaining:
+            seg_duration = seg_end - seg_start
+            if seg_duration < 0.5:
+                continue
+            split_shot = shot.copy()
+            split_shot["start_time"] = seg_start
+            split_shot["end_time"] = seg_end
+            split_shot["duration"] = seg_duration
+            filtered_shots.append(split_shot)
+
+    # Build AI clip shot entries
+    ai_shots = []
+    for clip in ai_clips:
+        ai_shot = {
+            "shot_number": 0,
+            "local_path": clip["local_path"],
+            "media_type": clip.get("media_type", "video"),
+            "source": "ai_generated",
+            "description": clip.get("description", "AI generated performer clip"),
+            "lyrics_match": clip.get("lyrics_match", ""),
+            "start_time": clip.get("absolute_start", clip.get("start_time", 0)),
+            "end_time": clip.get("absolute_end", clip.get("end_time", 0)),
+            "duration": clip.get("duration",
+                                 clip.get("absolute_end", clip.get("end_time", 0)) -
+                                 clip.get("absolute_start", clip.get("start_time", 0))),
+            "priority": "high",
+            "transition": "cut"
+        }
+        ai_shots.append(ai_shot)
+
+    # Combine and sort by start time
+    all_shots = filtered_shots + ai_shots
+    all_shots.sort(key=lambda s: s.get("start_time", 0))
+
+    # Renumber
+    for i, shot in enumerate(all_shots, 1):
+        shot["shot_number"] = i
+
+    return all_shots
+
+
 def main():
     """Main execution."""
     logging.basicConfig(level=logging.INFO, format='%(message)s')
@@ -653,7 +734,22 @@ def main():
                         print(f"✅ Created {len(phrase_groups)} semantic phrase groups")
                         print("\n🎯 Matching videos to phrase groups...")
 
-                        # Get available media from approved list
+                        # Separate AI-generated clips from stock clips
+                        # AI clips have pre-determined time placements and must not
+                        # be re-matched by the semantic matcher
+                        ai_clips = [
+                            shot for shot in approved_data["shot_list"]
+                            if shot.get("source") == "ai_generated" and "local_path" in shot
+                        ]
+                        stock_shots = [
+                            shot for shot in approved_data["shot_list"]
+                            if shot.get("source") != "ai_generated" and "local_path" in shot
+                        ]
+
+                        if ai_clips:
+                            print(f"  🎤 Preserving {len(ai_clips)} AI performer clips at designated times")
+
+                        # Get available media from stock clips only
                         available_media = [
                             {
                                 "url": shot.get("media_url", ""),
@@ -661,13 +757,20 @@ def main():
                                 "local_path": shot.get("local_path"),
                                 "media_type": shot.get("media_type", "video")
                             }
-                            for shot in approved_data["shot_list"]
-                            if "local_path" in shot
+                            for shot in stock_shots
                         ]
 
                         synchronized_plan = create_synchronized_plan(
                             phrase_groups, available_media, sync_config, target_audio_duration=args.audio_duration
                         )
+
+                        # Re-integrate AI clips into the synchronized plan
+                        if ai_clips:
+                            synchronized_plan["shot_list"] = integrate_ai_clips_into_plan(
+                                synchronized_plan["shot_list"], ai_clips
+                            )
+                            synchronized_plan["total_shots"] = len(synchronized_plan["shot_list"])
+                            print(f"  ✅ Integrated {len(ai_clips)} AI clips into synchronized plan")
 
                         print(f"✅ Matched {len(synchronized_plan['shot_list'])} synchronized shots")
                         print("\n🎬 Assembling synchronized video...")

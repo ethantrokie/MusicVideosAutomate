@@ -4,9 +4,8 @@ Kling AI API client for video generation and lip-sync.
 Uses fal.ai as the API provider for pay-as-you-go pricing.
 
 Pricing:
-- Video generation: ~$0.14/second (Kling 2.1 Pro)
-- Lip-sync: ~$0.04/second (Sync Lipsync v2)
-- Total for 5s clip with lip-sync: ~$0.90
+- Avatar v2 Pro (image+audio to lip-synced video): ~$0.115/second
+- Total for 5s clip: ~$0.575
 """
 
 import os
@@ -20,6 +19,8 @@ import fal_client
 class KlingAPIClient:
     """Client for Kling AI video generation via fal.ai."""
 
+    BALANCE_EXHAUSTED_KEYWORDS = ["exhausted balance", "user is locked", "insufficient"]
+
     def __init__(self, api_key: str):
         """
         Initialize client with fal.ai API key.
@@ -29,90 +30,75 @@ class KlingAPIClient:
         """
         self.api_key = api_key
         os.environ["FAL_KEY"] = api_key
+        self.balance_exhausted = False
 
         # Transient errors for retry logic (matches SunoAPIClient pattern)
         self.transient_errors = {502, 503, 504, 429, 408, 520, 521, 522, 523, 524, 525, 526}
         self.max_retries = 5
 
-    def generate_video(
+    def _is_balance_error(self, error_msg: str) -> bool:
+        """Check if an error message indicates exhausted balance."""
+        error_lower = error_msg.lower()
+        return any(kw in error_lower for kw in self.BALANCE_EXHAUSTED_KEYWORDS)
+
+    def check_balance(self) -> dict:
+        """
+        Check fal.ai account balance using the usage API.
+        Returns dict with 'ok' bool and 'message' string.
+        Since fal.ai has no direct balance endpoint, this makes a lightweight
+        usage query to verify the account isn't locked.
+        """
+        try:
+            response = requests.get(
+                "https://api.fal.ai/v1/models/usage",
+                headers={"Authorization": f"Key {self.api_key}"},
+                params={"limit": 1},
+                timeout=10
+            )
+            if response.status_code == 200:
+                return {"ok": True, "message": "fal.ai account accessible"}
+            elif response.status_code == 401:
+                return {"ok": False, "message": "fal.ai API key invalid or account locked"}
+            elif response.status_code == 403:
+                # 403 from usage API just means the key lacks Admin scope -
+                # regular API keys can still generate videos fine
+                return {"ok": True, "message": "fal.ai usage API requires admin key (non-fatal), proceeding"}
+            else:
+                # Non-fatal - can't determine balance, proceed cautiously
+                return {"ok": True, "message": f"fal.ai usage check returned {response.status_code}, proceeding"}
+        except Exception as e:
+            # Non-fatal - can't reach API, proceed cautiously
+            return {"ok": True, "message": f"fal.ai usage check failed ({e}), proceeding"}
+
+    def generate_avatar_video(
         self,
         image_url: str,
-        prompt: str,
-        duration: int = 5,
-        aspect_ratio: str = "16:9"
+        audio_url: str,
+        prompt: str = "."
     ) -> Dict:
         """
-        Generate video from image using Kling 2.1 Pro.
+        Generate lip-synced video from image + audio using Kling Avatar v2 Pro.
+        Single-step: takes a performer image and audio, outputs video with
+        proper lip-sync generated from scratch.
 
         Args:
-            image_url: URL of reference image (performer)
-            prompt: Environment/scene description
-            duration: Video duration in seconds (5 or 10)
-            aspect_ratio: "16:9" for landscape, "9:16" for portrait
+            image_url: URL of performer image (face should be 60-70% of frame)
+            audio_url: URL of audio segment to lip-sync to
+            prompt: Optional text guidance for the scene
 
         Returns:
-            Dict with video_url, duration, status
+            Dict with video_url, status
         """
-        # Duration must be "5" or "10" as a string
-        duration_str = "10" if duration > 5 else "5"
-
         for attempt in range(self.max_retries):
             try:
-                print(f"    Calling Kling API (attempt {attempt + 1}/{self.max_retries})...")
+                print(f"    Calling Kling Avatar v2 Pro (attempt {attempt + 1}/{self.max_retries})...")
 
                 result = fal_client.subscribe(
-                    "fal-ai/kling-video/v2.1/pro/image-to-video",
+                    "fal-ai/kling-video/ai-avatar/v2/pro",
                     arguments={
                         "image_url": image_url,
-                        "prompt": prompt,
-                        "duration": duration_str,
-                        "aspect_ratio": aspect_ratio,
-                        "negative_prompt": "blur, distort, low quality, static face, frozen expression"
-                    }
-                )
-
-                return {
-                    "video_url": result["video"]["url"],
-                    "duration": duration,
-                    "status": "success"
-                }
-
-            except Exception as e:
-                error_msg = str(e)
-                if attempt < self.max_retries - 1:
-                    wait_time = (2 ** attempt) * 2
-                    print(f"    ⚠️ Generation error: {error_msg}")
-                    print(f"    Retrying in {wait_time}s...")
-                    time.sleep(wait_time)
-                    continue
-                raise Exception(f"Video generation failed after {self.max_retries} retries: {error_msg}")
-
-    def apply_lipsync(
-        self,
-        video_url: str,
-        audio_url: str
-    ) -> Dict:
-        """
-        Apply lip-sync to video using audio via Sync Lipsync v2.
-
-        Args:
-            video_url: URL of generated video
-            audio_url: URL of audio segment for lip-sync
-
-        Returns:
-            Dict with video_url and status
-        """
-        for attempt in range(self.max_retries):
-            try:
-                print(f"    Applying lip-sync (attempt {attempt + 1}/{self.max_retries})...")
-
-                result = fal_client.subscribe(
-                    "fal-ai/sync-lipsync/v2",
-                    arguments={
-                        "video_url": video_url,
                         "audio_url": audio_url,
-                        "model": "lipsync-2",
-                        "sync_mode": "cut_off"
+                        "prompt": prompt
                     }
                 )
 
@@ -123,19 +109,17 @@ class KlingAPIClient:
 
             except Exception as e:
                 error_msg = str(e)
+                # Don't retry balance errors - they won't resolve on their own
+                if self._is_balance_error(error_msg):
+                    self.balance_exhausted = True
+                    raise Exception(f"fal.ai balance exhausted: {error_msg}")
                 if attempt < self.max_retries - 1:
                     wait_time = (2 ** attempt) * 2
-                    print(f"    ⚠️ LipSync error: {error_msg}")
+                    print(f"    ⚠️ Avatar generation error: {error_msg}")
                     print(f"    Retrying in {wait_time}s...")
                     time.sleep(wait_time)
                     continue
-
-                # Return original video without lip-sync on final failure
-                print(f"    ⚠️ LipSync failed after {self.max_retries} retries, using base video")
-                return {
-                    "video_url": video_url,
-                    "status": "lipsync_failed"
-                }
+                raise Exception(f"Avatar video generation failed after {self.max_retries} retries: {error_msg}")
 
     def upload_file(self, local_path: str) -> str:
         """

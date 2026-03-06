@@ -80,7 +80,7 @@ generate_metadata() {
 
     case $video_type in
         full)
-            TITLE="${topic} 🎵"
+            TITLE="${topic} (Music Video)"
             DESCRIPTION="Learn about ${topic} through music! Full version.
 
 Watch the Shorts versions:
@@ -91,7 +91,7 @@ ${hashtags}"
             VIDEO_FILE="full.mp4"
             ;;
         short_hook)
-            TITLE="${topic} 🎵"
+            TITLE="${topic} (Music Video)"
             DESCRIPTION="${topic}
 
 Watch the full version: [PLACEHOLDER_FULL]
@@ -100,7 +100,7 @@ ${hashtags}"
             VIDEO_FILE="short_hook.mp4"
             ;;
         short_educational)
-            TITLE="${topic} 🎵"
+            TITLE="${topic} (Music Video)"
             DESCRIPTION="${topic} - Key concept explained!
 
 Watch the full version: [PLACEHOLDER_FULL]
@@ -109,7 +109,7 @@ ${hashtags}"
             VIDEO_FILE="short_educational.mp4"
             ;;
         short_intro)
-            TITLE="${topic} 🎵"
+            TITLE="${topic} (Music Video)"
             DESCRIPTION="${topic} - First minute preview!
 
 Watch the full version: [PLACEHOLDER_FULL]

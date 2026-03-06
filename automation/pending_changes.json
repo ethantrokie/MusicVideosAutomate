@@ -1,21 +1,21 @@
 [
   {
-    "change": "video_duration_seconds",
-    "current_value": 35,
-    "proposed_value": 50,
-    "rationale": "Top performers (Sonar at 43-69% retention, Induction Motors at 62-98% retention) suggest viewers are engaged beyond 35s. Extending to 50s allows fuller concept development while staying under 60s threshold where drop-off typically accelerates",
-    "confidence": 0.78,
-    "expected_impact": "Increase avg_retention by 8-12 percentage points and watch_time by 40%, improving algorithmic distribution",
+    "change": "Increase video duration to allow better concept absorption",
+    "current_value": "35 seconds",
+    "proposed_value": "50 seconds",
+    "rationale": "Best-performing videos (Chemical Vapor Deposition: 37.78%, Pneumatic Tubes: 40.32%) suggest viewers need more time per concept. Extending to 50s while maintaining 12-20 media items reduces density from 2.9s/item to 4.2s/item, giving breathing room for understanding",
+    "confidence": 0.82,
+    "expected_impact": "Target 45-50% retention rate by reducing information density; improved comprehension should increase likes from current 0-10 range to 15-20 for high-view videos",
     "validation_status": "NEEDS_REVIEW",
     "validation_reason": "Change type not in allowed list"
   },
   {
-    "change": "media_items_count",
-    "current_value": 16,
-    "proposed_value": 22,
-    "rationale": "Higher retention videos likely benefit from more visual variety to sustain attention. Increasing from 16 to 22 items (aligned with 50s duration) provides ~2.3s per visual element, maintaining pacing while reducing monotony",
-    "confidence": 0.72,
-    "expected_impact": "Reduce mid-video drop-off by 5-8%, particularly improving retention curve between 40-60% mark",
+    "change": "Reduce media items to create clearer narrative flow",
+    "current_value": "12-20 media items",
+    "proposed_value": "10-14 media items",
+    "rationale": "High retention outlier (164.81% on Hash Tables) suggests some videos achieve replay value through clarity. Fewer, more impactful visuals with 50s duration gives 3.6-5s per concept, allowing key ideas to land effectively",
+    "confidence": 0.78,
+    "expected_impact": "Improve baseline retention from 25-40% range to 40-55% range; clearer storytelling should reduce the 7-60% retention volatility seen in lower-performing videos",
     "validation_status": "NEEDS_REVIEW",
     "validation_reason": "Change type not in allowed list"
   }

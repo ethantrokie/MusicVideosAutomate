@@ -181,8 +181,10 @@ class SunoAPIClient:
 
                 if status == "SUCCESS":
                     return result
-                elif status == "FAILED":
-                    raise Exception(f"Generation failed")
+                elif status in ("FAILED", "GENERATE_AUDIO_FAILED"):
+                    error_msg = result["data"].get("errorMessage", "Unknown error")
+                    error_code = result["data"].get("errorCode", "N/A")
+                    raise Exception(f"Generation failed: {error_msg} (code: {error_code})")
 
             time.sleep(poll_interval)
             elapsed += poll_interval
