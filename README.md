@@ -294,9 +294,10 @@ MusicVideosAutomate/
 ## TODO: What Still Needs Work
 
 ### High Priority
-- [ ] **Integrate thumbnail upload into pipeline** — `generate_thumbnail.py` exists but isn't called from `pipeline.sh` or `upload_to_youtube.sh`. Need to generate thumbnail after video assembly and upload via YouTube Thumbnails API (`thumbnails().set()`) after video upload.
-- [ ] **Integrate engagement booster into pipeline** — `engagement_booster.py` exists but isn't called automatically after upload. Add call after Stage 8 (upload) in `daily_pipeline.sh`.
-- [ ] **Integrate playlist manager into pipeline** — `playlist_manager.py` exists but isn't called after upload. Add call after Stage 9 (cross-linking) in `daily_pipeline.sh`.
+- [x] ~~**Integrate thumbnail upload into pipeline**~~ — Thumbnails generated and uploaded via YouTube API after each video upload in Stage 8
+- [x] ~~**Integrate engagement booster into pipeline**~~ — Auto-posts + pins comments after each upload in Stage 8
+- [x] ~~**Integrate playlist manager into pipeline**~~ — Auto-organizes videos into category playlists after upload in Stage 8
+- [x] ~~**Integrate comment responder into daily pipeline**~~ — Replies to up to 5 recent comments after successful pipeline run
 - [ ] **Fix crosslink placeholders** — All queue entries show `"crosslink_status": "pending"` with literal `[PLACEHOLDER_HOOK]` in descriptions. The queue processor only runs after all 4 videos upload; if any fails, crosslinks never complete. Needs retry logic and fallback for partial uploads.
 - [ ] **A/B test the upload volume** — Config `format_mode` is added but `pipeline.sh` doesn't read it yet. Need to conditionally skip hook/educational formats when `format_mode=reduced`.
 - [ ] **Fix trends fetcher** — `automation/trends_fetcher.py` cache returns empty. Consider replacing pytrends with YouTube search API suggestions.

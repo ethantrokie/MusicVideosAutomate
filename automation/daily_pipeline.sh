@@ -182,6 +182,14 @@ main() {
 
             log "✅ Daily videos published successfully with cross-linking"
 
+            # Reply to recent viewer comments (non-fatal)
+            log "Replying to recent comments..."
+            if ./venv/bin/python3 automation/comment_responder.py --max-replies 5 >> "$LOG_FILE" 2>&1; then
+                log "  Comment responses posted"
+            else
+                log "  Warning: Comment responder failed (non-fatal)"
+            fi
+
             # Cleanup temp file on success
             rm -f /tmp/failed_run_dir.txt
 

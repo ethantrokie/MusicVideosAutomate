@@ -189,6 +189,38 @@ def upload_video(youtube, video_path, title, description, category, privacy, cha
     return response['id']
 
 
+def upload_thumbnail(youtube, video_id, thumbnail_path):
+    """Upload a custom thumbnail for a video.
+
+    Args:
+        youtube: Authenticated YouTube API service.
+        video_id: The YouTube video ID to set the thumbnail for.
+        thumbnail_path: Path to the thumbnail image file (JPEG, 1280x720 recommended).
+
+    Returns:
+        The thumbnail URL if successful, None on failure.
+    """
+    from pathlib import Path
+
+    if not Path(thumbnail_path).exists():
+        print(f"  Warning: Thumbnail file not found: {thumbnail_path}")
+        return None
+
+    request = youtube.thumbnails().set(
+        videoId=video_id,
+        media_body=MediaFileUpload(thumbnail_path, mimetype='image/jpeg')
+    )
+
+    response = request.execute()
+    items = response.get('items', [])
+    if items:
+        url = items[0].get('default', {}).get('url', '')
+        print(f"  Thumbnail uploaded for {video_id}")
+        return url
+
+    return None
+
+
 def main():
     """Main CLI interface."""
     import argparse

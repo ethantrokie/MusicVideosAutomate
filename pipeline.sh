@@ -1071,6 +1071,84 @@ if [ $START_STAGE -le 8 ]; then
 
         echo "✅ Day 0 uploads complete"
 
+        # ========== Generate and upload thumbnails ==========
+        TOPIC=$(python3 -c "import json; print(json.load(open('${RUN_DIR}/research.json')).get('video_title', 'Unknown'))" 2>/dev/null || echo "Unknown")
+        THUMBNAIL_TITLE=$(echo "$TOPIC" | awk '{for(i=1;i<=NF && i<=4;i++) printf "%s ", $i; print ""}' | sed 's/ $//')
+
+        if [ -n "$FULL_ID" ] && [ -f "${RUN_DIR}/full.mp4" ]; then
+            echo ""
+            echo "🖼️  Generating and uploading thumbnail for full video..."
+            THUMB_PATH="${RUN_DIR}/thumbnail_full.jpg"
+            if ./venv/bin/python3 agents/generate_thumbnail.py \
+                --video "${RUN_DIR}/full.mp4" \
+                --title "$THUMBNAIL_TITLE" \
+                --output "$THUMB_PATH" \
+                --logo "learning_science_music_logo_blue_1024x1024.png" 2>/dev/null; then
+                # Upload thumbnail via YouTube API
+                if ./venv/bin/python3 -c "
+import sys; sys.path.insert(0, 'automation')
+from youtube_channel_helper import get_authenticated_service, upload_thumbnail
+yt = get_authenticated_service()
+upload_thumbnail(yt, '${FULL_ID}', '${THUMB_PATH}')
+" 2>/dev/null; then
+                    echo "  ✅ Thumbnail uploaded for full video"
+                else
+                    echo -e "  ${YELLOW}⚠️  Thumbnail upload failed (non-fatal)${NC}"
+                fi
+            else
+                echo -e "  ${YELLOW}⚠️  Thumbnail generation failed (non-fatal)${NC}"
+            fi
+        fi
+
+        if [ -n "$HOOK_ID" ] && [ -f "${RUN_DIR}/short_hook.mp4" ]; then
+            THUMB_HOOK_PATH="${RUN_DIR}/thumbnail_hook.jpg"
+            if ./venv/bin/python3 agents/generate_thumbnail.py \
+                --video "${RUN_DIR}/short_hook.mp4" \
+                --title "$THUMBNAIL_TITLE" \
+                --output "$THUMB_HOOK_PATH" \
+                --logo "learning_science_music_logo_blue_1024x1024.png" 2>/dev/null; then
+                if ./venv/bin/python3 -c "
+import sys; sys.path.insert(0, 'automation')
+from youtube_channel_helper import get_authenticated_service, upload_thumbnail
+yt = get_authenticated_service()
+upload_thumbnail(yt, '${HOOK_ID}', '${THUMB_HOOK_PATH}')
+" 2>/dev/null; then
+                    echo "  ✅ Thumbnail uploaded for hook short"
+                else
+                    echo -e "  ${YELLOW}⚠️  Hook thumbnail upload failed (non-fatal)${NC}"
+                fi
+            fi
+        fi
+
+        # ========== Engagement booster: post + pin comments ==========
+        echo ""
+        echo "💬 Posting engagement comments..."
+        if [ -n "$FULL_ID" ]; then
+            if ./venv/bin/python3 automation/engagement_booster.py --video-id "$FULL_ID" --topic "$TOPIC" 2>/dev/null; then
+                echo "  ✅ Engagement comment posted on full video"
+            else
+                echo -e "  ${YELLOW}⚠️  Engagement comment failed (non-fatal)${NC}"
+            fi
+        fi
+        if [ -n "$HOOK_ID" ]; then
+            if ./venv/bin/python3 automation/engagement_booster.py --video-id "$HOOK_ID" --topic "$TOPIC" 2>/dev/null; then
+                echo "  ✅ Engagement comment posted on hook short"
+            else
+                echo -e "  ${YELLOW}⚠️  Engagement comment on hook failed (non-fatal)${NC}"
+            fi
+        fi
+
+        # ========== Playlist manager: auto-organize into category playlists ==========
+        echo ""
+        echo "📋 Organizing videos into playlists..."
+        if [ -n "$FULL_ID" ]; then
+            if ./venv/bin/python3 automation/playlist_manager.py add --video-id "$FULL_ID" --title "$TOPIC" 2>/dev/null; then
+                echo "  ✅ Full video added to category playlist"
+            else
+                echo -e "  ${YELLOW}⚠️  Playlist organization failed (non-fatal)${NC}"
+            fi
+        fi
+
         # ========== Queue Day 1/2 videos for staggered release ==========
         if [ -f "${RUN_DIR}/short_educational.mp4" ] || [ -f "${RUN_DIR}/short_intro.mp4" ]; then
             echo ""
