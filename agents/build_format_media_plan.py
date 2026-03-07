@@ -179,7 +179,7 @@ def get_media_duration(file_path: str) -> float:
     """Get duration of media file in seconds using ffprobe."""
     try:
         result = subprocess.run([
-            'ffprobe', '-v', 'error',
+            '/opt/homebrew/bin/ffprobe', '-v', 'error',
             '-show_entries', 'format=duration',
             '-of', 'default=noprint_wrappers=1:nokey=1',
             file_path
@@ -187,8 +187,10 @@ def get_media_duration(file_path: str) -> float:
 
         if result.returncode == 0:
             return float(result.stdout.strip())
-    except Exception:
-        pass
+        else:
+            print(f"  Warning: ffprobe failed for {file_path}: {result.stderr.strip()}")
+    except Exception as e:
+        print(f"  Warning: ffprobe error for {file_path}: {e}")
     return 0.0
 
 
@@ -262,8 +264,8 @@ def match_clips_to_phrase_groups(
         key_terms = " ".join(group.get("key_terms", []))
         search_text = f"{phrase_text} {key_terms}".lower()
 
-        # Find best matching clip
-        best_score = 0
+        # Find best matching clip (start at -1 so zero-score clips can still be selected)
+        best_score = -1
         best_clip_idx = None
 
         for clip_idx, clip in enumerate(available_clips):
@@ -273,9 +275,10 @@ def match_clips_to_phrase_groups(
             # Score based on description and lyrics_match
             clip_text = f"{clip.get('description', '')} {clip.get('lyrics_match', '')}".lower()
 
-            # Simple word overlap score
-            search_words = set(search_text.split())
-            clip_words = set(clip_text.split())
+            # Simple word overlap score (strip punctuation for better matching)
+            import re
+            search_words = set(re.sub(r'[.,!?;:\'"()\[\]]', '', search_text).split())
+            clip_words = set(re.sub(r'[.,!?;:\'"()\[\]]', '', clip_text).split())
             overlap = len(search_words & clip_words)
             total = len(search_words | clip_words)
             score = (overlap / total if total > 0 else 0) - reuse_penalty
@@ -296,6 +299,8 @@ def match_clips_to_phrase_groups(
             # Still add the group even if no clip matched, for tracking
             matched_group = group.copy()
             matched_group["group_id"] = idx
+            matched_group["match_score"] = 0
+            matched_groups.append(matched_group)
             print(f"  ⚠️  No clip match for phrase group {idx} ({phrase_text[:40]}...)")
 
     return matched_groups
@@ -665,11 +670,13 @@ def score_clip_for_segment(clip: Dict, segment_lyrics: str) -> float:
 
 
 def filter_clips_for_segment(available_clips: List[Dict], segment_lyrics: str,
-                             min_score: float = 0.1) -> List[Dict]:
+                             min_score: float = 0.1,
+                             min_clips: int = 8) -> List[Dict]:
     """
     Filter and sort clips by relevance to segment lyrics.
     Returns clips sorted by match score (best first).
-    Falls back to all clips if no matches meet threshold.
+    Uses progressive threshold lowering to ensure enough clips for the segment.
+    Falls back to all clips if no matches meet any threshold.
     """
     if not segment_lyrics:
         # No segment lyrics - return all clips
@@ -684,18 +691,20 @@ def filter_clips_for_segment(available_clips: List[Dict], segment_lyrics: str,
     # Sort by score (descending)
     scored_clips.sort(key=lambda x: x[0], reverse=True)
 
-    # Filter by minimum score
-    matching_clips = [clip for score, clip in scored_clips if score >= min_score]
+    # Progressive threshold: try min_score first, then lower if too few clips
+    for threshold in [min_score, min_score / 2, 0.01, 0.0]:
+        matching_clips = [clip for score, clip in scored_clips if score >= threshold]
+        if len(matching_clips) >= min_clips:
+            avg_score = sum(score_clip_for_segment(c, segment_lyrics) for c in matching_clips) / len(matching_clips)
+            if threshold < min_score:
+                print(f"    📍 Lowered threshold to {threshold:.3f} to get {len(matching_clips)} clips (avg score: {avg_score:.2f})")
+            else:
+                print(f"    📍 Using {len(matching_clips)}/{len(available_clips)} clips matching segment lyrics (avg score: {avg_score:.2f})")
+            return matching_clips
 
-    # If we have good matches, use them. Otherwise fall back to all clips
-    if matching_clips:
-        match_count = len(matching_clips)
-        avg_score = sum(score_clip_for_segment(c, segment_lyrics) for c in matching_clips) / match_count
-        print(f"    📍 Using {match_count}/{len(available_clips)} clips matching segment lyrics (avg score: {avg_score:.2f})")
-        return matching_clips
-    else:
-        print(f"    ⚠️  No clips matched segment lyrics (threshold={min_score}), using all clips")
-        return available_clips
+    # If even threshold=0.0 didn't yield enough, return all clips sorted by score
+    print(f"    ⚠️  Only {len([s for s, _ in scored_clips if s > 0])} clips scored >0 (need {min_clips}), using all {len(available_clips)} clips")
+    return [clip for _, clip in scored_clips]
 
 
 def build_format_plan(format_type: FormatType, target_duration: float,
@@ -1012,10 +1021,21 @@ def main():
         if success:
             success_count += 1
 
-    # Summary
-    print(f"\n✅ Built {success_count}/{len(formats)} format-specific media plans")
-    print(f"   Full video: uses all clips sequentially")
-    print(f"   Hook/Educational/Intro shorts: filtered by segment lyrics")
+    # Summary with diagnostic stats
+    clips_with_duration = sum(1 for c in available_clips if c["actual_duration"] > 0)
+    clips_zero_duration = len(available_clips) - clips_with_duration
+    print(f"\n{'='*60}")
+    print(f"📊 Media Curation Summary")
+    print(f"{'='*60}")
+    print(f"  Total clips: {len(available_clips)}")
+    print(f"  Clips with valid duration: {clips_with_duration}")
+    if clips_zero_duration > 0:
+        print(f"  ⚠️  Clips with 0s duration: {clips_zero_duration} (ffprobe may have failed)")
+    print(f"  Total media duration: {total_duration:.1f}s")
+    if use_lyric_sync:
+        print(f"  Phrase groups loaded: {len(phrase_groups)}")
+    print(f"  Format plans built: {success_count}/{len(formats)}")
+    print(f"{'='*60}")
 
     if success_count < len(formats):
         print("⚠️  Some media plans failed - videos may have incorrect durations")

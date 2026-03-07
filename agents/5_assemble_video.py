@@ -247,7 +247,7 @@ def fetch_and_process_lyrics(music_metadata: dict, research_data: dict, sync_con
         if audio_path.exists():
             try:
                 ffprobe_cmd = [
-                    'ffprobe', '-v', 'error',
+                    '/opt/homebrew/bin/ffprobe', '-v', 'error',
                     '-show_entries', 'format=duration',
                     '-of', 'default=noprint_wrappers=1:nokey=1',
                     str(audio_path)
@@ -477,6 +477,51 @@ def create_synchronized_plan(phrase_groups: List[Dict], approved_media: List[Dic
     return plan
 
 
+def _close_timeline_gaps(shots: List[Dict]) -> List[Dict]:
+    """
+    Close gaps between consecutive shots so concatenation matches the audio timeline.
+
+    Phrase-based timing can leave small gaps (pauses between sentences). Since
+    MoviePy concatenates clips back-to-back, these gaps accumulate as drift —
+    later clips play earlier than their intended audio position.
+
+    Fix: extend each non-AI stock shot's duration to absorb the gap after it.
+    AI clips keep their exact duration to preserve lip-sync accuracy.
+
+    Args:
+        shots: Shot list sorted by start_time
+
+    Returns:
+        New shot list with gaps closed
+    """
+    if len(shots) < 2:
+        return shots
+
+    result = []
+    total_gap_closed = 0.0
+
+    for i, shot in enumerate(shots):
+        adjusted = shot.copy()
+
+        if i < len(shots) - 1:
+            current_end = shot.get("start_time", 0) + shot.get("duration", 0)
+            next_start = shots[i + 1].get("start_time", current_end)
+            gap = next_start - current_end
+
+            # Only close positive gaps (don't shrink overlapping shots)
+            if gap > 0.01 and shot.get("source") != "ai_generated":
+                adjusted["duration"] = shot["duration"] + gap
+                adjusted["end_time"] = shot.get("start_time", 0) + adjusted["duration"]
+                total_gap_closed += gap
+
+        result.append(adjusted)
+
+    if total_gap_closed > 0.05:
+        print(f"  🔧 Closed {total_gap_closed:.3f}s of timeline gaps across {len(shots)} shots")
+
+    return result
+
+
 def assemble_video(approved_data: dict, video_settings: dict, audio_path: str, audio_start: float = 0.0, audio_duration: float = None):
     """
     Assemble final video from approved media and audio.
@@ -507,6 +552,13 @@ def assemble_video(approved_data: dict, video_settings: dict, audio_path: str, a
     if not available_shots:
         print("  ❌ No shots available - all downloads failed!")
         sys.exit(1)
+
+    # Close timeline gaps between shots to prevent cumulative drift.
+    # Phrase-based timing leaves natural pauses between shots, but since
+    # clips are concatenated back-to-back, these gaps cause later clips
+    # (especially AI lip-synced clips) to play earlier than their audio.
+    # Fix: extend each non-AI shot's duration to fill the gap to the next shot.
+    available_shots = _close_timeline_gaps(available_shots)
 
     clips = []
 

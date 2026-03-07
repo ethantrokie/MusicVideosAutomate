@@ -37,7 +37,7 @@ def is_slideshow_gif(file_path: str, fps_threshold: float = 10.0) -> bool:
     try:
         # Get frame rate using ffprobe
         result = subprocess.run([
-            'ffprobe', '-v', 'error',
+            '/opt/homebrew/bin/ffprobe', '-v', 'error',
             '-select_streams', 'v:0',
             '-show_entries', 'stream=avg_frame_rate',
             '-of', 'json',
@@ -76,7 +76,7 @@ def get_media_duration(file_path: str) -> float:
 
     try:
         result = subprocess.run([
-            'ffprobe', '-v', 'error',
+            '/opt/homebrew/bin/ffprobe', '-v', 'error',
             '-show_entries', 'format=duration',
             '-of', 'default=noprint_wrappers=1:nokey=1',
             file_path
@@ -84,8 +84,10 @@ def get_media_duration(file_path: str) -> float:
 
         if result.returncode == 0:
             return float(result.stdout.strip())
-    except Exception:
-        pass
+        else:
+            print(f"  Warning: ffprobe failed for {file_path}: {result.stderr.strip()}")
+    except Exception as e:
+        print(f"  Warning: ffprobe error for {file_path}: {e}")
 
     return 0.0
 
@@ -133,6 +135,11 @@ def validate_clip_durations(shots: list, downloaded: list, target_duration: floa
                 "actual": actual_duration,
                 "shortage": shortage
             })
+
+    # Count zero-duration clips (indicates ffprobe failure)
+    zero_duration_clips = [item for item in downloaded if get_media_duration(item["local_path"]) == 0.0]
+    if zero_duration_clips:
+        print(f"\n  ⚠️  {len(zero_duration_clips)}/{len(downloaded)} clips have 0s duration (ffprobe may have failed)")
 
     # Summary
     print(f"  Total required duration: {total_required:.2f}s")

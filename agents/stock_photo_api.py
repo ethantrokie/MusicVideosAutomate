@@ -108,6 +108,16 @@ class StockPhotoResolver:
             print(f"  ⚠️  No PEXELS_API_KEY set, using alternative method...")
             return self._scrape_pexels(page_url, media_type)
 
+        # Detect search URLs (LLM sometimes generates these)
+        # e.g. https://www.pexels.com/search/videos/cnc%20machine/
+        if '/search/' in page_url:
+            print(f"  ⚠️  Detected Pexels search URL, auto-resolving via API: {page_url}")
+            search_match = re.search(r'/search/(?:videos/)?([^/]+)/?', page_url)
+            if search_match:
+                query = search_match.group(1).replace('+', ' ').replace('%20', ' ')
+                return self._search_pexels_first_result(query, media_type)
+            return None
+
         # Extract ID from URL
         # https://www.pexels.com/photo/green-leaf-plant-86397/
         # https://www.pexels.com/video/green-plants-4508110/
@@ -157,6 +167,44 @@ class StockPhotoResolver:
                     return video_files[0]['link']
         except Exception as e:
             print(f"  ⚠️  Pexels API error: {e}")
+
+        return None
+
+    def _search_pexels_first_result(self, query: str, media_type: str) -> Optional[str]:
+        """Search Pexels API and return download URL for the first result."""
+        if media_type == "video":
+            url = "https://api.pexels.com/videos/search"
+        else:
+            url = "https://api.pexels.com/v1/search"
+
+        headers = {"Authorization": self.pexels_api_key}
+        params = {'query': query, 'per_page': 3}
+
+        try:
+            response = requests.get(url, headers=headers, params=params, timeout=10)
+            if response.status_code == 200:
+                data = response.json()
+                if media_type == "video":
+                    videos = data.get('videos', [])
+                    if videos:
+                        video_files = videos[0].get('video_files', [])
+                        hd = [v for v in video_files if v.get('quality') == 'hd']
+                        if hd:
+                            print(f"  ✅ Resolved search URL to video: {hd[0]['link'][:60]}...")
+                            return hd[0]['link']
+                        elif video_files:
+                            print(f"  ✅ Resolved search URL to video: {video_files[0]['link'][:60]}...")
+                            return video_files[0]['link']
+                else:
+                    photos = data.get('photos', [])
+                    if photos:
+                        src = photos[0].get('src', {})
+                        photo_url = src.get('large2x') or src.get('large') or src.get('original')
+                        if photo_url:
+                            print(f"  ✅ Resolved search URL to image: {photo_url[:60]}...")
+                            return photo_url
+        except Exception as e:
+            print(f"  ⚠️  Pexels search API error: {e}")
 
         return None
 
@@ -249,6 +297,16 @@ class StockPhotoResolver:
 
     def _resolve_pixabay(self, page_url: str, media_type: str) -> Optional[str]:
         """Resolve Pixabay URL to download link."""
+        # Detect search URLs (LLM sometimes generates these instead of direct video URLs)
+        # e.g. https://pixabay.com/videos/search/cnc+machine/
+        if '/search/' in page_url:
+            print(f"  ⚠️  Detected Pixabay search URL, auto-resolving via API: {page_url}")
+            search_match = re.search(r'/search/([^/]+)/?', page_url)
+            if search_match and self.pixabay_api_key:
+                query = search_match.group(1).replace('+', ' ').replace('%20', ' ')
+                return self._search_pixabay_first_result(query, media_type)
+            return None
+
         # Extract ID from URL
         # https://pixabay.com/videos/air-bubbles-underwater-water-31611/
         match = re.search(r'/(?:photos|videos)/[^/]+-(\d+)/', page_url)
@@ -347,6 +405,37 @@ class StockPhotoResolver:
                         return videos['small']['url']
         except Exception as e:
             print(f"  ⚠️  Pixabay API error: {e}")
+
+        return None
+
+    def _search_pixabay_first_result(self, query: str, media_type: str) -> Optional[str]:
+        """Search Pixabay API and return download URL for the first result."""
+        endpoint = "https://pixabay.com/api/videos/" if media_type == "video" else "https://pixabay.com/api/"
+        params = {
+            'key': self.pixabay_api_key,
+            'q': query,
+            'per_page': 3
+        }
+
+        try:
+            response = requests.get(endpoint, params=params, timeout=10)
+            if response.status_code == 200:
+                data = response.json()
+                hits = data.get('hits', [])
+                if hits:
+                    if media_type == "video":
+                        videos = hits[0].get('videos', {})
+                        for quality in ['medium', 'large', 'small']:
+                            if quality in videos:
+                                print(f"  ✅ Resolved search URL to video: {videos[quality]['url'][:60]}...")
+                                return videos[quality]['url']
+                    else:
+                        url = hits[0].get('webformatURL') or hits[0].get('largeImageURL')
+                        if url:
+                            print(f"  ✅ Resolved search URL to image: {url[:60]}...")
+                            return url
+        except Exception as e:
+            print(f"  ⚠️  Pixabay search API error: {e}")
 
         return None
 
