@@ -246,7 +246,7 @@ Example: ["chlorophyll", "atp synthase", "electron transport", "photosynthesis"]
         try:
             # Call Claude Code CLI
             result = subprocess.run(
-                ["claude", "-p", prompt, "--model", "claude-haiku-4-5", "--dangerously-skip-permissions"],
+                ["/Users/ethantrokie/.local/bin/claude", "-p", prompt, "--model", "claude-haiku-4-5", "--dangerously-skip-permissions"],
                 capture_output=True,
                 text=True,
                 timeout=30
@@ -315,7 +315,7 @@ Return JSON array of groups:
         try:
             # Call Claude Code CLI
             result = subprocess.run(
-                ["claude", "-p", prompt, "--model", "claude-haiku-4-5", "--dangerously-skip-permissions"],
+                ["/Users/ethantrokie/.local/bin/claude", "-p", prompt, "--model", "claude-haiku-4-5", "--dangerously-skip-permissions"],
                 capture_output=True,
                 text=True,
                 timeout=60
@@ -419,7 +419,7 @@ IMPORTANT:
         try:
             # Call Claude Code CLI with lightweight model
             result = subprocess.run(
-                ["claude", "-p", prompt, "--model", "claude-haiku-4-5", "--dangerously-skip-permissions"],
+                ["/Users/ethantrokie/.local/bin/claude", "-p", prompt, "--model", "claude-haiku-4-5", "--dangerously-skip-permissions"],
                 capture_output=True,
                 text=True,
                 timeout=45

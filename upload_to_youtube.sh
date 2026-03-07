@@ -78,7 +78,7 @@ generate_optimized_title() {
     # Try the title optimizer agent; fall back to the simple format on failure
     if [ -f "agents/title_optimizer.py" ]; then
         local optimized
-        optimized=$(python3 agents/title_optimizer.py "$topic" 2>/dev/null)
+        optimized=$(python3 agents/title_optimizer.py --topic "$topic" 2>/dev/null)
         if [ $? -eq 0 ] && [ -n "$optimized" ]; then
             echo "$optimized"
             return

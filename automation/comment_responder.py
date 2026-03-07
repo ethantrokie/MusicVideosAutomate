@@ -29,11 +29,13 @@ def get_recent_comments(youtube, channel_id, max_results=20):
     comments = []
     for item in response.get("items", []):
         snippet = item["snippet"]["topLevelComment"]["snippet"]
+        author_channel_id = snippet.get("authorChannelId", {}).get("value", "")
         comments.append({
             "comment_id": item["snippet"]["topLevelComment"]["id"],
             "thread_id": item["id"],
             "video_id": snippet["videoId"],
             "author": snippet["authorDisplayName"],
+            "author_channel_id": author_channel_id,
             "text": snippet["textDisplay"],
             "published_at": snippet["publishedAt"],
             "reply_count": item["snippet"]["totalReplyCount"]
@@ -154,6 +156,11 @@ def process_comments(youtube, max_replies=5, dry_run=False):
 
         # Skip if already responded
         if comment["comment_id"] in responded_ids:
+            continue
+
+        # Skip comments posted by the channel itself (e.g. engagement booster comments)
+        if comment.get("author_channel_id") == channel_id:
+            responded_ids.add(comment["comment_id"])
             continue
 
         # Skip if channel already replied

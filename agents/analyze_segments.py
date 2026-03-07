@@ -166,7 +166,7 @@ CRITICAL: Respond with ONLY the JSON object, no markdown, no explanation."""
 
     try:
         result = subprocess.run(
-            ['claude', '-p', prompt, '--model', 'claude-haiku-4-5', '--dangerously-skip-permissions'],
+            ['/Users/ethantrokie/.local/bin/claude', '-p', prompt, '--model', 'claude-haiku-4-5', '--dangerously-skip-permissions'],
             capture_output=True,
             text=True,
             timeout=60
