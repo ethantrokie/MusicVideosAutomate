@@ -135,11 +135,16 @@ mkdir -p "${RUN_DIR}/media" logs
 export OUTPUT_DIR="${RUN_DIR}"
 export RUN_TIMESTAMP="${RUN_TIMESTAMP}"
 
+# Read format_mode from config: "full" = all 4 formats, "reduced" = full + intro only
+FORMAT_MODE=$(python3 -c "import json; print(json.load(open('config/config.json')).get('video_formats',{}).get('format_mode','full'))" 2>/dev/null || echo "full")
+export FORMAT_MODE
+
 # Log file
 LOG_FILE="logs/pipeline_${RUN_TIMESTAMP}.log"
 exec > >(tee -a "$LOG_FILE") 2>&1
 
 echo -e "${GREEN}Starting pipeline from stage $START_STAGE...${NC}"
+echo "Format mode: ${FORMAT_MODE}"
 echo "Run directory: ${RUN_DIR}"
 echo "Log: $LOG_FILE"
 echo ""
@@ -1052,21 +1057,39 @@ if [ $START_STAGE -le 8 ]; then
             UPLOAD_ARGS="$UPLOAD_ARGS --channel=${YOUTUBE_CHANNEL}"
         fi
 
-        # ========== Day 0: Upload full + hook immediately ==========
-        echo "📤 Uploading Day 0 videos (full + hook)..."
+        # ========== Day 0: Upload full + intro (reduced) or full + hook (full mode) ==========
+        if [ "$FORMAT_MODE" = "reduced" ]; then
+            echo "📤 Uploading videos (reduced mode: full + intro)..."
 
-        # Upload full video
-        if [ -f "${RUN_DIR}/full.mp4" ]; then
-            echo "  Uploading full video..."
-            ./upload_to_youtube.sh --run="${RUN_TIMESTAMP}" --type=full $UPLOAD_ARGS
-            FULL_ID=$(cat "${RUN_DIR}/video_id_full.txt" 2>/dev/null || echo "")
-        fi
+            # Upload full video
+            if [ -f "${RUN_DIR}/full.mp4" ]; then
+                echo "  Uploading full video..."
+                ./upload_to_youtube.sh --run="${RUN_TIMESTAMP}" --type=full $UPLOAD_ARGS
+                FULL_ID=$(cat "${RUN_DIR}/video_id_full.txt" 2>/dev/null || echo "")
+            fi
 
-        # Upload hook short
-        if [ -f "${RUN_DIR}/short_hook.mp4" ]; then
-            echo "  Uploading hook short..."
-            ./upload_to_youtube.sh --run="${RUN_TIMESTAMP}" --type=short_hook $UPLOAD_ARGS
-            HOOK_ID=$(cat "${RUN_DIR}/video_id_short_hook.txt" 2>/dev/null || echo "")
+            # Upload intro short (the only short in reduced mode)
+            if [ -f "${RUN_DIR}/short_intro.mp4" ]; then
+                echo "  Uploading intro short..."
+                ./upload_to_youtube.sh --run="${RUN_TIMESTAMP}" --type=short_intro $UPLOAD_ARGS
+                INTRO_ID=$(cat "${RUN_DIR}/video_id_short_intro.txt" 2>/dev/null || echo "")
+            fi
+        else
+            echo "📤 Uploading Day 0 videos (full + hook)..."
+
+            # Upload full video
+            if [ -f "${RUN_DIR}/full.mp4" ]; then
+                echo "  Uploading full video..."
+                ./upload_to_youtube.sh --run="${RUN_TIMESTAMP}" --type=full $UPLOAD_ARGS
+                FULL_ID=$(cat "${RUN_DIR}/video_id_full.txt" 2>/dev/null || echo "")
+            fi
+
+            # Upload hook short
+            if [ -f "${RUN_DIR}/short_hook.mp4" ]; then
+                echo "  Uploading hook short..."
+                ./upload_to_youtube.sh --run="${RUN_TIMESTAMP}" --type=short_hook $UPLOAD_ARGS
+                HOOK_ID=$(cat "${RUN_DIR}/video_id_short_hook.txt" 2>/dev/null || echo "")
+            fi
         fi
 
         echo "✅ Day 0 uploads complete"
@@ -1120,14 +1143,14 @@ upload_thumbnail(yt, '${HOOK_ID}', '${THUMB_HOOK_PATH}')
             fi
         fi
 
-        # ========== Engagement booster: post + pin comments ==========
+        # ========== Engagement booster: post + pin comments on ALL uploaded videos ==========
         echo ""
         echo "💬 Posting engagement comments..."
         if [ -n "$FULL_ID" ]; then
             if ./venv/bin/python3 automation/engagement_booster.py --video-id "$FULL_ID" --topic "$TOPIC" 2>/dev/null; then
                 echo "  ✅ Engagement comment posted on full video"
             else
-                echo -e "  ${YELLOW}⚠️  Engagement comment failed (non-fatal)${NC}"
+                echo -e "  ${YELLOW}⚠️  Engagement comment on full video failed (non-fatal)${NC}"
             fi
         fi
         if [ -n "$HOOK_ID" ]; then
@@ -1135,6 +1158,20 @@ upload_thumbnail(yt, '${HOOK_ID}', '${THUMB_HOOK_PATH}')
                 echo "  ✅ Engagement comment posted on hook short"
             else
                 echo -e "  ${YELLOW}⚠️  Engagement comment on hook failed (non-fatal)${NC}"
+            fi
+        fi
+        if [ -n "$INTRO_ID" ]; then
+            if ./venv/bin/python3 automation/engagement_booster.py --video-id "$INTRO_ID" --topic "$TOPIC" 2>/dev/null; then
+                echo "  ✅ Engagement comment posted on intro short"
+            else
+                echo -e "  ${YELLOW}⚠️  Engagement comment on intro failed (non-fatal)${NC}"
+            fi
+        fi
+        if [ -n "$EDUCATIONAL_ID" ]; then
+            if ./venv/bin/python3 automation/engagement_booster.py --video-id "$EDUCATIONAL_ID" --topic "$TOPIC" 2>/dev/null; then
+                echo "  ✅ Engagement comment posted on educational short"
+            else
+                echo -e "  ${YELLOW}⚠️  Engagement comment on educational failed (non-fatal)${NC}"
             fi
         fi
 
@@ -1150,27 +1187,33 @@ upload_thumbnail(yt, '${HOOK_ID}', '${THUMB_HOOK_PATH}')
         fi
 
         # ========== Queue Day 1/2 videos for staggered release ==========
-        if [ -f "${RUN_DIR}/short_educational.mp4" ] || [ -f "${RUN_DIR}/short_intro.mp4" ]; then
-            echo ""
-            echo "📋 Queuing Day 1/2 videos for staggered release..."
-
-            # Get topic from research.json
-            TOPIC=$(python3 -c "import json; print(json.load(open('${RUN_DIR}/research.json')).get('video_title', 'Unknown'))" 2>/dev/null || echo "Unknown")
-
-            if [ -n "$FULL_ID" ] && [ -n "$HOOK_ID" ]; then
-                python3 automation/youtube_queue_processor.py --add \
-                    --run-dir="${RUN_DIR}" \
-                    --topic="${TOPIC}" \
-                    --full-id="${FULL_ID}" \
-                    --hook-id="${HOOK_ID}"
-
-                echo "✅ Educational short queued for tomorrow 8 AM Central"
-                echo "✅ Intro short queued for day after tomorrow 8 AM Central"
+        # In reduced mode, intro is already uploaded on Day 0 — no queuing needed
+        if [ "$FORMAT_MODE" != "reduced" ]; then
+            if [ -f "${RUN_DIR}/short_educational.mp4" ] || [ -f "${RUN_DIR}/short_intro.mp4" ]; then
                 echo ""
-                echo "ℹ️  Cross-linking will happen after all videos are uploaded (Day 2)"
-            else
-                echo -e "${YELLOW}⚠️  Could not queue videos: missing full or hook video ID${NC}"
+                echo "📋 Queuing Day 1/2 videos for staggered release..."
+
+                # Get topic from research.json
+                TOPIC=$(python3 -c "import json; print(json.load(open('${RUN_DIR}/research.json')).get('video_title', 'Unknown'))" 2>/dev/null || echo "Unknown")
+
+                if [ -n "$FULL_ID" ] && [ -n "$HOOK_ID" ]; then
+                    python3 automation/youtube_queue_processor.py --add \
+                        --run-dir="${RUN_DIR}" \
+                        --topic="${TOPIC}" \
+                        --full-id="${FULL_ID}" \
+                        --hook-id="${HOOK_ID}"
+
+                    echo "✅ Educational short queued for tomorrow 8 AM Central"
+                    echo "✅ Intro short queued for day after tomorrow 8 AM Central"
+                    echo ""
+                    echo "ℹ️  Cross-linking will happen after all videos are uploaded (Day 2)"
+                else
+                    echo -e "${YELLOW}⚠️  Could not queue videos: missing full or hook video ID${NC}"
+                fi
             fi
+        else
+            echo ""
+            echo "📋 Reduced mode: no staggered uploads needed (all videos uploaded on Day 0)"
         fi
 
         echo ""

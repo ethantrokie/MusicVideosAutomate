@@ -565,17 +565,24 @@ def main():
 
         segment_info = segments[segment]
 
-        # Filter words to segment timeframe
+        # Filter words that OVERLAP the segment (not just start within it).
+        # A word that starts before the segment but extends into it should
+        # still be included — otherwise long Suno alignment entries cause
+        # missing subtitles at the start of shorts.
+        seg_start = segment_info['start']
+        seg_end = segment_info['end']
         words = [
             w for w in all_words
-            if segment_info['start'] <= w['start'] <= segment_info['end']
+            if w['end'] > seg_start and w['start'] < seg_end
         ]
 
-        # Adjust timestamps to start from 0
-        offset = segment_info['start']
-        for w in words:
-            w['start'] -= offset
-            w['end'] -= offset
+        # Adjust timestamps to segment-relative (0-based), creating new
+        # dicts to avoid mutating the originals.
+        offset = seg_start
+        words = [
+            {**w, 'start': max(w['start'] - offset, 0), 'end': min(w['end'] - offset, seg_end - seg_start)}
+            for w in words
+        ]
     else:
         words = all_words
 

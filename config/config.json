@@ -1,0 +1,113 @@
+{
+  "suno_api": {
+    "base_url": "https://api.sunoapi.org",
+    "api_key": "72d4279a95f0d3453203bc3dc05a1023",
+    "model": "V5"
+  },
+  "media_sources": {
+    "pexels_api_key": "EDGTo32LbmXGWmexTMLlRgrclTHHt8RSTTuDV7s3Kgd91kjlK769RDuH",
+    "pixabay_api_key": "53265524-97a8393688ef0b12a4995447b",
+    "giphy_api_key": "QxKJDFWVuOCFFEj3GvIXRFaymoeY6jEl",
+    "unsplash_api_key": "OPTIONAL_UNSPLASH_API_KEY"
+  },
+  "video_settings": {
+    "duration": 50,
+    "resolution": [
+      1080,
+      1920
+    ],
+    "fps": 30,
+    "format": "mp4"
+  },
+  "pipeline_settings": {
+    "express_mode": false,
+    "max_media_items": 20,
+    "min_media_items": 12
+  },
+  "youtube": {
+    "default_privacy": "public",
+    "default_category": "Education",
+    "credentials_path": "config/youtube_credentials.json"
+  },
+  "tiktok": {
+    "enabled": true
+  },
+  "lyric_based_search": {
+    "enabled": true,
+    "description": "Enable lyric-based video search (Stage 2.5) instead of pre-lyric research-based search. When enabled, videos are searched after lyrics generation with semantic tagging for better lyric-visual alignment."
+  },
+  "lyric_sync": {
+    "enabled": true,
+    "min_phrase_duration": 1.5,
+    "max_phrase_duration": 10.0,
+    "phrase_gap_threshold": 0.1,
+    "keyword_boost_multiplier": 2.0,
+    "diversity_penalty": 0.1,
+    "transition_duration": 0.3,
+    "clip_consolidation": {
+      "enabled": true,
+      "min_clip_duration": 2.0,
+      "max_clip_duration": 4.0,
+      "target_clip_duration": 3.5,
+      "semantic_coherence_threshold": 0.3
+    }
+  },
+  "subtitle_settings": {
+    "traditional": {
+      "font": "/System/Library/Fonts/Supplemental/Arial Bold.ttf",
+      "font_size": 16,
+      "phrase_min_duration": 1.5,
+      "phrase_max_duration": 10.0
+    },
+    "karaoke": {
+      "font": "/System/Library/Fonts/Supplemental/Arial Bold.ttf",
+      "font_size": 17,
+      "css_template": ""
+    }
+  },
+  "video_formats": {
+    "format_mode": "reduced",
+    "format_mode_description": "full = all 4 formats (full + hook + educational + intro), reduced = 2 formats (full + intro short). A/B test by alternating weekly.",
+    "full_video": {
+      "enabled": true,
+      "resolution": "1920x1080",
+      "duration": 180
+    },
+    "shorts": {
+      "enabled": true,
+      "resolution": "1080x1920",
+      "hook_duration": 15,
+      "educational_duration": 33,
+      "intro_duration": 60
+    }
+  },
+  "dropbox": {
+    "app_key": "x5fdjkwdfrtt9sn",
+    "app_secret": "4ayjyqn0k3q87p3",
+    "access_token": "sl.u.AGMG00I3WfZJf8ozFPxP72IKR1_zPqW27OTbuiu0Uc32y8kM4ayVc7RTpTfPidvG1RL5pTwWwZVlVMXtWoB86_v0GpFlMlLPFi_J69q4dMrFeUp_KFbrZCjPkK-obYXcC82dKkRr_GwuUyXB4IFYm_tCu1x0VhZhaKFOYBs0xS8woTknMxpPrmuIK_TI_uzWFlr_H9THguZJpJq_ZuoHKWYhCTphGCDML79by-PeoT_nvzoTrYurOXXYW2u-vvIHE7uuSAxPeNvMOOBbDFl7_5tviUVpOCNNAYj864UYg2SJ2mtBP02hL9GNmrElIHP737Z5EkTg2FTxQKO3oPL1ekcZIjeEA15MgRohTMUxImQLOv44Q6lS4BNnmq9PIW_cl29Vrvkl0DqNcQ9VkMUz1F3vJWyKsaiss-88NEQ1hH80N1k5RGZpvYBJDMQHCRm5EKu59q8TX9wwxtIXJxovffX3UMC8GV5glmloYIl6Y7D0yaTuSHTIIKAL_0U7k2pTxBrf0Svbq2mmRdim23QoyTwFciJXXR8igmkm_OBFORNCCmShU26m-hNKvEQBXAlKKZKqjxLcSkjqWXhQ7KZt1qfG9fXciqLMKzYvxOniqUnhR17cj7eMDqIqvJ69q-sDT8G3tvdB_Z9MCP64dOWkF4SjY5I9N2hM5wF8II9mKwt80pGWwcQCgXQB643dmmpYvcBm3QUBT3aBXPctVU8EQ5QDufjqfbsENHtEmtCqiE3zR6MUSLAoLvo6G79rBcix9-xfxLEI31A2uOwt11sE9FZxEI4sFae1yZwPxwBzWSF5PlEhQqRW9jeYIFuSk0X6vLPCwBFeh-EiOryoW4reEq2VBJjdallDhPO8Z1J7uEU-5gPkmwBvZOtXfbhCjKyi8e0o4Ozlk2XyjZzHTmv97bb9U8d1gFBwOCY-hVZL07SQnlEnsZVewuz9At1_9ZjZJdUMevmFQqClXPzoEEAzRxrWw5RIHduPgTfIxcyaOP0aJEO90Pxt69oQX8pAbHEqzzkbY5iaNEmVzvkbHhmQpPQkv1OGQZAjHWvpw7cIJM9yqQq2sDc0IjCtDVFxAbj1sInQtoYZt3GztXvmZHOS8aCWJfFlmJo7JmuvluEcZn0aK-2VunRVBh7ybyQxig0EuWRJVZRZ2BKqreIn1yozpTZOwjb2fxo5zU6OB_rA4ATqnwhdJGhlN9DiNlFL8X-yD_Sdw7rj-nWWlGrZujko5UFHVN2wavNBqa1DzZoApglC5drut1Ryu1YIk7Y8AxTaEjRBteTf5oaFSCy9S5QA6ay9",
+    "refresh_token": "aj0_m6x16_EAAAAAAAAAAY3QH-u6GEFFf4t5smvlwaHcg5VDJWPfnxVWvbKlGFdG"
+  },
+  "zapier": {
+    "webhook_url": "https://hooks.zapier.com/hooks/catch/25706774/uf7q6vp/"
+  },
+  "gmail": {
+    "app_password": "jaty syby lohg syoz"
+  },
+  "fal_api": {
+    "api_key": "f206eb75-a2ec-48a4-8fae-ebd82273358a:2bc3cfd8c3270232773b0da491bccba1"
+  },
+  "ai_clips": {
+    "enabled": true,
+    "count": 3,
+    "duration_seconds": 5,
+    "placement_window_seconds": 60,
+    "fallback_to_stock": true,
+    "max_retries": 2,
+    "lipsync_audio_offset_ms": 100,
+    "lipsync_model": "lipsync-2",
+    "performer_images": {
+      "male": "https://images.pexels.com/photos/1681010/pexels-photo-1681010.jpeg",
+      "female": "https://images.pexels.com/photos/3771089/pexels-photo-3771089.jpeg"
+    }
+  }
+}

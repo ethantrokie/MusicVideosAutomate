@@ -256,22 +256,39 @@ def main():
             print("⚠️  Shorts disabled in config, skipping")
             return
 
-        # Build shorts using format-specific media plans
-        build_hook_short(segments['hook']['start'], segments['hook']['duration'])
-        print()
-        build_educational_short(segments['educational']['start'], segments['educational']['duration'])
-        print()
-        build_intro_short(segments['intro']['start'], segments['intro']['duration'])
-        print()
+        # Check format_mode: "full" = all 4 formats, "reduced" = full + intro only
+        format_mode = video_formats.get('format_mode', 'full')
+        print(f"  Format mode: {format_mode}")
 
-        print("✅ All videos built successfully!")
-        print()
-        print("Output files:")
         output_dir = Path(os.environ.get('OUTPUT_DIR', 'outputs/current'))
-        print(f"  {output_dir}/full.mp4")
-        print(f"  {output_dir}/short_hook.mp4")
-        print(f"  {output_dir}/short_educational.mp4")
-        print(f"  {output_dir}/short_intro.mp4")
+
+        if format_mode == 'reduced':
+            # Reduced mode: only build intro short (starts from beginning of song)
+            print("  Reduced mode: building full + intro short only")
+            build_intro_short(segments['intro']['start'], segments['intro']['duration'])
+            print()
+
+            print("✅ Videos built (reduced mode)!")
+            print()
+            print("Output files:")
+            print(f"  {output_dir}/full.mp4")
+            print(f"  {output_dir}/short_intro.mp4")
+        else:
+            # Full mode: build all shorts
+            build_hook_short(segments['hook']['start'], segments['hook']['duration'])
+            print()
+            build_educational_short(segments['educational']['start'], segments['educational']['duration'])
+            print()
+            build_intro_short(segments['intro']['start'], segments['intro']['duration'])
+            print()
+
+            print("✅ All videos built successfully!")
+            print()
+            print("Output files:")
+            print(f"  {output_dir}/full.mp4")
+            print(f"  {output_dir}/short_hook.mp4")
+            print(f"  {output_dir}/short_educational.mp4")
+            print(f"  {output_dir}/short_intro.mp4")
 
     except Exception as e:
         print(f"❌ Error: {e}", file=sys.stderr)
