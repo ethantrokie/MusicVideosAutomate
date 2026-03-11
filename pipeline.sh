@@ -221,6 +221,15 @@ if [ $START_STAGE -le 3 ]; then
         exit 1
     fi
 
+    # Stage 3.1: Trim audio intro
+    echo "✂️ Trimming audio intro..."
+    if ./venv/bin/python3 agents/trim_audio.py; then
+        echo "✅ Audio trim complete"
+    else
+        echo -e "${YELLOW}⚠️  Audio trim failed, continuing with original audio${NC}"
+    fi
+    echo ""
+
     # Stage 3.5: Create phrase groups for curator
     echo "📝 Creating phrase groups from word-level timestamps..."
     ./agents/3_5_create_phrase_groups.sh

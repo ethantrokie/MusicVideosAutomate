@@ -1,1 +1,107 @@
-{"weeks": []}
+{
+  "weeks": [
+    {
+      "date": "2026-03-08",
+      "videos_analyzed": 15,
+      "total_views": 6780,
+      "total_engagement": 61,
+      "engagement_rate": 0.9,
+      "avg_retention": 50.25,
+      "subscribers_gained": 4,
+      "subscribers_lost": 0,
+      "net_subscribers": 4,
+      "per_video_metrics": {
+        "cQyDq0Sp0GQ": {
+          "title": "How Grain Elevators Work Explained (Music Video)",
+          "views": 1054,
+          "avg_retention": 60.79,
+          "engagement": 5
+        },
+        "SyCiY_sPBy4": {
+          "title": "How Wood Chips Become Paper Explained (Music Video)",
+          "views": 347,
+          "avg_retention": 18.47,
+          "engagement": 3
+        },
+        "i2cntYpX6Xc": {
+          "title": "How Laser Cutters Vaporize Metal Explained (Music Video)",
+          "views": 269,
+          "avg_retention": 41.07,
+          "engagement": 2
+        },
+        "-QfKUVuGylw": {
+          "title": "How Laser Cutters Vaporize Metal Explained (Music Video)",
+          "views": 665,
+          "avg_retention": 59.4,
+          "engagement": 5
+        },
+        "1DEa4GmZcxI": {
+          "title": "How Laser Cutters Vaporize Metal Explained (Music Video)",
+          "views": 1,
+          "avg_retention": 48.19,
+          "engagement": 0
+        },
+        "a1vzFOkzWBw": {
+          "title": "Freeze-Drying Science Explained (Music Video)",
+          "views": 108,
+          "avg_retention": 27.04,
+          "engagement": 3
+        },
+        "Ex-0sbM0ylk": {
+          "title": "How Wood Chips Become Paper Explained (Music Video)",
+          "views": 724,
+          "avg_retention": 31.77,
+          "engagement": 3
+        },
+        "FDaGXa-cISQ": {
+          "title": "How Wood Chips Become Paper Explained (Music Video)",
+          "views": 268,
+          "avg_retention": 112.74,
+          "engagement": 10
+        },
+        "5q5c319eo7g": {
+          "title": "How Wood Chips Become Paper Explained (Music Video)",
+          "views": 2,
+          "avg_retention": 138.63,
+          "engagement": 0
+        },
+        "tO4lf5P0B6g": {
+          "title": "Freeze-Drying Science Explained (Music Video)",
+          "views": 658,
+          "avg_retention": 34.82,
+          "engagement": 10
+        },
+        "VcxZyXIeVWQ": {
+          "title": "Turning Sewage Into Power Explained (Music Video)",
+          "views": 149,
+          "avg_retention": 21.88,
+          "engagement": 1
+        },
+        "qy8SRv0Umf0": {
+          "title": "Freeze-Drying Science Explained (Music Video)",
+          "views": 909,
+          "avg_retention": 52.1,
+          "engagement": 12
+        },
+        "W8B_LR-PolQ": {
+          "title": "Turning Sewage Into Power Explained (Music Video)",
+          "views": 254,
+          "avg_retention": 22.81,
+          "engagement": 3
+        },
+        "G2KzMBC6Vbo": {
+          "title": "Turning Sewage Into Power Explained (Music Video)",
+          "views": 844,
+          "avg_retention": 59.43999999999999,
+          "engagement": 2
+        },
+        "wfwIefIlE24": {
+          "title": "Regenerative Braking Explained (Music Video)",
+          "views": 528,
+          "avg_retention": 24.55,
+          "engagement": 2
+        }
+      }
+    }
+  ]
+}

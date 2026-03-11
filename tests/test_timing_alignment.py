@@ -634,5 +634,90 @@ class TestSynchronizedAssemblyPreservation:
                 )
 
 
+# ============================================================
+# Test: Timeline gap closing prevents cumulative drift
+# ============================================================
+
+class TestTimelineGapClosing:
+    """Verify that gaps between shots are closed to prevent drift."""
+
+    def test_gaps_closed_for_stock_shots(self):
+        """Stock shots should be extended to fill gaps."""
+        from importlib import import_module
+        assemble = import_module("5_assemble_video")
+
+        shots = [
+            {"shot_number": 1, "local_path": "/tmp/s1.mp4", "source": "pexels",
+             "start_time": 0.0, "end_time": 5.0, "duration": 5.0},
+            # 0.2s gap here
+            {"shot_number": 2, "local_path": "/tmp/s2.mp4", "source": "pexels",
+             "start_time": 5.2, "end_time": 10.0, "duration": 4.8},
+            # 0.15s gap here
+            {"shot_number": 3, "local_path": "/tmp/s3.mp4", "source": "pexels",
+             "start_time": 10.15, "end_time": 15.0, "duration": 4.85},
+        ]
+
+        result = assemble._close_timeline_gaps(shots)
+
+        # Shot 1 should absorb 0.2s gap
+        assert abs(result[0]["duration"] - 5.2) < 0.01, (
+            f"Shot 1 duration should be 5.2 (was 5.0 + 0.2 gap), got {result[0]['duration']}"
+        )
+        # Shot 2 should absorb 0.15s gap
+        assert abs(result[1]["duration"] - 4.95) < 0.01, (
+            f"Shot 2 duration should be 4.95 (was 4.8 + 0.15 gap), got {result[1]['duration']}"
+        )
+        # Shot 3 (last) stays the same
+        assert abs(result[2]["duration"] - 4.85) < 0.01
+
+    def test_ai_clips_not_extended(self):
+        """AI clips should NOT be extended — their duration is lip-sync locked."""
+        from importlib import import_module
+        assemble = import_module("5_assemble_video")
+
+        shots = [
+            {"shot_number": 1, "local_path": "/tmp/ai.mp4", "source": "ai_generated",
+             "start_time": 0.0, "end_time": 5.0, "duration": 5.0},
+            # 0.3s gap — should NOT extend the AI clip
+            {"shot_number": 2, "local_path": "/tmp/s1.mp4", "source": "pexels",
+             "start_time": 5.3, "end_time": 10.0, "duration": 4.7},
+        ]
+
+        result = assemble._close_timeline_gaps(shots)
+
+        # AI clip must keep exact duration
+        assert abs(result[0]["duration"] - 5.0) < 0.001, (
+            f"AI clip duration should stay 5.0, got {result[0]['duration']}"
+        )
+
+    def test_cumulative_drift_eliminated(self):
+        """After gap closing, cumulative playback time should match intended start times."""
+        from importlib import import_module
+        assemble = import_module("5_assemble_video")
+
+        shots = [
+            {"shot_number": 1, "local_path": "/tmp/s1.mp4", "source": "pexels",
+             "start_time": 0.0, "end_time": 10.0, "duration": 10.0},
+            {"shot_number": 2, "local_path": "/tmp/s2.mp4", "source": "pexels",
+             "start_time": 10.1, "end_time": 16.0, "duration": 5.9},
+            {"shot_number": 3, "local_path": "/tmp/ai.mp4", "source": "ai_generated",
+             "start_time": 16.2, "end_time": 21.2, "duration": 5.0},
+            {"shot_number": 4, "local_path": "/tmp/s3.mp4", "source": "pexels",
+             "start_time": 21.3, "end_time": 30.0, "duration": 8.7},
+        ]
+
+        result = assemble._close_timeline_gaps(shots)
+
+        # Verify: cumulative duration at AI clip position matches its start_time
+        cumulative = 0.0
+        for shot in result:
+            if shot.get("source") == "ai_generated":
+                drift = abs(cumulative - shot["start_time"])
+                assert drift < 0.05, (
+                    f"AI clip drift should be <50ms after gap closing, got {drift*1000:.0f}ms"
+                )
+            cumulative += shot["duration"]
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

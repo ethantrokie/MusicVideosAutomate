@@ -96,6 +96,10 @@
   "fal_api": {
     "api_key": "f206eb75-a2ec-48a4-8fae-ebd82273358a:2bc3cfd8c3270232773b0da491bccba1"
   },
+  "audio_trim": {
+    "enabled": true,
+    "max_intro_seconds": 2.0
+  },
   "ai_clips": {
     "enabled": true,
     "count": 3,

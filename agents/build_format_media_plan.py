@@ -24,6 +24,56 @@ CLIP_COVERAGE_BUFFER_SECONDS = 15
 FormatType = Literal["full", "hook", "educational", "intro"]
 
 
+def promote_best_opening_clip(shots: List[Dict]) -> List[Dict]:
+    """
+    Move the highest-scoring topic-relevant video clip to position 1.
+    This ensures the first thing viewers see is directly related to the topic,
+    improving first-3-second retention (research: 23% higher with topic-first).
+
+    Only promotes clips that are actual video files (not images) and
+    have a meaningful match score. Does not modify AI-generated clips.
+    """
+    if len(shots) < 2:
+        return shots
+
+    # Find the best-scoring video clip (not image, not AI-generated)
+    best_idx = -1
+    best_score = -1.0
+
+    for i, shot in enumerate(shots):
+        is_video = shot.get("media_type", "").startswith("video")
+        is_stock = shot.get("source", "") != "ai_generated"
+        score = shot.get("match_score", 0.0)
+
+        if is_video and is_stock and score > best_score:
+            best_score = score
+            best_idx = i
+
+    if best_idx <= 0:
+        # Already first, or no suitable clip found
+        return shots
+
+    # Swap: move best clip to position 0, shift others
+    best_clip = shots[best_idx]
+    new_shots = [best_clip] + [s for i, s in enumerate(shots) if i != best_idx]
+
+    # Recalculate start_time/end_time based on new order
+    current_time = 0.0
+    for shot in new_shots:
+        duration = shot.get("duration", shot.get("end_time", 3) - shot.get("start_time", 0))
+        shot["start_time"] = current_time
+        shot["end_time"] = current_time + duration
+        current_time += duration
+
+    # Renumber
+    for i, shot in enumerate(new_shots, 1):
+        shot["shot_number"] = i
+
+    print(f"  🎯 Promoted shot '{best_clip.get('description', '?')[:60]}' to opening (score: {best_score:.2f})")
+
+    return new_shots
+
+
 def integrate_ai_clips(shots: List[Dict], output_dir: str,
                        segment_start: float = 0.0,
                        segment_end: float = None) -> List[Dict]:
@@ -905,6 +955,9 @@ def build_format_plan(format_type: FormatType, target_duration: float,
         print(f"    ✓ Created {len(shot_list)} sequential shots (duration: {total_duration:.1f}s)")
 
     # Integrate AI clips if available (all formats benefit from performer clips)
+    # Promote best topic-relevant clip to opening position (before AI clip integration)
+    shot_list = promote_best_opening_clip(shot_list)
+
     # Pass segment boundaries so AI clips are filtered and time-adjusted
     seg_start = 0.0
     seg_end = None
