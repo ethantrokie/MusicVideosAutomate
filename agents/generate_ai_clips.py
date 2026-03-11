@@ -207,10 +207,14 @@ def main() -> int:
     song_path = get_output_path("song.mp3")
 
     # Generate clips
+    # Record which performer image is being used (for A/B test tracking)
+    performer_variant = Path(performer_image_path).name if not performer_image_path.startswith("http") else performer_image_path
+
     manifest = {
         "generated_at": datetime.now().isoformat(),
         "topic": topic,
         "performer_gender": gender,
+        "performer_variant": performer_variant,
         "total_cost_usd": 0,
         "clips": []
     }

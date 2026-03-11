@@ -48,6 +48,18 @@ def get_now_central() -> datetime:
     return datetime.now(CENTRAL_TZ)
 
 
+def _read_tone_from_run(run_dir: str) -> str:
+    """Read the musical tone from a run's research.json."""
+    research_path = Path(run_dir) / "research.json"
+    if research_path.exists():
+        try:
+            with open(research_path) as f:
+                return json.load(f).get("tone", "unknown")
+        except (json.JSONDecodeError, IOError):
+            pass
+    return "unknown"
+
+
 def add_to_queue(run_dir: str, topic: str, full_id: str, hook_id: str) -> None:
     """
     Add new entry to queue with Day 0 videos marked as uploaded.
@@ -63,6 +75,9 @@ def add_to_queue(run_dir: str, topic: str, full_id: str, hook_id: str) -> None:
             print(f"  Entry already exists for run {run_id}, skipping")
             return
 
+    # Read tone from research.json for A/B test tracking
+    tone = _read_tone_from_run(run_dir)
+
     # Calculate scheduled dates (8 AM Central on Day 1 and Day 2)
     day0_date = now.strftime("%Y-%m-%d")
     day1_date = (now + timedelta(days=1)).strftime("%Y-%m-%d")
@@ -72,6 +87,7 @@ def add_to_queue(run_dir: str, topic: str, full_id: str, hook_id: str) -> None:
         "run_id": run_id,
         "run_dir": run_dir,
         "topic": topic,
+        "tone": tone,
         "created_at": now.isoformat(),
         "videos": {
             "full": {

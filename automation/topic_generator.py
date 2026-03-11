@@ -233,6 +233,89 @@ def analyze_category_distribution(history, recent_count=20):
     }
 
 
+def _get_tone_mode():
+    """
+    Check for active tone A/B test experiment.
+    Returns "baseline" or "diversified" based on the current week.
+    Falls back to "diversified" if no experiment is running.
+    """
+    import json as _json
+    from datetime import datetime as _dt
+
+    experiments_path = Path("automation/state/ab_experiments.json")
+    if not experiments_path.exists():
+        return "diversified"
+
+    try:
+        with open(experiments_path) as f:
+            data = _json.load(f)
+    except (_json.JSONDecodeError, IOError):
+        return "diversified"
+
+    for exp in data.get("experiments", []):
+        if exp.get("status") != "active":
+            continue
+        if exp.get("config_key") != "tone_mode":
+            continue
+
+        created = _dt.fromisoformat(exp["created_at"])
+        elapsed_days = (_dt.now() - created).days
+        current_week = max(1, (elapsed_days // 7) + 1)
+
+        if current_week > exp.get("duration_weeks", 8):
+            continue
+
+        # Odd weeks = control (baseline), even weeks = treatment (diversified)
+        if current_week % 2 == 1:
+            return exp.get("control_value", "baseline")
+        return exp.get("treatment_value", "diversified")
+
+    return "diversified"
+
+
+def _build_tone_prompt_sections():
+    """
+    Build tone guidelines and examples for the topic generator prompt.
+    In "baseline" mode, all categories use proven pop-punk/pop-rock tones.
+    In "diversified" mode, categories use their matched tones.
+    """
+    mode = _get_tone_mode()
+
+    if mode == "baseline":
+        guidelines = """TONE GUIDELINES - Use one of these proven baseline tones:
+- For high-energy topics: energetic pop punk with driving guitars, pounding drums, and rebellious energy
+- For educational/explanatory topics: upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy
+Choose whichever best fits the energy level of the topic. These are the channel's proven performers."""
+
+        examples = """EXAMPLE OUTPUTS:
+Topic: How injection molding creates plastic parts through high-pressure manufacturing
+Tone: energetic pop punk with driving guitars, pounding drums, and rebellious energy
+
+Topic: How photosynthesis converts sunlight into chemical energy in plant cells
+Tone: upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy"""
+
+    else:  # diversified
+        guidelines = """TONE GUIDELINES - Match the musical tone to the topic category:
+- Manufacturing/forging/industrial: energetic pop punk with driving guitars, pounding drums, and rebellious energy
+- Biology/nature/ecology: organic flowing pop with ambient textures, melodic hooks, and warm educational energy
+- Physics/optics/waves: electronic synth-pop with precise beats, crystalline melodies, and futuristic energy
+- Everyday objects/consumer products: upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy
+- Computer science/algorithms: lo-fi electronic with digital glitch textures, steady beats, and curious energy
+- Chemistry/materials science: dynamic progressive rock with building intensity, layered sounds, and discovery energy
+- Earth science/geology: epic orchestral rock with sweeping melodies, thundering drums, and awe-inspiring energy
+- Engineering/mechanical systems: driving rock with mechanical rhythms, powerful guitars, and energetic momentum"""
+
+        examples = """EXAMPLE OUTPUTS:
+Topic: How injection molding creates plastic parts through high-pressure manufacturing
+Tone: energetic pop punk with driving guitars, pounding drums, and rebellious energy
+
+Topic: How photosynthesis converts sunlight into chemical energy in plant cells
+Tone: organic flowing pop with ambient textures, melodic hooks, and warm educational energy"""
+
+    print(f"  🎵 Tone mode: {mode}")
+    return guidelines, examples
+
+
 def generate_topic_via_claude(config, recent_topics, trends_text="", category_guidance=""):
     """Generate topic using Claude Code CLI."""
     categories = ", ".join(config["topic_generation"]["categories"])
@@ -276,6 +359,9 @@ CRITICAL UNIQUENESS REQUIREMENTS:
 
 """
 
+    # Build tone sections based on A/B test state
+    tone_guidelines, tone_examples = _build_tone_prompt_sections()
+
     prompt = f"""SYSTEM CONTEXT: This is an automated pipeline. Do NOT use brainstorming skills. Do NOT ask clarifying questions. Just generate the output directly.
 
 You are a topic generator for educational science videos. Generate ONE topic ONLY.
@@ -305,22 +391,9 @@ CRITICAL OUTPUT FORMAT - Output EXACTLY these two lines with no other text:
 Topic: [specific educational science concept]
 Tone: [musical tone matched to the topic - see guidelines below]
 
-TONE GUIDELINES - Match the musical tone to the topic category:
-- Manufacturing/forging/industrial: heavy industrial rock with metallic percussion, driving bass, and powerful energy
-- Biology/nature/ecology: organic flowing pop with ambient textures, melodic hooks, and warm educational energy
-- Physics/optics/waves: electronic synth-pop with precise beats, crystalline melodies, and futuristic energy
-- Everyday objects/consumer products: upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy
-- Computer science/algorithms: lo-fi electronic with digital glitch textures, steady beats, and curious energy
-- Chemistry/materials science: dynamic progressive rock with building intensity, layered sounds, and discovery energy
-- Earth science/geology: epic orchestral rock with sweeping melodies, thundering drums, and awe-inspiring energy
-- Engineering/mechanical systems: driving rock with mechanical rhythms, powerful guitars, and energetic momentum
+{tone_guidelines}
 
-EXAMPLE OUTPUTS:
-Topic: How injection molding creates plastic parts through high-pressure manufacturing
-Tone: heavy industrial rock with metallic percussion, driving bass, and powerful energy
-
-Topic: How photosynthesis converts sunlight into chemical energy in plant cells
-Tone: organic flowing pop with ambient textures, melodic hooks, and warm educational energy
+{tone_examples}
 
 CRITICAL: This is scenario 1 - an automated system. DO NOT brainstorm. DO NOT ask questions. DO NOT offer choices. DO NOT use markdown formatting. Choose a tone that MATCHES the topic category from the guidelines above. Just output the two lines directly.
 Generate ONE topic now:"""

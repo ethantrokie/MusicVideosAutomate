@@ -1,1 +1,57 @@
-{"experiments": [], "completed": []}
+{
+  "experiments": [
+    {
+      "id": "exp_20260309_144317",
+      "name": "Avatar Appearance: Perfect vs Natural",
+      "config_key": "performer_variant",
+      "control_value": "male.png",
+      "treatment_value": "male_variant_b.png",
+      "duration_weeks": 4,
+      "created_at": "2026-03-09T14:43:17.246683",
+      "status": "active",
+      "current_week": 1,
+      "current_variant": "control",
+      "results": {
+        "control": {
+          "videos": [],
+          "total_views": 0,
+          "total_engagement": 0,
+          "avg_retention": 0
+        },
+        "treatment": {
+          "videos": [],
+          "total_views": 0,
+          "total_engagement": 0,
+          "avg_retention": 0
+        }
+      }
+    },
+    {
+      "id": "exp_20260311_174702",
+      "name": "Musical Tone: Baseline vs Diversified",
+      "config_key": "tone_mode",
+      "control_value": "baseline",
+      "treatment_value": "diversified",
+      "duration_weeks": 8,
+      "created_at": "2026-03-11T17:47:02.000000",
+      "status": "active",
+      "current_week": 1,
+      "current_variant": "control",
+      "results": {
+        "control": {
+          "videos": [],
+          "total_views": 0,
+          "total_engagement": 0,
+          "avg_retention": 0
+        },
+        "treatment": {
+          "videos": [],
+          "total_views": 0,
+          "total_engagement": 0,
+          "avg_retention": 0
+        }
+      }
+    }
+  ],
+  "completed": []
+}

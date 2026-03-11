@@ -20,6 +20,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 from change_guardian import ChangeGuardian
 from youtube_scopes import SCOPES
 from cleanup_old_runs import cleanup_old_runs
+from ab_test_manager import advance_week as advance_ab_tests
 
 
 def get_authenticated_service(api_name, api_version):
@@ -128,6 +129,96 @@ def get_video_analytics(analytics, video_ids):
         }
 
     return metrics
+
+
+def record_ab_test_results(metrics_data):
+    """
+    Record video performance into active A/B experiments.
+    Maps video_id → tone via the upload queue, then records into
+    the tone_mode experiment. Also records performer_variant results.
+    """
+    queue_path = Path("automation/youtube_upload_queue.json")
+    if not queue_path.exists():
+        return
+
+    try:
+        with open(queue_path) as f:
+            queue_data = json.load(f)
+    except (json.JSONDecodeError, IOError):
+        return
+
+    # Build video_id → metadata mapping from queue
+    video_metadata = {}
+    for entry in queue_data.get("queue", []):
+        tone = entry.get("tone", "unknown")
+        run_dir = entry.get("run_dir", "")
+        for video_type, video_info in entry.get("videos", {}).items():
+            vid = video_info.get("video_id")
+            if vid:
+                video_metadata[vid] = {
+                    "tone": tone,
+                    "run_dir": run_dir,
+                }
+
+    # Load experiments
+    experiments_path = Path("automation/state/ab_experiments.json")
+    if not experiments_path.exists():
+        return
+
+    try:
+        with open(experiments_path) as f:
+            exp_data = json.load(f)
+    except (json.JSONDecodeError, IOError):
+        return
+
+    recorded_count = 0
+    for exp in exp_data.get("experiments", []):
+        if exp.get("status") != "active":
+            continue
+
+        variant = exp.get("current_variant", "control")
+        results = exp["results"][variant]
+        existing_video_ids = {v["video_id"] for v in results.get("videos", [])}
+
+        for vid, m in metrics_data.items():
+            if vid in existing_video_ids:
+                continue
+
+            should_record = False
+
+            if exp.get("config_key") == "tone_mode":
+                # Record all videos — tone experiment covers everything
+                should_record = True
+            elif exp.get("config_key") == "performer_variant":
+                # Record all videos — avatar experiment covers everything
+                should_record = True
+
+            if should_record:
+                views = m.get("views", 0)
+                engagement = m.get("likes", 0) + m.get("comments", 0) + m.get("shares", 0)
+                retention = m.get("avg_retention", 0)
+
+                results["videos"].append({
+                    "video_id": vid,
+                    "views": views,
+                    "engagement": engagement,
+                    "retention": retention,
+                    "tone": video_metadata.get(vid, {}).get("tone", "unknown"),
+                    "date": datetime.now().isoformat()
+                })
+                results["total_views"] += views
+                results["total_engagement"] += engagement
+
+                video_count = len(results["videos"])
+                results["avg_retention"] = (
+                    (results["avg_retention"] * (video_count - 1) + retention) / video_count
+                )
+                recorded_count += 1
+
+    if recorded_count > 0:
+        with open(experiments_path, "w") as f:
+            json.dump(exp_data, f, indent=2)
+        print(f"  🧪 Recorded {recorded_count} video results into A/B experiments")
 
 
 def save_analytics_history(metrics_data, report_date):
@@ -388,6 +479,13 @@ def main():
     if errors:
         print(f"   ⚠️  {len(errors)} errors occurred during cleanup")
 
+    # Advance A/B test experiments (date-based, resilient to missed runs)
+    print("\n🧪 Syncing A/B test experiments...")
+    try:
+        advance_ab_tests()
+    except Exception as e:
+        print(f"   ⚠️  A/B test sync failed (non-fatal): {e}")
+
     print()
 
     # Load configs
@@ -426,6 +524,13 @@ def main():
                 'title': video['title'],
                 **metrics[vid]
             }
+
+    # Record video results into active A/B experiments
+    print("Recording A/B experiment results...")
+    try:
+        record_ab_test_results(metrics_data)
+    except Exception as e:
+        print(f"  ⚠️  A/B result recording failed (non-fatal): {e}")
 
     # Analyze with Claude
     print("Analyzing performance with Claude Code...")

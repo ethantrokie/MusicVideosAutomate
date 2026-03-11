@@ -127,10 +127,56 @@ def detect_voice_gender(suno_data: Dict) -> str:
         return "male"  # Default
 
 
+def _get_active_performer_variant(gender: str) -> str:
+    """
+    Check the A/B test manager for an active performer_variant experiment.
+    Computes the correct week from calendar time (resilient to missed
+    weekly optimizer runs or machine restarts).
+
+    Returns:
+        The variant value (e.g. "male.png" or "male_variant_b.png") if an
+        active experiment exists, or None if no experiment is running.
+    """
+    import json
+    from datetime import datetime
+
+    experiments_path = Path("automation/state/ab_experiments.json")
+    if not experiments_path.exists():
+        return None
+
+    try:
+        with open(experiments_path) as f:
+            data = json.load(f)
+    except (json.JSONDecodeError, IOError):
+        return None
+
+    for exp in data.get("experiments", []):
+        if exp.get("status") != "active":
+            continue
+        if exp.get("config_key") != "performer_variant":
+            continue
+
+        # Compute correct week from creation date (not stored counter)
+        created = datetime.fromisoformat(exp["created_at"])
+        elapsed_days = (datetime.now() - created).days
+        current_week = max(1, (elapsed_days // 7) + 1)
+
+        # Check if experiment has expired
+        if current_week > exp.get("duration_weeks", 4):
+            continue
+
+        # Odd weeks = control, even weeks = treatment
+        if current_week % 2 == 1:
+            return exp.get("control_value")
+        return exp.get("treatment_value")
+
+    return None
+
+
 def get_performer_image_path(gender: str, config: dict = None) -> str:
     """
     Get performer image path or URL for video generation.
-    Checks for local images in assets/performers/ first, then falls back to URLs.
+    Checks A/B test variant first, then local images, then config URLs.
 
     Args:
         gender: "male" or "female"
@@ -139,7 +185,15 @@ def get_performer_image_path(gender: str, config: dict = None) -> str:
     Returns:
         Local path or URL to performer reference image
     """
-    # Check for local performer images first
+    # Check for active A/B test variant
+    variant_filename = _get_active_performer_variant(gender)
+    if variant_filename:
+        variant_path = Path(f"assets/performers/{variant_filename}")
+        if variant_path.exists():
+            print(f"  🧪 A/B test active: using performer variant '{variant_filename}'")
+            return str(variant_path.absolute())
+
+    # Check for local performer images (default)
     local_paths = {
         "male": Path("assets/performers/male.png"),
         "female": Path("assets/performers/female.png")

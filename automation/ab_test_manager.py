@@ -69,8 +69,25 @@ def get_current_config_for_experiment(experiment):
     return "treatment", experiment["treatment_value"]
 
 
+def sync_experiment_week(experiment):
+    """
+    Compute the correct week number from the experiment's creation date.
+    This is resilient to missed runs (machine off, skipped Sundays) —
+    the week is always derived from elapsed calendar time, not incremented.
+
+    Returns:
+        The calculated week number (1-based).
+    """
+    created = datetime.fromisoformat(experiment["created_at"])
+    elapsed_days = (datetime.now() - created).days
+    return max(1, (elapsed_days // 7) + 1)
+
+
 def advance_week(experiment_id=None):
-    """Advance all active experiments to the next week."""
+    """
+    Sync all active experiments to the correct week based on calendar time.
+    Resilient to machine restarts and missed runs.
+    """
     data = load_experiments()
 
     for exp in data["experiments"]:
@@ -79,13 +96,18 @@ def advance_week(experiment_id=None):
         if experiment_id and exp["id"] != experiment_id:
             continue
 
-        exp["current_week"] += 1
+        correct_week = sync_experiment_week(exp)
+        old_week = exp["current_week"]
+        exp["current_week"] = correct_week
         variant, value = get_current_config_for_experiment(exp)
         exp["current_variant"] = variant
 
-        print(f"Experiment '{exp['name']}': Week {exp['current_week']} -> {variant} ({value})")
+        if correct_week != old_week:
+            print(f"Experiment '{exp['name']}': Week {old_week} -> {correct_week} ({variant}: {value})")
+        else:
+            print(f"Experiment '{exp['name']}': Week {correct_week} ({variant}: {value}) — no change")
 
-        if exp["current_week"] > exp["duration_weeks"]:
+        if correct_week > exp["duration_weeks"]:
             exp["status"] = "completed"
             print(f"  Experiment completed! Moving to results.")
             data["completed"].append(exp)
