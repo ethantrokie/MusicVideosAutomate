@@ -1,6 +1,6 @@
 import React from "react";
 import { AbsoluteFill, Sequence } from "remotion";
-import { EduImageRegions } from "./EduImageRegions";
+import { EduSvgDiagram } from "./EduSvgDiagram";
 import { KaraokeSubtitles } from "./KaraokeSubtitles";
 import { HookText } from "./HookText";
 import { TitleCard } from "./TitleCard";
@@ -17,7 +17,6 @@ export const OverlayComposition: React.FC<OverlayProps> = (props) => {
     channelName,
     isShort,
     phrases,
-    eduImages,
     shotBoundaries,
     animateHook,
     karaokeEnabled,
@@ -49,14 +48,23 @@ export const OverlayComposition: React.FC<OverlayProps> = (props) => {
             );
           })}
 
-      {/* Layer 2: Educational image reveals (at their scheduled times) */}
+      {/* Layer 2: SVG Diagrams */}
       {eduRevealEnabled &&
-        eduImages.map((image, i) => {
-          const startFrame = Math.round((image.startMs / 1000) * fps);
-          const durationFrames = Math.round(((image.endMs - image.startMs) / 1000) * fps);
+        props.eduDiagrams?.map((diagram, i) => {
+          const startFrame = Math.round((diagram.startMs / 1000) * fps);
+          const durationFrames = Math.round(
+            ((diagram.endMs - diagram.startMs) / 1000) * fps,
+          );
           return (
-            <Sequence key={`edu-${i}`} from={startFrame} durationInFrames={durationFrames}>
-              <EduImageRegions image={image} />
+            <Sequence
+              key={`svg-diagram-${i}`}
+              from={startFrame}
+              durationInFrames={durationFrames}
+            >
+              <EduSvgDiagram
+                svgContent={diagram.svgContent}
+                concept={diagram.concept}
+              />
             </Sequence>
           );
         })}
