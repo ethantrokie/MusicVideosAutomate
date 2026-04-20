@@ -119,7 +119,8 @@
     "duration_seconds": 6.0,
     "min_count": 5,
     "max_count": 10,
-    "model": "fal-ai/reve/text-to-image",
+    "svg_model": "claude-sonnet-4-6",
+    "fal_embed_model": "fal-ai/reve/text-to-image",
     "fallback_to_stock": true,
     "style": "hand-drawn whiteboard sketch, dark charcoal background, white chalk-like lines, educational diagram, minimal labels in upper portion"
   },

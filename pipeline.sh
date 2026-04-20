@@ -311,41 +311,19 @@ if [ $START_STAGE -le 4 ]; then
     echo ""
 fi
 
-# Stage 4.6: Educational Image Generation
+# Stage 4.6: Educational SVG Diagram Generation
 if [ $START_STAGE -le 4 ]; then
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${BLUE}Stage 4.6/7: Educational Image Generation${NC}"
+    echo -e "${BLUE}Stage 4.6/7: Educational SVG Diagram Generation${NC}"
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 
-    echo "🎨 Generating educational concept images..."
-    if ./venv/bin/python3 agents/generate_educational_images.py; then
-        echo "✅ Educational image generation complete"
+    echo "🎨 Generating educational SVG diagrams..."
+    if ./venv/bin/python3 agents/generate_edu_svg.py; then
+        echo "✅ SVG diagram generation complete"
     else
-        echo -e "${YELLOW}⚠️  Educational image generation failed, will use stock footage only${NC}"
+        echo -e "${YELLOW}⚠️  SVG diagram generation failed, will use stock footage only${NC}"
     fi
-
-    # Snapshot active A/B experiment variants for this video
-    echo "🧪 Capturing A/B experiment snapshot..."
-    ./venv/bin/python3 agents/experiment_snapshot.py || true
     echo ""
-fi
-
-# Stage 4.7: Educational Image Region Analysis
-if [ $START_STAGE -le 4 ]; then
-    EDU_MANIFEST="${RUN_DIR}/educational_images/edu_image_manifest.json"
-    if [ -f "$EDU_MANIFEST" ]; then
-        echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-        echo -e "${BLUE}Stage 4.7: Educational Image Region Analysis${NC}"
-        echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-
-        echo "🔍 Analyzing image regions for animation..."
-        if ./venv/bin/python3 agents/analyze_edu_image_regions.py; then
-            echo "✅ Image region analysis complete"
-        else
-            echo -e "${YELLOW}⚠️  Region analysis failed, will use fallback animations${NC}"
-        fi
-        echo ""
-    fi
 fi
 
 # Stage 5: Media Curation
