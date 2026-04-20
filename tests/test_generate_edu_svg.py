@@ -128,3 +128,67 @@ def test_parse_claude_response_returns_none_for_invalid():
     from generate_edu_svg import parse_claude_response
     assert parse_claude_response("no svg here at all") is None
     assert parse_claude_response("") is None
+
+
+from unittest.mock import patch
+
+
+def test_generate_single_svg_calls_claude():
+    from generate_edu_svg import generate_single_svg
+
+    mock_svg = '''<svg viewBox="0 0 1080 720" xmlns="http://www.w3.org/2000/svg">
+      <rect width="1080" height="720" fill="#1a1a2e"/>
+      <g id="title" data-order="1" data-delay="0">
+        <text x="540" y="80" fill="#ffd700">Test</text>
+      </g>
+      <g id="detail" data-order="2" data-delay="800">
+        <rect x="200" y="300" width="120" height="180" stroke="#e0e0e0"/>
+      </g>
+    </svg>'''
+
+    with patch("generate_edu_svg._call_claude_svg") as mock_call:
+        mock_call.return_value = mock_svg
+        result = generate_single_svg(
+            key_fact="Force equals pressure times area",
+            topic="Hydraulic systems",
+        )
+
+    assert result is not None
+    assert result["svg_content"] is not None
+    assert result["group_count"] == 2
+    assert result["generation_status"] == "success"
+    mock_call.assert_called_once()
+
+
+def test_generate_single_svg_retries_on_invalid():
+    from generate_edu_svg import generate_single_svg
+
+    invalid_svg = "<svg><not valid</svg>"
+    valid_svg = '''<svg viewBox="0 0 1080 720">
+      <g id="a" data-order="1" data-delay="0"><rect x="0" y="0" width="100" height="100"/></g>
+      <g id="b" data-order="2" data-delay="500"><text x="50" y="50">B</text></g>
+    </svg>'''
+
+    with patch("generate_edu_svg._call_claude_svg") as mock_call:
+        mock_call.side_effect = [invalid_svg, valid_svg]
+        result = generate_single_svg(
+            key_fact="Test concept",
+            topic="Test topic",
+        )
+
+    assert result["generation_status"] == "success"
+    assert mock_call.call_count == 2
+
+
+def test_generate_single_svg_falls_back_on_double_failure():
+    from generate_edu_svg import generate_single_svg
+
+    with patch("generate_edu_svg._call_claude_svg") as mock_call:
+        mock_call.return_value = None
+        result = generate_single_svg(
+            key_fact="Test concept",
+            topic="Test topic",
+        )
+
+    assert result["generation_status"] == "fallback"
+    assert result.get("svg_content") is None
