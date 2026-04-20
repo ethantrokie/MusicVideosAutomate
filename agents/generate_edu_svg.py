@@ -500,11 +500,15 @@ Output ONLY valid JSON array, no markdown, no explanation:
                     else "\n".join(lines[1:])
                 )
             concepts = json.loads(output)
-            # Clamp durations to 10-15s (Claude may return shorter)
+            # Clamp durations to 10-15s and prevent overlaps
+            prev_end = 0.0
             for c in concepts:
                 duration = max(10.0, min(15.0, c.get("duration", 10.0)))
+                start = max(c.get("start_time", 0), prev_end + 1.0)  # 1s gap minimum
+                c["start_time"] = start
                 c["duration"] = duration
-                c["end_time"] = c.get("start_time", 0) + duration
+                c["end_time"] = start + duration
+                prev_end = c["end_time"]
             return concepts
 
     except Exception as exc:
@@ -536,12 +540,15 @@ def _fallback_concept_timing(
     step = max(1, len(phrase_groups) // max(1, len(facts_to_use)))
 
     concepts = []
+    prev_end = 0.0
     for i, fact in enumerate(facts_to_use):
         group_idx = min(i * step, len(phrase_groups) - 1)
         group = phrase_groups[group_idx]
         start = group.get("startS", group.get("start_time", i * 5.0))
+        start = max(start, prev_end + 1.0)  # Prevent overlap, 1s gap minimum
         end = group.get("endS", group.get("end_time", start + 3.0))
         duration = min(15.0, max(10.0, end - start))
+        prev_end = start + duration
         concepts.append(
             {
                 "key_fact": fact,
