@@ -199,15 +199,27 @@ def _build_edu_diagrams(run_dir: Path) -> List[Dict]:
         return []
 
     manifest = _read_json(svg_manifest_path)
-    if manifest.get("format") != "svg":
-        return []
+
+    # Support both manifest formats: "diagrams" (spec) and "svgs" (actual agent output)
+    entries = manifest.get("diagrams", manifest.get("svgs", []))
 
     diagrams = []
-    for d in manifest.get("diagrams", []):
-        if d.get("generation_status") != "success" or not d.get("svg_content"):
+    for d in entries:
+        if d.get("generation_status") != "success":
             continue
+
+        # SVG content can be inline ("svg_content") or in a file ("svg_file")
+        svg_content = d.get("svg_content", "")
+        if not svg_content and d.get("svg_file"):
+            svg_path = edu_dir / d["svg_file"]
+            if svg_path.exists():
+                svg_content = svg_path.read_text()
+
+        if not svg_content:
+            continue
+
         diagrams.append({
-            "svgContent": d["svg_content"],
+            "svgContent": svg_content,
             "concept": d.get("key_fact", ""),
             "startMs": _seconds_to_ms(d.get("start_time", 0)),
             "endMs": _seconds_to_ms(d.get("end_time", 0)),
