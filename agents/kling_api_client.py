@@ -98,7 +98,8 @@ class KlingAPIClient:
                     arguments={
                         "image_url": image_url,
                         "audio_url": audio_url,
-                        "prompt": prompt
+                        "prompt": prompt + " Mostly steady camera with only subtle, slow movement.",
+                        "negative_prompt": "fast zoom, rapid pan, shaky camera, dutch angle, spinning, handheld, crane shot, dolly zoom"
                     }
                 )
 

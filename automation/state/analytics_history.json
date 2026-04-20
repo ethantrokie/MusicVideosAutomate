@@ -102,6 +102,432 @@
           "engagement": 2
         }
       }
+    },
+    {
+      "date": "2026-03-15",
+      "videos_analyzed": 14,
+      "total_views": 2102,
+      "total_engagement": 19,
+      "engagement_rate": 0.9,
+      "avg_retention": 41.47,
+      "subscribers_gained": 1,
+      "subscribers_lost": 0,
+      "net_subscribers": 1,
+      "per_video_metrics": {
+        "x0cJVt_V9xs": {
+          "title": "How These Tiny Steel Spheres Reduce Friction by 99%",
+          "views": 62,
+          "avg_retention": 24.11,
+          "engagement": 3
+        },
+        "dSW8kqv5WQM": {
+          "title": "The 21-Step Process Behind Every Bearing in Your Car",
+          "views": 1,
+          "avg_retention": 93.27,
+          "engagement": 0
+        },
+        "47fE1KRzL3E": {
+          "title": "The Plant That Combines 5 Materials Into Perfect Concrete",
+          "views": 180,
+          "avg_retention": 27.46,
+          "engagement": 4
+        },
+        "2oaPWn_HtPo": {
+          "title": "How Glass Becomes 5X Stronger Than Steel (Per Pound)",
+          "views": 1,
+          "avg_retention": 1.29,
+          "engagement": 0
+        },
+        "8vbluheNxtY": {
+          "title": "Safety Glass: The Invisible Sandwich That Saves Lives",
+          "views": 82,
+          "avg_retention": 28.98,
+          "engagement": 2
+        },
+        "5wFZPN-t_Q0": {
+          "title": "How Chocolate Goes From Liquid to That Satisfying Crack",
+          "views": 67,
+          "avg_retention": 29.15,
+          "engagement": 1
+        },
+        "rhXepIcrW3o": {
+          "title": "The Hidden Gears That Shift Your Car Without You Touching Them",
+          "views": 229,
+          "avg_retention": 25.95,
+          "engagement": 2
+        },
+        "fq9wreImEo0": {
+          "title": "The 2,000 Moving Parts That Shift Your Car&#39;s Gears For You",
+          "views": 1,
+          "avg_retention": 99.81,
+          "engagement": 0
+        },
+        "c4zS2R-9fPg": {
+          "title": "This Machine Cuts 3D Parts From Solid Metal Blocks",
+          "views": 308,
+          "avg_retention": 17.96,
+          "engagement": 1
+        },
+        "jVI5RcVXe5k": {
+          "title": "Chocolate&#39;s Snap Comes From 1 of 6 Possible Crystal Forms",
+          "views": 57,
+          "avg_retention": 25.509999999999998,
+          "engagement": 0
+        },
+        "-JGqWa1bQV4": {
+          "title": "The 3-Second Window That Makes Chocolate Snap Perfectly",
+          "views": 333,
+          "avg_retention": 58.59000000000001,
+          "engagement": 2
+        },
+        "_S_WKWsfeNY": {
+          "title": "The Temperature Trick That Gives Chocolate Its Crack",
+          "views": 1,
+          "avg_retention": 99.66,
+          "engagement": 1
+        },
+        "JvHhWE92gx8": {
+          "title": "The Factory Process That Shapes 70% of Modern Buildings",
+          "views": 194,
+          "avg_retention": 19.67,
+          "engagement": 0
+        },
+        "fV5njdOFLbk": {
+          "title": "How a Single Machine Makes 90% of Metal Parts You Touch",
+          "views": 586,
+          "avg_retention": 29.14,
+          "engagement": 3
+        }
+      }
+    },
+    {
+      "date": "2026-03-22",
+      "videos_analyzed": 8,
+      "total_views": 2298,
+      "total_engagement": 27,
+      "engagement_rate": 1.17,
+      "avg_retention": 29.23,
+      "subscribers_gained": 2,
+      "subscribers_lost": 0,
+      "net_subscribers": 2,
+      "per_video_metrics": {
+        "ivKU_IsOJhI": {
+          "title": "The Hidden System That Translates Every URL You Visit",
+          "views": 1,
+          "avg_retention": 0.0,
+          "engagement": 0
+        },
+        "iRAPF6VfWg0": {
+          "title": "The Hidden System That Routes 2.5 Billion Web Requests Per Second",
+          "views": 1,
+          "avg_retention": 1.51,
+          "engagement": 0
+        },
+        "5pvbQPACyVU": {
+          "title": "Why Every Web Request Needs 3 Secret Handshakes to Work",
+          "views": 578,
+          "avg_retention": 26.649999999999995,
+          "engagement": 5
+        },
+        "ozLpEJKP5ic": {
+          "title": "Why Every Website Request Travels in Tiny Broken Pieces",
+          "views": 1,
+          "avg_retention": 99.95,
+          "engagement": 0
+        },
+        "SW7gmIPBuLQ": {
+          "title": "From Beach Sand to Billions of Transistors in 12 Weeks",
+          "views": 596,
+          "avg_retention": 31.52,
+          "engagement": 10
+        },
+        "zI7Ml8w65GI": {
+          "title": "How We Fit 50 Billion Transistors on Your Fingernail",
+          "views": 1,
+          "avg_retention": 18.4,
+          "engagement": 0
+        },
+        "1waKFy56sDI": {
+          "title": "How a Device Shocks Your Heart 100,000 Times a Day",
+          "views": 289,
+          "avg_retention": 27.04,
+          "engagement": 7
+        },
+        "Et_VI8VQjQI": {
+          "title": "The 200-Year-Old Trick That Powers Everything You Own",
+          "views": 831,
+          "avg_retention": 28.76,
+          "engagement": 5
+        }
+      }
+    },
+    {
+      "date": "2026-03-29",
+      "videos_analyzed": 3,
+      "total_views": 657,
+      "total_engagement": 10,
+      "engagement_rate": 1.52,
+      "avg_retention": 20.77,
+      "subscribers_gained": 0,
+      "subscribers_lost": 0,
+      "net_subscribers": 0,
+      "per_video_metrics": {
+        "ZvU8qCL35vY": {
+          "title": "Why Ball Bearings Make Your Bike 20x More Efficient",
+          "views": 401,
+          "avg_retention": 28.51,
+          "engagement": 9
+        },
+        "n1ZE950z05k": {
+          "title": "The 2,000-Ton Press That Shapes Every Car You&#39;ve Ever Seen",
+          "views": 1,
+          "avg_retention": 15.629999999999999,
+          "engagement": 0
+        },
+        "jKUB2ek9DuA": {
+          "title": "From Steel Coil to Fender: The Force Behind Every Car",
+          "views": 255,
+          "avg_retention": 18.16,
+          "engagement": 1
+        }
+      }
+    },
+    {
+      "date": "2026-04-05",
+      "videos_analyzed": 7,
+      "total_views": 2974,
+      "total_engagement": 30,
+      "engagement_rate": 1.01,
+      "avg_retention": 30.26,
+      "subscribers_gained": 2,
+      "subscribers_lost": 0,
+      "net_subscribers": 2,
+      "per_video_metrics": {
+        "aoxDHtzyftE": {
+          "title": "This Spinning Fan Adds 50% More Power to Any Engine",
+          "views": 0,
+          "avg_retention": 0.0,
+          "engagement": 0
+        },
+        "D8uQD65VQJ4": {
+          "title": "The Hidden Fan That Doubles Your Engine&#39;s Power",
+          "views": 225,
+          "avg_retention": 70.94,
+          "engagement": 2
+        },
+        "nsL5JoBoFlo": {
+          "title": "The Tiny Device That Fires 1 Million Times Per Mile",
+          "views": 826,
+          "avg_retention": 30.17,
+          "engagement": 12
+        },
+        "3fH96W4ztMU": {
+          "title": "How a relay works",
+          "views": 258,
+          "avg_retention": 39.27,
+          "engagement": 6
+        },
+        "IobncE_PsG0": {
+          "title": "The Secret Tubes Hidden Inside Every Hospital",
+          "views": 1314,
+          "avg_retention": 25.44,
+          "engagement": 4
+        },
+        "vu3VT0bYP74": {
+          "title": "Why Your Car Stops Faster Than a Formula 1 Race Car",
+          "views": 1,
+          "avg_retention": 3.29,
+          "engagement": 0
+        },
+        "AfuTfNLcRV0": {
+          "title": "How Disc Brakes Squeeze With 2,000 Pounds of Force",
+          "views": 350,
+          "avg_retention": 42.74,
+          "engagement": 6
+        }
+      }
+    },
+    {
+      "date": "2026-04-12",
+      "videos_analyzed": 9,
+      "total_views": 817,
+      "total_engagement": 8,
+      "engagement_rate": 0.98,
+      "avg_retention": 27.19,
+      "subscribers_gained": 1,
+      "subscribers_lost": 0,
+      "net_subscribers": 1,
+      "per_video_metrics": {
+        "9S319j5NcDY": {
+          "title": "Why Centrifugal Pumps Move Millions of Gallons Without a Piston",
+          "views": 270,
+          "avg_retention": 50.4,
+          "engagement": 1
+        },
+        "KeFvFOawjj4": {
+          "title": "Why Centrifugal Pumps Fail the Moment Air Gets Inside Them",
+          "views": 1,
+          "avg_retention": 21.23,
+          "engagement": 0
+        },
+        "4CTB7I9knHU": {
+          "title": "Why Your AC Compressor Spins 3,600 Times Every Minute",
+          "views": 273,
+          "avg_retention": 33.18,
+          "engagement": 4
+        },
+        "MDvfBB2t8dI": {
+          "title": "The 2000\u00b0F Process Behind Every Plastic Bottle You&#39;ve Touched",
+          "views": 156,
+          "avg_retention": 33.57,
+          "engagement": 1
+        },
+        "V26nzDQHW4M": {
+          "title": "The 3-Second Process Behind a Billion Plastic Bottles",
+          "views": 1,
+          "avg_retention": 15.73,
+          "engagement": 0
+        },
+        "0akALMjBgSw": {
+          "title": "Why Your LCD Screen Goes Black When You Press It Too Hard",
+          "views": 80,
+          "avg_retention": 34.8,
+          "engagement": 1
+        },
+        "9715MBm_bhI": {
+          "title": "Why LCD Pixels Can&#39;t Actually Glow \u2014 And What Tricks Them Into Light",
+          "views": 1,
+          "avg_retention": 24.58,
+          "engagement": 0
+        },
+        "ACGxtfYpdtY": {
+          "title": "The Hidden Torque Converter Trick That Saves Millions in Fuel",
+          "views": 1,
+          "avg_retention": 5.41,
+          "engagement": 0
+        },
+        "2KtC4tVUw-s": {
+          "title": "The Donut-Shaped Part That Multiplies Your Engine&#39;s Torque",
+          "views": 34,
+          "avg_retention": 25.8,
+          "engagement": 1
+        }
+      }
+    },
+    {
+      "date": "2026-04-19",
+      "videos_analyzed": 17,
+      "total_views": 2888,
+      "total_engagement": 48,
+      "engagement_rate": 1.66,
+      "avg_retention": 51.71,
+      "subscribers_gained": 6,
+      "subscribers_lost": 0,
+      "net_subscribers": 6,
+      "per_video_metrics": {
+        "gcKe7_6qXgA": {
+          "title": "Your Heart Beats 100,000 Times a Day\u2014Here&#39;s the Brutal Mechanics",
+          "views": 120,
+          "avg_retention": 79.65,
+          "engagement": 2
+        },
+        "KKSdAVNO_6U": {
+          "title": "Why MRI Machines Sound Like Construction Sites Inside Hospitals",
+          "views": 195,
+          "avg_retention": 30.75,
+          "engagement": 1
+        },
+        "1hs7OyvvWdA": {
+          "title": "The Trick That Lets Transistors Clone and Boost Any Sound",
+          "views": 93,
+          "avg_retention": 23.95,
+          "engagement": 1
+        },
+        "3h1mOCEyfnI": {
+          "title": "Why MRI Machines Hum at 63 Million Times Per Second",
+          "views": 55,
+          "avg_retention": 60.53999999999999,
+          "engagement": 1
+        },
+        "a1hMRr7Uln4": {
+          "title": "How Transistors Multiply Electricity Out of Thin Air",
+          "views": 85,
+          "avg_retention": 56.779999999999994,
+          "engagement": 1
+        },
+        "HYZXm_udMzU": {
+          "title": "What Happens Inside Your Brakes When You Slam the Pedal at 60mph",
+          "views": 65,
+          "avg_retention": 28.84,
+          "engagement": 2
+        },
+        "Cc9yQHIUndE": {
+          "title": "The Physics Behind Why Small Signals Become Big Ones",
+          "views": 209,
+          "avg_retention": 69.55,
+          "engagement": 1
+        },
+        "vSqQ9CefhbE": {
+          "title": "The Tiny Voltage Spike That Controls Every Move You Make",
+          "views": 151,
+          "avg_retention": 26.11,
+          "engagement": 3
+        },
+        "3P7wUFEz4qE": {
+          "title": "How Pumping Your Brakes 15 Times Per Second Prevents Crashes",
+          "views": 269,
+          "avg_retention": 33.43,
+          "engagement": 4
+        },
+        "i-vGwsjOBYw": {
+          "title": "Why Your Car Pumps Its Own Brakes 18 Times Per Second",
+          "views": 119,
+          "avg_retention": 57.46,
+          "engagement": 1
+        },
+        "HcafJTK3gys": {
+          "title": "Why Slamming Your Brakes at 60mph Actually Makes You Crash Faster",
+          "views": 12,
+          "avg_retention": 44.11,
+          "engagement": 6
+        },
+        "cEaPIbi2qJ0": {
+          "title": "Why Locking Your Brakes Makes You Crash Harder",
+          "views": 77,
+          "avg_retention": 20.34,
+          "engagement": 1
+        },
+        "sVlQr9PStKw": {
+          "title": "The Tiny Chemical Handshake Behind Every Thought You&#39;ve Ever Had",
+          "views": 7,
+          "avg_retention": 55.35,
+          "engagement": 1
+        },
+        "8gy5dZTlM6Q": {
+          "title": "How a Chemical Reaction in Your Nerve Travels 270 mph",
+          "views": 1,
+          "avg_retention": 28.17,
+          "engagement": 1
+        },
+        "0hfOAWWvMrU": {
+          "title": "Why Nerve Impulses Fire in One Direction and Never Go Back",
+          "views": 47,
+          "avg_retention": 94.35,
+          "engagement": 2
+        },
+        "h84Guqb_CUM": {
+          "title": "The Hidden Pump Inside Your Brakes That Fires 18 Times a Second",
+          "views": 823,
+          "avg_retention": 40.03,
+          "engagement": 13
+        },
+        "KVcG7tz3gEE": {
+          "title": "Why a Single Ping Can Expose a Submarine Miles Away",
+          "views": 560,
+          "avg_retention": 129.66,
+          "engagement": 7
+        }
+      }
     }
   ]
 }

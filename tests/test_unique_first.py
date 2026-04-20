@@ -12,7 +12,7 @@ available_clips = [
 total_available = sum(c["actual_duration"] for c in available_clips)
 num_clips = len(available_clips)
 
-def test_scenario(name, target_duration):
+def run_scenario(name, target_duration):
     print(f"\n{'='*60}")
     print(f"Scenario: {name}")
     print(f"{'='*60}")
@@ -52,10 +52,10 @@ def test_scenario(name, target_duration):
         print(f"    Average reuse per clip: {avg_reuse:.1f}x")
 
 # Test scenarios
-test_scenario("Hook short (60s)", 60.0)
-test_scenario("Educational short (90s)", 90.0)
-test_scenario("Standard full (160s)", 160.9)
-test_scenario("Long full (220s)", 220.0)
+run_scenario("Hook short (60s)", 60.0)
+run_scenario("Educational short (90s)", 90.0)
+run_scenario("Standard full (160s)", 160.9)
+run_scenario("Long full (220s)", 220.0)
 
 print(f"\n{'='*60}")
 print(f"Summary: Unique-first maximizes visual variety by avoiding")

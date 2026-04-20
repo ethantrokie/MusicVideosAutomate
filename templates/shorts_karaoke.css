@@ -23,10 +23,10 @@
   animation: pop-in 0.2s ease-out;
 }
 
-/* Currently narrated word - bright gold highlight */
+/* Currently narrated word - bright gold highlight with vertical bounce */
 .word-being-narrated {
   color: #FFD700;
-  transform: scale(1.15);
+  transform: translateY(-4px);
   filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.8));
 }
 

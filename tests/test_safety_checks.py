@@ -8,7 +8,7 @@ available_clips = [
                             13.666, 10.010, 19.040, 8.040], 1)
 ]
 
-def test_scenario(name, target_duration):
+def run_scenario(name, target_duration):
     print(f"\n{'='*60}")
     print(f"Scenario: {name}")
     print(f"{'='*60}")
@@ -47,11 +47,11 @@ def test_scenario(name, target_duration):
         print(f"📊 Strategy: Limit to {max_reuse}x clip reuse for variety")
 
 # Test scenarios
-test_scenario("Short video (30s)", 30.0)
-test_scenario("Medium video (90s)", 90.0)  
-test_scenario("Standard full (160s)", 160.9)
-test_scenario("Long full (220s) - Edge Case", 220.0)
-test_scenario("Very long (250s) - Critical", 250.0)
+run_scenario("Short video (30s)", 30.0)
+run_scenario("Medium video (90s)", 90.0)  
+run_scenario("Standard full (160s)", 160.9)
+run_scenario("Long full (220s) - Edge Case", 220.0)
+run_scenario("Very long (250s) - Critical", 250.0)
 
 print(f"\n{'='*60}")
 print(f"Summary: Safety checks will warn about insufficient clips")

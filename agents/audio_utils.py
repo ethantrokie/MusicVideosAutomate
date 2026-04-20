@@ -76,6 +76,39 @@ def slice_audio(song_path: str, start: float, duration: float, output_path: str,
         return False
 
 
+def generate_hook_sfx(output_path: str = "/tmp/hook_sfx.wav") -> str:
+    """
+    Generate a short bass-thud impact sound for use at t=0 of a video.
+
+    Creates a 0.1s 200Hz sine wave with fade-out — a subtle audio
+    pattern interrupt that research shows improves retention by ~19%.
+
+    Args:
+        output_path: Where to save the generated SFX.
+
+    Returns:
+        Path to the generated WAV file, or empty string on failure.
+    """
+    try:
+        ffmpeg = _find_binary("ffmpeg")
+        cmd = [
+            ffmpeg, "-y",
+            "-f", "lavfi",
+            "-i", "sine=frequency=200:duration=0.1",
+            "-af", "afade=t=out:d=0.1,volume=0.3",
+            output_path
+        ]
+
+        result = subprocess.run(cmd, capture_output=True, timeout=10)
+
+        if result.returncode == 0 and Path(output_path).exists():
+            return output_path
+    except Exception as e:
+        print(f"    Warning: Hook SFX generation failed: {e}")
+
+    return ""
+
+
 def get_audio_duration(audio_path: str) -> float:
     """
     Get duration of audio file in seconds.

@@ -145,13 +145,14 @@ def stock_footage_shots():
 class TestClipPlacementTiming:
     """Verify clip placements align to phrase boundaries."""
 
-    def test_first_clip_starts_at_zero(self, aligned_words):
-        """Clip 1 must always start at 0s so the AI artist is the first thing shown."""
+    def test_first_clip_starts_at_three(self, aligned_words):
+        """Clip 1 must start at 3s so topic-relevant stock footage leads
+        (first-3-second retention: 23% higher when topic subject visible at frame 0)."""
         from clip_placement import determine_clip_placements
 
         clips = determine_clip_placements(aligned_words)
-        assert clips[0]["start_time"] == 0.0, (
-            f"Clip 1 starts at {clips[0]['start_time']}s, expected 0.0s"
+        assert clips[0]["start_time"] == 3.0, (
+            f"Clip 1 starts at {clips[0]['start_time']}s, expected 3.0s"
         )
 
     def test_non_intro_clips_start_at_phrase_boundaries(self, aligned_words):

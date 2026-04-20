@@ -50,14 +50,14 @@ class TestKlingAPIClient:
 
         assert result["status"] == "success"
         assert result["video_url"] == "https://example.com/video.mp4"
-        mock_fal.subscribe.assert_called_once_with(
-            "fal-ai/kling-video/ai-avatar/v2/pro",
-            arguments={
-                "image_url": "https://example.com/image.png",
-                "audio_url": "https://example.com/audio.mp3",
-                "prompt": "A singer performing expressively"
-            }
-        )
+        call_args = mock_fal.subscribe.call_args
+        assert call_args[0][0] == "fal-ai/kling-video/ai-avatar/v2/pro"
+        args = call_args[1]["arguments"]
+        assert args["image_url"] == "https://example.com/image.png"
+        assert args["audio_url"] == "https://example.com/audio.mp3"
+        assert "A singer performing expressively" in args["prompt"]
+        assert "steady camera" in args["prompt"]
+        assert "negative_prompt" in args
 
     @patch('kling_api_client.fal_client')
     def test_generate_avatar_video_failure_raises(self, mock_fal):

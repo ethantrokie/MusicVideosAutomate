@@ -121,6 +121,7 @@ Write your output to `{{OUTPUT_PATH}}` in the following JSON format.
   "viral_elements": {
     "hook_type": "challenge_assumption | promise_revelation | impossible_question",
     "hook_line": "The exact opening line that stops the scroll",
+    "display_hook_text": "3-7 word bold text overlay for frame 0 (e.g., 'Chocolate's DARK Secret?!')",
     "surprise_fact": "The mind-blowing fact in verse 2/bridge",
     "quotable_lines": ["Line 1", "Line 2"],
     "payoff_feeling": "What the listener feels at the end"

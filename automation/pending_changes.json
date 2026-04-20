@@ -1,1 +1,12 @@
-[]
+[
+  {
+    "change": "max_media_items",
+    "current_value": 14,
+    "proposed_value": 18,
+    "rationale": "Higher retention videos likely benefit from more visual variety to sustain interest over longer duration. Increasing max media items provides more visual density for extended 75s format",
+    "confidence": 0.72,
+    "expected_impact": "10-15% improvement in retention by reducing visual stagnation in longer videos",
+    "validation_status": "NEEDS_REVIEW",
+    "validation_reason": "Medium confidence"
+  }
+]

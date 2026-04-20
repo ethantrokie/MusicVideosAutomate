@@ -1,4 +1,21 @@
 {
-  "optimizations": [],
-  "last_analysis": "2026-03-08T10:00:26.070523"
+  "optimizations": [
+    {
+      "date": "2026-04-05T10:00:22.090895",
+      "change": "max_media_items",
+      "from": "20",
+      "to": "14",
+      "rationale": "Videos with 70%+ retention ('The Hidden Fan That Doubles Your Engine's Power' at 70.94%) significantly outperform others, suggesting 50-second duration may be too long for most topics",
+      "impact_observed": null
+    },
+    {
+      "date": "2026-04-19T10:00:21.502471",
+      "change": "video_duration",
+      "from": "50",
+      "to": "75",
+      "rationale": "Strong performers (h84Guqb_CUM: 823 views, 42.4% engaged; KVcG7tz3gEE: 560 views, 38.6% engaged) have significantly higher average retention (40-130s) than current 50s target",
+      "impact_observed": null
+    }
+  ],
+  "last_analysis": "2026-04-19T10:00:21.502490"
 }
