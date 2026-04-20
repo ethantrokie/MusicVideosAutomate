@@ -115,9 +115,9 @@
   },
   "educational_images": {
     "enabled": true,
-    "count": 8,
-    "duration_seconds": 6.0,
-    "min_count": 5,
+    "count": 3,
+    "duration_seconds": 12.0,
+    "min_count": 2,
     "max_count": 10,
     "svg_model": "claude-sonnet-4-6",
     "fal_embed_model": "fal-ai/reve/text-to-image",

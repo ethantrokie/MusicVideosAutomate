@@ -458,7 +458,7 @@ Phrase groups (lyrics with timestamps):
 Select {count} key concepts from the facts above. For each:
 1. Pick the fact that would benefit most from visual illustration
 2. Match it to the phrase group whose lyrics best relate to that concept
-3. Each diagram should display for 2-4 seconds (vary duration naturally)
+3. Each diagram should display for 10-15 seconds to give viewers time to read
 
 CRITICAL CONSTRAINTS:
 - Place diagrams during VERSE sections, NOT during chorus
@@ -499,7 +499,13 @@ Output ONLY valid JSON array, no markdown, no explanation:
                     if lines[-1].strip() == "```"
                     else "\n".join(lines[1:])
                 )
-            return json.loads(output)
+            concepts = json.loads(output)
+            # Clamp durations to 10-15s (Claude may return shorter)
+            for c in concepts:
+                duration = max(10.0, min(15.0, c.get("duration", 10.0)))
+                c["duration"] = duration
+                c["end_time"] = c.get("start_time", 0) + duration
+            return concepts
 
     except Exception as exc:
         print(f"    Claude concept selection failed: {exc}", file=sys.stderr)
@@ -535,7 +541,7 @@ def _fallback_concept_timing(
         group = phrase_groups[group_idx]
         start = group.get("startS", group.get("start_time", i * 5.0))
         end = group.get("endS", group.get("end_time", start + 3.0))
-        duration = min(4.0, max(2.0, end - start))
+        duration = min(15.0, max(10.0, end - start))
         concepts.append(
             {
                 "key_fact": fact,

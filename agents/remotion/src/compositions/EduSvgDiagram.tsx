@@ -402,6 +402,19 @@ export const EduSvgDiagram: React.FC<{
 
   return (
     <AbsoluteFill style={{ opacity: exitOpacity }}>
+      {/* Opaque dark background behind the diagram so stock footage doesn't show through */}
+      <div
+        style={{
+          position: "absolute",
+          top: CONTAINER_TOP - 20,
+          left: 0,
+          width: SVG_VIEWBOX_WIDTH,
+          height: SVG_VIEWBOX_HEIGHT + 40,
+          backgroundColor: "#1a1a2e",
+          borderRadius: 12,
+        }}
+      />
+
       {/* SVG diagram container -- centered vertically (720px tall in 1920px frame) */}
       <div
         style={{
