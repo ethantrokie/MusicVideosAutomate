@@ -542,6 +542,12 @@ def main():
 
     args = parser.parse_args()
 
+    # Skip if Remotion overlay already applied (includes karaoke subtitles)
+    remotion_flag = Path(os.environ.get("OUTPUT_DIR", ".")) / ".remotion_overlay_applied"
+    if remotion_flag.exists():
+        print("  ⏭️  Skipping subtitle generation (Remotion overlay already applied)")
+        return
+
     print(f"🎬 Generating {args.type} subtitles with {args.engine}...")
 
     config = load_config()

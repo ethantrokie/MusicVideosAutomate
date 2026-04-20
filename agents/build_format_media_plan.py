@@ -18,6 +18,9 @@ import subprocess
 from pathlib import Path
 from typing import Dict, List, Literal
 
+sys.path.insert(0, str(Path(__file__).parent))
+from engagement_experiments import is_engagement_feature_enabled
+
 # Minimum buffer to ensure clips cover full audio duration even if some downloads fail
 CLIP_COVERAGE_BUFFER_SECONDS = 15
 
@@ -215,6 +218,147 @@ def integrate_ai_clips(shots: List[Dict], output_dir: str,
         shot["shot_number"] = i
 
     print(f"  ✓ Final shot count: {len(all_shots)} (was {len(shots)}, +{len(ai_shots)} AI, -{len(shots) - len(filtered_shots)} replaced)")
+
+    return all_shots
+
+
+def integrate_educational_images(shots: List[Dict], output_dir: str,
+                                  segment_start: float = 0.0,
+                                  segment_end: float = None) -> List[Dict]:
+    """
+    Integrate AI-generated educational images into the shot list.
+    Educational images are lower priority than AI avatar clips — if there's
+    a timing conflict with an existing AI clip, the educational image is skipped.
+
+    Args:
+        shots: Existing shot list (may already contain AI clips)
+        output_dir: Output directory path
+        segment_start: Absolute start time of the segment (0.0 for full video)
+        segment_end: Absolute end time of the segment (None = no filtering)
+
+    Returns:
+        Modified shot list with educational images integrated
+    """
+    manifest_path = Path(output_dir) / "educational_images" / "edu_image_manifest.json"
+
+    if not manifest_path.exists():
+        return shots
+
+    try:
+        with open(manifest_path) as f:
+            manifest = json.load(f)
+    except Exception as e:
+        print(f"  Warning: Could not load educational image manifest: {e}")
+        return shots
+
+    # Get successful images only
+    edu_images = [
+        img for img in manifest.get("images", [])
+        if img.get("generation_status") == "success"
+    ]
+
+    if not edu_images:
+        return shots
+
+    # Filter to segment time range
+    if segment_end is not None:
+        edu_images = [
+            img for img in edu_images
+            if img["start_time"] < segment_end and img["end_time"] > segment_start
+        ]
+
+    if not edu_images:
+        return shots
+
+    print(f"  Integrating {len(edu_images)} educational images into media plan")
+
+    # Create educational image shots with segment-relative timing
+    edu_shots = []
+    for img in edu_images:
+        rel_start = img["start_time"] - segment_start
+        rel_end = img["end_time"] - segment_start
+
+        if segment_end is not None:
+            segment_duration = segment_end - segment_start
+            rel_start = max(0.0, rel_start)
+            rel_end = min(segment_duration, rel_end)
+
+        duration = rel_end - rel_start
+        if duration < 0.5:
+            continue
+
+        local_path = str(Path(output_dir) / "educational_images" / img["file"])
+        if not Path(local_path).exists():
+            continue
+
+        edu_shot = {
+            "shot_number": 0,
+            "local_path": local_path,
+            "media_type": "image",
+            "source": "educational_image",
+            "description": img.get("key_fact", "Educational concept illustration"),
+            "lyrics_match": "",
+            "start_time": rel_start,
+            "end_time": rel_end,
+            "duration": duration,
+            "absolute_start": img["start_time"],
+            "absolute_end": img["end_time"],
+            "priority": "normal",
+            "transition": "cut"
+        }
+        edu_shots.append(edu_shot)
+
+    if not edu_shots:
+        return shots
+
+    # Carve out educational image intervals from stock shots (not AI clips)
+    edu_intervals = sorted(
+        [(s["start_time"], s["end_time"]) for s in edu_shots],
+        key=lambda x: x[0]
+    )
+
+    filtered_shots = []
+    for shot in shots:
+        # Never carve AI-generated clips
+        if shot.get("source") == "ai_generated":
+            filtered_shots.append(shot)
+            continue
+
+        shot_start = shot.get("start_time", 0)
+        shot_end = shot.get("end_time", shot_start + shot.get("duration", 3))
+
+        remaining = [(shot_start, shot_end)]
+        for edu_start, edu_end in edu_intervals:
+            new_remaining = []
+            for seg_start, seg_end in remaining:
+                if seg_end <= edu_start or seg_start >= edu_end:
+                    new_remaining.append((seg_start, seg_end))
+                else:
+                    if seg_start < edu_start:
+                        new_remaining.append((seg_start, edu_start))
+                    if seg_end > edu_end:
+                        new_remaining.append((edu_end, seg_end))
+            remaining = new_remaining
+
+        for seg_start, seg_end in remaining:
+            seg_duration = seg_end - seg_start
+            if seg_duration < 0.5:
+                continue
+            split_shot = shot.copy()
+            split_shot["start_time"] = seg_start
+            split_shot["end_time"] = seg_end
+            split_shot["duration"] = seg_duration
+            filtered_shots.append(split_shot)
+
+    # Combine and sort by start time
+    all_shots = filtered_shots + edu_shots
+    all_shots.sort(key=lambda s: s.get("start_time", 0))
+
+    # Renumber
+    for i, shot in enumerate(all_shots, 1):
+        shot["shot_number"] = i
+
+    print(f"  Final shot count: {len(all_shots)} (was {len(shots)}, +{len(edu_shots)} edu images)")
 
     return all_shots
 
@@ -830,6 +974,19 @@ def build_format_plan(format_type: FormatType, target_duration: float,
         MAX_SHOT_DURATION = 3.0
         TARGET_MIN_SHOTS = 12
 
+        # A/B tested: even faster pacing for opening shots (1.5s cuts)
+        fast_pacing = is_engagement_feature_enabled("engagement_fast_pacing")
+        if fast_pacing:
+            # Load config for opening shot parameters
+            config_path = Path("config/config.json")
+            eng_config = {}
+            if config_path.exists():
+                with open(config_path) as f:
+                    eng_config = json.load(f).get("engagement", {})
+            IDEAL_SHOT_DURATION = eng_config.get("opening_shot_duration", 1.5)
+            MAX_SHOT_DURATION = IDEAL_SHOT_DURATION + 0.5  # Allow slight variation
+            print(f"    🧪 A/B: Fast opening pacing ({IDEAL_SHOT_DURATION}s shots for shorts)")
+
     # Calculate how many shots to use (maximize variety while respecting constraints)
     ideal_num_shots = int(required_duration / IDEAL_SHOT_DURATION)
     num_clips = len(available_clips)
@@ -969,6 +1126,21 @@ def build_format_plan(format_type: FormatType, target_duration: float,
         shot_list, os.getenv("OUTPUT_DIR", "outputs"),
         segment_start=seg_start, segment_end=seg_end
     )
+
+    # Integrate educational images (lower priority than AI clips)
+    # Skip if Remotion overlay is enabled — Remotion handles edu image animation exclusively
+    remotion_enabled = False
+    try:
+        with open("config/config.json") as _cf:
+            remotion_enabled = json.load(_cf).get("remotion_overlay", {}).get("enabled", False)
+    except (FileNotFoundError, json.JSONDecodeError):
+        pass
+
+    if not remotion_enabled:
+        shot_list = integrate_educational_images(
+            shot_list, os.getenv("OUTPUT_DIR", "outputs"),
+            segment_start=seg_start, segment_end=seg_end
+        )
     total_duration = sum(s.get("duration", 0) for s in shot_list)
 
     # Create the media plan

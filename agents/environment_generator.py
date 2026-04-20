@@ -32,7 +32,7 @@ def generate_environment_prompts(
                 [
                     "/Users/ethantrokie/.local/bin/claude",
                     "-p", prompt,
-                    "--model", "claude-sonnet-4-5",
+                    "--model", "claude-sonnet-4-6",
                     "--dangerously-skip-permissions"
                 ],
                 capture_output=True,
@@ -63,16 +63,18 @@ Key Facts: {facts_str}
 Clip: {clip['id']} of 3
 Segment: {clip['segment_type']}
 
-Generate a vivid, cinematic environment description for a music video scene.
+Generate a vivid environment description for a music video scene.
 A realistic human performer will be singing in this environment.
 
 Requirements:
 - Must relate to the educational topic above
-- Cinematic and visually striking
+- Visually striking with good lighting
 - Appropriate for a person to be standing/performing in
 - 2-3 sentences maximum
 - Include lighting description
 - Include specific visual elements related to the topic
+- Describe a STATIC scene (no camera movement, no zooming, no panning)
+- The performer should be framed in a steady medium shot
 
 Output ONLY the environment description, nothing else. No quotes, no prefix."""
 
@@ -98,13 +100,13 @@ def generate_fallback_prompt(topic: str, segment_type: str) -> str:
     elif any(w in topic_lower for w in ["lab", "chemistry", "molecule", "dna", "cell", "biology"]):
         base = "High-tech laboratory with glowing equipment and holographic displays"
     elif any(w in topic_lower for w in ["engine", "machine", "bearing", "mechanical", "factory"]):
-        base = "Modern industrial facility with polished metal surfaces and dramatic lighting"
+        base = "Modern industrial facility with polished metal surfaces and warm lighting"
     elif any(w in topic_lower for w in ["electric", "circuit", "computer", "digital"]):
         base = "Neon-lit tech studio with circuit patterns and digital screens"
     else:
-        base = "Professional studio with dramatic lighting and scientific equipment"
+        base = "Professional studio with warm lighting and scientific equipment"
 
-    return f"{base}, cinematic atmosphere, modern and sleek environment"
+    return f"{base}, steady medium shot, modern and sleek environment"
 
 
 def detect_voice_gender(suno_data: Dict) -> str:
@@ -165,8 +167,9 @@ def _get_active_performer_variant(gender: str) -> str:
         if current_week > exp.get("duration_weeks", 4):
             continue
 
-        # Odd weeks = control, even weeks = treatment
-        if current_week % 2 == 1:
+        # Odd weeks = control, even weeks = treatment (adjusted by phase_offset)
+        phase_offset = exp.get("phase_offset", 0)
+        if (current_week + phase_offset) % 2 == 1:
             return exp.get("control_value")
         return exp.get("treatment_value")
 

@@ -32,12 +32,25 @@ def load_config():
 
 
 def send_alert(message: str):
-    """Send iMessage alert via notification_helper.sh."""
+    """Send iMessage alert via notification_helper.sh. Deduped to max once per day."""
+    # Dedup: don't send the same alert category more than once per day
+    dedup_dir = SCRIPT_DIR / "state"
+    dedup_dir.mkdir(exist_ok=True)
+    today = datetime.now().strftime("%Y-%m-%d")
+    # Use first 10 chars of message as category key
+    alert_key = message[:10].replace(" ", "_").replace(":", "")
+    dedup_file = dedup_dir / f"alert_{alert_key}_{today}.sent"
+
+    if dedup_file.exists():
+        print(f"  📱 Alert already sent today, skipping: {message[:50]}...")
+        return
+
     try:
         subprocess.run(
             [str(NOTIFICATION_SCRIPT), message],
             check=True, timeout=30
         )
+        dedup_file.write_text(today)
         print(f"  📱 Alert sent: {message}")
     except Exception as e:
         print(f"  ⚠️  Failed to send alert: {e}")
@@ -174,15 +187,15 @@ def main():
         # (AI clips are optional, pipeline can continue without them)
         alerts.append(f"⚠️ FAL.AI ISSUE: {fal_result['message']}. Top up at fal.ai/dashboard/billing")
 
-    # Send alerts but only return error for critical issues (Suno credits low)
+    # Send alerts for low credits, but don't fail the pipeline
+    # Low credits are a warning - pipeline should continue until credits are exhausted
     if alerts:
         combined = " | ".join(alerts)
         send_alert(combined)
-        # Only fail if Suno credits are low (critical for music generation)
-        if not suno_result["ok"]:
-            return 1
 
-    if not quiet:
+    # Only fail if API is completely broken/inaccessible (not just low credits)
+    # Low credits (< 600) should warn but not block - let the actual API call fail if needed
+    if not quiet and not alerts:
         print("  ✅ All API credits OK")
     return 0
 

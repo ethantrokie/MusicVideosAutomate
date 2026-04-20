@@ -85,7 +85,8 @@ RULES:
 2. Ideal length is 50-70 characters. Never exceed 80 characters.
 3. Avoid generic patterns like "How X Works Explained", "A Complete Guide", "Everything You Need to Know".
 4. Use concrete, vivid language. Prefer specific numbers, surprising contrasts, or bold claims.
-5. Do NOT use clickbait that misrepresents the content.
+5. CRITICAL: The title MUST be about the SAME SUBJECT as the topic. If the topic is about relay switches, the title must reference relays, switches, or electromagnets — NOT transistors, capacitors, or unrelated components. A viewer who clicks must find content matching the title.
+6. Do NOT use clickbait that misrepresents the content. Reframe the subject compellingly, don't replace it with a different subject.
 
 GOOD EXAMPLES:
 - "How Laser Cutters Vaporize Metal" -> "This Beam of Light Cuts Through Steel Like Butter"
@@ -97,7 +98,7 @@ Output ONLY a JSON array of exactly 5 title strings, no explanation:
 
     try:
         result = subprocess.run(
-            [CLAUDE_CLI, "-p", prompt, "--model", "claude-sonnet-4-5", "--dangerously-skip-permissions"],
+            [CLAUDE_CLI, "-p", prompt, "--model", "claude-sonnet-4-6", "--dangerously-skip-permissions"],
             capture_output=True,
             text=True,
             timeout=60,
@@ -136,8 +137,37 @@ Output ONLY a JSON array of exactly 5 title strings, no explanation:
     return [str(v) for v in variants]
 
 
-def score_title(title: str) -> Tuple[float, str]:
-    """Score a single title based on quality heuristics.
+STOP_WORDS = frozenset({
+    "how", "the", "a", "an", "is", "are", "was", "were", "in", "on", "at",
+    "to", "for", "of", "and", "or", "but", "with", "by", "from", "its",
+    "it", "this", "that", "be", "has", "have", "had", "do", "does", "did",
+    "will", "would", "could", "should", "may", "might", "can", "shall",
+    "into", "through", "about", "your", "their", "our", "get", "got",
+    "what", "why", "when", "where", "which", "who", "whom",
+    "work", "works", "working", "explained", "makes", "made", "make",
+    "used", "uses", "using", "use",
+})
+
+
+def extract_subject_words(topic: str) -> set[str]:
+    """Extract meaningful subject words from a topic string.
+
+    Strips stop words, short words, and generic terms to find the core
+    subject that must appear (or be referenced) in any valid title.
+
+    Returns:
+        Set of lowercase subject words (3+ chars, non-stop-word).
+    """
+    words = set()
+    for word in topic.lower().split():
+        cleaned = word.strip(".,;:!?\"'()[]")
+        if len(cleaned) >= 3 and cleaned not in STOP_WORDS:
+            words.add(cleaned)
+    return words
+
+
+def score_title(title: str, topic: str = "") -> Tuple[float, str]:
+    """Score a single title based on quality heuristics and topic relevance.
 
     Returns a tuple of (score, explanation) where score is 0.0 to 1.0.
     Uses immutable evaluation -- does not modify the input.
@@ -193,14 +223,35 @@ def score_title(title: str) -> Tuple[float, str]:
     if vivid_count > 0:
         reasons.append(f"{vivid_count} vivid word(s)")
 
+    # Topic relevance check (-0.5 to +0.2)
+    if topic:
+        subject_words = extract_subject_words(topic)
+        title_words = {w.strip(".,;:!?\"'()[]").lower() for w in title.split()}
+
+        # Count how many subject words appear in the title
+        matches = subject_words & title_words
+        if subject_words:
+            relevance_ratio = len(matches) / len(subject_words)
+            if relevance_ratio == 0:
+                # No subject words at all — title is about something else
+                score -= 0.5
+                reasons.append(f"OFF-TOPIC: no subject words from topic found")
+            elif relevance_ratio < 0.15:
+                score -= 0.3
+                reasons.append(f"low relevance ({len(matches)}/{len(subject_words)} subject words)")
+            else:
+                score += 0.2
+                reasons.append(f"relevant ({len(matches)}/{len(subject_words)} subject words)")
+
     return (max(0.0, min(1.0, score)), ", ".join(reasons))
 
 
-def select_best(variants: list) -> Tuple[str, list]:
+def select_best(variants: list, topic: str = "") -> Tuple[str, list]:
     """Score all variants and return the best one plus all scored results.
 
     Args:
         variants: List of title strings.
+        topic: The original topic string for relevance checking.
 
     Returns:
         Tuple of (best_title, scored_list) where scored_list contains
@@ -208,7 +259,7 @@ def select_best(variants: list) -> Tuple[str, list]:
     """
     scored = []
     for title in variants:
-        title_score, explanation = score_title(title)
+        title_score, explanation = score_title(title, topic)
         scored = [*scored, {"title": title, "score": title_score, "explanation": explanation}]
 
     # Sort descending by score (immutable -- creates new list)
@@ -261,8 +312,8 @@ def main():
     # Generate variants via Claude
     variants = generate_variants(topic)
 
-    # Score and select
-    best_title, scored_list = select_best(variants)
+    # Score and select (pass topic for relevance checking)
+    best_title, scored_list = select_best(variants, topic)
 
     if args.variants:
         for item in scored_list:
