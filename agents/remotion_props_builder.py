@@ -111,6 +111,11 @@ def _build_phrases(phrase_groups: List[Dict]) -> List[Dict]:
 
 def _build_edu_images(run_dir: Path) -> List[Dict]:
     """Read educational image manifest and convert to Remotion format."""
+    # If SVG manifest exists, raster images are not used (SVG replaces raster)
+    svg_manifest = run_dir / "educational_images" / "edu_svg_manifest.json"
+    if svg_manifest.exists():
+        return []
+
     edu_dir = run_dir / "educational_images"
     manifest_path = edu_dir / "edu_image_manifest.json"
     manifest = _read_json(manifest_path)
@@ -183,6 +188,32 @@ def _build_edu_images(run_dir: Path) -> List[Dict]:
         })
 
     return images
+
+
+def _build_edu_diagrams(run_dir: Path) -> List[Dict]:
+    """Read SVG diagram manifest and convert to Remotion format."""
+    edu_dir = run_dir / "educational_images"
+    svg_manifest_path = edu_dir / "edu_svg_manifest.json"
+
+    if not svg_manifest_path.exists():
+        return []
+
+    manifest = _read_json(svg_manifest_path)
+    if manifest.get("format") != "svg":
+        return []
+
+    diagrams = []
+    for d in manifest.get("diagrams", []):
+        if d.get("generation_status") != "success" or not d.get("svg_content"):
+            continue
+        diagrams.append({
+            "svgContent": d["svg_content"],
+            "concept": d.get("key_fact", ""),
+            "startMs": _seconds_to_ms(d.get("start_time", 0)),
+            "endMs": _seconds_to_ms(d.get("end_time", 0)),
+        })
+
+    return diagrams
 
 
 def _determine_transition_type(prev_shot: Dict, next_shot: Dict) -> str:
@@ -328,6 +359,7 @@ def build_overlay_props(
 
     all_phrases = _build_phrases(phrase_groups if isinstance(phrase_groups, list) else [])
     all_edu_images = _build_edu_images(run_dir)
+    all_edu_diagrams = _build_edu_diagrams(run_dir)
     all_boundaries = _build_shot_boundaries(approved)
 
     # Shift to segment-relative timestamps for shorts that start mid-song
@@ -336,6 +368,7 @@ def build_overlay_props(
 
     phrases = _shift_to_segment(all_phrases, segment_start_ms, segment_end_ms)
     edu_images = _shift_to_segment(all_edu_images, segment_start_ms, segment_end_ms)
+    edu_diagrams = _shift_to_segment(all_edu_diagrams, segment_start_ms, segment_end_ms)
     shot_boundaries = [
         {**b, "timeMs": b["timeMs"] - segment_start_ms}
         for b in all_boundaries
@@ -353,6 +386,7 @@ def build_overlay_props(
         "isShort": is_short,
         "phrases": phrases,
         "eduImages": edu_images,
+        "eduDiagrams": edu_diagrams,
         "shotBoundaries": shot_boundaries,
         "animateHook": False,
         "karaokeEnabled": remotion_config.get("karaoke_enabled", True),

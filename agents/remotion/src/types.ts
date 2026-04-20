@@ -39,6 +39,13 @@ export interface ShotBoundary {
   transitionType: "wipe" | "slide" | "fade" | "iris" | "cut";
 }
 
+export interface EduDiagram {
+  svgContent: string;
+  concept: string;
+  startMs: number;
+  endMs: number;
+}
+
 export interface OverlayProps {
   durationMs: number;
   fps: number;
@@ -50,6 +57,7 @@ export interface OverlayProps {
   isShort: boolean;
   phrases: PhraseGroup[];
   eduImages: EduImage[];
+  eduDiagrams: EduDiagram[];
   shotBoundaries: ShotBoundary[];
   animateHook: boolean;
   karaokeEnabled: boolean;

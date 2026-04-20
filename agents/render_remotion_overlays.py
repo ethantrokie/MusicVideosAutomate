@@ -145,6 +145,17 @@ def render_overlay(
             shutil.copy2(str(src_path), str(dest))
             img["src"] = src_path.name  # Remotion staticFile() uses filename only
 
+    # Copy embedded images from SVG diagrams to Remotion's public/
+    import re
+    for diagram in props.get("eduDiagrams", []):
+        svg = diagram.get("svgContent", "")
+        for match in re.finditer(r'href="([^"]+\.png)"', svg):
+            filename = match.group(1)
+            src_path = run_dir.resolve() / "educational_images" / filename
+            if src_path.exists():
+                dest = public_dir / filename
+                shutil.copy2(str(src_path), str(dest))
+
     with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
         json.dump(props, f)
         props_path = Path(f.name)
