@@ -350,7 +350,7 @@ def _call_claude_svg(key_fact: str, topic: str) -> Optional[str]:
     return parse_claude_response(result.stdout)
 
 
-def generate_single_svg(key_fact: str, topic: str) -> dict:
+def generate_single_svg(key_fact: str, topic: str, fix_instructions: str = "") -> dict:
     """
     Generate one SVG diagram for a key fact, with one automatic retry.
 
@@ -361,6 +361,7 @@ def generate_single_svg(key_fact: str, topic: str) -> dict:
     Args:
         key_fact: The fact to illustrate visually.
         topic: The educational topic of the video.
+        fix_instructions: Optional feedback from visual validation to fix specific issues.
 
     Returns:
         dict with keys:
@@ -369,6 +370,9 @@ def generate_single_svg(key_fact: str, topic: str) -> dict:
             group_count (int): Number of animated <g> groups (0 on fallback).
             embedded_images (list): fal.ai image placeholders found in the SVG.
     """
+    if fix_instructions:
+        key_fact = f"{key_fact}\n\nIMPORTANT: A previous version of this diagram had these visual issues that MUST be fixed:\n{fix_instructions}"
+
     svg_raw = _call_claude_svg(key_fact, topic)
 
     if svg_raw is not None:
@@ -670,6 +674,24 @@ def generate_all_svgs(run_dir: Path) -> None:
             svg_path.write_text(svg_content, encoding="utf-8")
             entry["svg_file"] = svg_filename
             print(f"    Saved {svg_filename} ({svg_result['group_count']} groups)")
+
+            # Visual validation: render to PNG and have Claude inspect for issues
+            issues = _validate_svg_visually(svg_path, images_dir / f"edu_svg_{i}_preview.png")
+            if issues:
+                print(f"    Visual issues found: {issues[:80]}")
+                print(f"    Regenerating with fix instructions...")
+                svg_result2 = generate_single_svg(
+                    key_fact=key_fact,
+                    topic=topic,
+                    fix_instructions=issues,
+                )
+                if svg_result2["generation_status"] == "success":
+                    svg_content = svg_result2["svg_content"]
+                    svg_path.write_text(svg_content, encoding="utf-8")
+                    entry["group_count"] = svg_result2["group_count"]
+                    print(f"    Regenerated {svg_filename} ({svg_result2['group_count']} groups)")
+                else:
+                    print(f"    Regeneration failed, keeping original")
         else:
             print(f"    SVG {i} fell back (no valid SVG generated)")
 
@@ -739,6 +761,63 @@ def _resolve_fal_placeholder(
     except Exception as exc:
         print(f"    fal.ai placeholder generation failed: {exc}", file=sys.stderr)
         return None
+
+
+def _validate_svg_visually(svg_path: Path, preview_path: Path) -> Optional[str]:
+    """
+    Render SVG to PNG and have Claude inspect it for visual issues.
+
+    Returns a description of issues found, or None if the diagram looks good.
+    """
+    # Render SVG to PNG for visual inspection
+    try:
+        import cairosvg
+        cairosvg.svg2png(
+            url=str(svg_path),
+            write_to=str(preview_path),
+            output_width=1080,
+            output_height=720,
+        )
+    except Exception as exc:
+        print(f"    Could not render preview: {exc}", file=sys.stderr)
+        return None  # Can't validate without preview, skip
+
+    # Have Claude inspect the rendered PNG
+    prompt = (
+        "Inspect this educational diagram image for visual quality issues. "
+        "Check for:\n"
+        "1. Text overlapping with lines, shapes, or other text\n"
+        "2. Labels that are cut off or extend outside the visible area\n"
+        "3. Elements that are too small to read\n"
+        "4. Arrows or lines that pass through text\n"
+        "5. Misaligned or overlapping shapes\n"
+        "6. Any text that is illegible or garbled\n\n"
+        "If the diagram looks GOOD with no issues, respond with exactly: PASS\n"
+        "If there are issues, describe them concisely (1-2 sentences) starting with: FAIL: ...\n\n"
+        f"{preview_path}"
+    )
+
+    try:
+        result = subprocess.run(
+            [CLAUDE_CLI, "-p", prompt, "--model", "claude-haiku-4-5",
+             "--dangerously-skip-permissions"],
+            capture_output=True, text=True, timeout=30,
+        )
+
+        if result.returncode == 0:
+            response = result.stdout.strip()
+            if response.upper().startswith("PASS"):
+                print(f"    Visual check: PASS")
+                return None
+            else:
+                # Extract the issue description
+                issue = response.replace("FAIL:", "").replace("FAIL", "").strip()
+                return issue if issue else None
+
+    except (subprocess.TimeoutExpired, Exception) as exc:
+        print(f"    Visual validation skipped: {exc}", file=sys.stderr)
+
+    return None  # Can't validate, assume OK
 
 
 def main() -> None:
