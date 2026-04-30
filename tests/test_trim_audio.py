@@ -9,6 +9,12 @@ from unittest.mock import patch, MagicMock
 
 import pytest
 
+# Disable A/B experiments during tests so they don't interfere
+@pytest.fixture(autouse=True)
+def _disable_experiments():
+    with patch("engagement_experiments.get_engagement_experiment_variant", return_value=None):
+        yield
+
 # Set OUTPUT_DIR before import
 _tmp = tempfile.mkdtemp()
 os.environ.setdefault("OUTPUT_DIR", _tmp)
