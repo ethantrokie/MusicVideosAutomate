@@ -18,7 +18,6 @@ export const OverlayComposition: React.FC<OverlayProps> = (props) => {
     isShort,
     phrases,
     shotBoundaries,
-    animateHook,
     karaokeEnabled,
     eduRevealEnabled,
     transitionsEnabled,
@@ -72,7 +71,7 @@ export const OverlayComposition: React.FC<OverlayProps> = (props) => {
       {/* Layer 3: Hook text (first 2s) */}
       {hookText && (
         <Sequence from={0} durationInFrames={Math.round(fps * 2)}>
-          <HookText text={hookText} durationMs={2000} isShort={isShort} animate={animateHook} />
+          <HookText text={hookText} durationMs={2000} isShort={isShort} />
         </Sequence>
       )}
 

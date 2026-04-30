@@ -11,7 +11,7 @@ export const TitleCard: React.FC<TitleCardProps> = ({ text, isShort }) => {
   const frame = useCurrentFrame();
   const { fps, durationInFrames } = useVideoConfig();
 
-  const fontSize = isShort ? 48 : 56;
+  const fontSize = isShort ? 64 : 72;
   const exitStartFrame = durationInFrames - Math.round(0.3 * fps);
 
   // Entrance: spring fade+scale (0.9 -> 1.0) over 0.4s
@@ -59,7 +59,7 @@ export const TitleCard: React.FC<TitleCardProps> = ({ text, isShort }) => {
             fontSize,
             fontFamily: "Impact, Arial Black, sans-serif",
             fontWeight: 900,
-            WebkitTextStroke: "3px black",
+            WebkitTextStroke: "4px black",
             paintOrder: "stroke fill",
             display: "inline-block",
           }}

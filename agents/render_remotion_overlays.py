@@ -132,7 +132,6 @@ def render_overlay(
 
     segment_start_s = _get_segment_start(run_dir, format_type)
     props = build_overlay_props(run_dir, config, format_type, duration_ms, segment_start_s)
-    props["animateHook"] = is_engagement_feature_enabled("engagement_animated_hook")
     props["transitionsEnabled"] = config.get("remotion_overlay", {}).get("transitions_enabled", False)
 
     # Copy edu images to Remotion's public/ dir so Chrome can serve them

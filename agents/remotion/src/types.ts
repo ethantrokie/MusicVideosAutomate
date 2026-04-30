@@ -59,7 +59,6 @@ export interface OverlayProps {
   eduImages: EduImage[];
   eduDiagrams: EduDiagram[];
   shotBoundaries: ShotBoundary[];
-  animateHook: boolean;
   karaokeEnabled: boolean;
   eduRevealEnabled: boolean;
   transitionsEnabled: boolean;

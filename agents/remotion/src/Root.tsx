@@ -14,7 +14,6 @@ const defaultProps: OverlayProps = {
   phrases: [],
   eduImages: [],
   shotBoundaries: [],
-  animateHook: false,
   karaokeEnabled: true,
   eduRevealEnabled: true,
   transitionsEnabled: false,
