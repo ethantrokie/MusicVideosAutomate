@@ -617,7 +617,7 @@ def assemble_video(approved_data: dict, video_settings: dict, audio_path: str, a
     clips = []
 
     # A/B tested: opening frame saturation/contrast boost (shot 1 only)
-    enhance_opening = is_engagement_feature_enabled("engagement_opening_enhance")
+    enhance_opening = is_engagement_feature_enabled("hook_overhaul")
     engagement_config = load_engagement_config() if enhance_opening else {}
 
     # Create clips for each shot
@@ -663,7 +663,7 @@ def assemble_video(approved_data: dict, video_settings: dict, audio_path: str, a
         print(f"  Trimmed video to {target_duration}s (matches audio)")
 
     # A/B tested: synthetic audio hit at t=0 (pattern interrupt)
-    hook_sfx_enabled = is_engagement_feature_enabled("engagement_hook_sfx")
+    hook_sfx_enabled = is_engagement_feature_enabled("hook_overhaul")
     if hook_sfx_enabled:
         from audio_utils import generate_hook_sfx
         sfx_path = generate_hook_sfx()

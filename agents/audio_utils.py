@@ -78,34 +78,34 @@ def slice_audio(song_path: str, start: float, duration: float, output_path: str,
 
 def generate_hook_sfx(output_path: str = "/tmp/hook_sfx.wav") -> str:
     """
-    Generate a short bass-thud impact sound for use at t=0 of a video.
+    Generate an attention-grabbing 'pop' sound for frame 0.
 
-    Creates a 0.1s 200Hz sine wave with fade-out — a subtle audio
-    pattern interrupt that research shows improves retention by ~19%.
-
-    Args:
-        output_path: Where to save the generated SFX.
-
-    Returns:
-        Path to the generated WAV file, or empty string on failure.
+    Creates a bright, short pop using 800Hz + 1200Hz layered tones
+    with sharp attack and fast decay -- designed to cut through music
+    and trigger attention without being annoying.
     """
+    ffmpeg = _find_binary("ffmpeg")
     try:
-        ffmpeg = _find_binary("ffmpeg")
-        cmd = [
-            ffmpeg, "-y",
-            "-f", "lavfi",
-            "-i", "sine=frequency=200:duration=0.1",
-            "-af", "afade=t=out:d=0.1,volume=0.3",
-            output_path
-        ]
-
-        result = subprocess.run(cmd, capture_output=True, timeout=10)
-
-        if result.returncode == 0 and Path(output_path).exists():
+        result = subprocess.run(
+            [
+                ffmpeg, "-y",
+                "-f", "lavfi",
+                "-i", "sine=frequency=800:duration=0.08",
+                "-f", "lavfi",
+                "-i", "sine=frequency=1200:duration=0.05",
+                "-filter_complex",
+                "[0]afade=t=out:d=0.08,volume=0.4[a];"
+                "[1]afade=t=out:d=0.05,volume=0.25[b];"
+                "[a][b]amix=inputs=2:duration=shortest",
+                output_path,
+            ],
+            capture_output=True,
+            timeout=10,
+        )
+        if result.returncode == 0:
             return output_path
     except Exception as e:
-        print(f"    Warning: Hook SFX generation failed: {e}")
-
+        print(f"    Hook SFX generation failed: {e}")
     return ""
 
 
