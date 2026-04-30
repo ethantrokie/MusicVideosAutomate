@@ -101,6 +101,8 @@ def is_engagement_feature_enabled(config_key: str, config: dict = None) -> bool:
         "engagement_hook_sfx": "hook_sfx_enabled",
         "engagement_fast_pacing": "fast_pacing_enabled",
         "engagement_animated_hook": "animated_hook_text",
+        "hook_overhaul": "hook_overhaul_enabled",
+        "audio_pacing_overhaul": "audio_pacing_overhaul_enabled",
     }
 
     config_field = key_map.get(config_key, config_key)
