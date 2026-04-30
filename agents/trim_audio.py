@@ -155,6 +155,15 @@ def run_trim(
     if not enabled:
         return {"cropped": False, "crop_offset": 0.0, "skipped_reason": "disabled"}
 
+    # Check if aggressive trim experiment is active
+    try:
+        from engagement_experiments import is_engagement_feature_enabled
+        if is_engagement_feature_enabled("audio_pacing_overhaul"):
+            max_intro_seconds = 0.5
+            print(f"  🧪 Experiment: Aggressive audio trim (0.5s max intro)")
+    except Exception:
+        pass
+
     suno_path = output_dir / "suno_output.json"
     song_path = output_dir / "song.mp3"
 

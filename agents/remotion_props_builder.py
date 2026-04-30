@@ -10,7 +10,7 @@ Produces: OverlayProps dict matching agents/remotion/src/types.ts
 import json
 import subprocess
 from pathlib import Path
-from typing import Any, Dict, List, Literal
+from typing import Any, Dict, List, Literal, Optional
 
 FormatType = Literal["full", "short_hook", "short_educational", "short_intro"]
 
@@ -261,8 +261,33 @@ def _is_short_format(format_type: FormatType) -> bool:
     return format_type in ("short_hook", "short_educational", "short_intro")
 
 
+def _generate_curiosity_hook(run_dir: Path, title: str) -> Optional[str]:
+    """Generate a curiosity-gap hook using Claude."""
+    try:
+        from generate_hook_text import generate_curiosity_hook
+        research = _read_json(run_dir / "research.json")
+        key_facts = research.get("key_facts", [])
+        topic = research.get("video_title", title)
+        if key_facts:
+            return generate_curiosity_hook(topic, key_facts)
+    except Exception:
+        pass
+    return None
+
+
 def _get_hook_text(run_dir: Path, title: str) -> str:
-    """Generate hook text from lyrics or title."""
+    """Generate hook text. Uses curiosity-gap when experiment is active."""
+    # Check if hook_overhaul experiment is in treatment
+    try:
+        from engagement_experiments import is_engagement_feature_enabled
+        if is_engagement_feature_enabled("hook_overhaul"):
+            hook = _generate_curiosity_hook(run_dir, title)
+            if hook:
+                return hook
+    except Exception:
+        pass
+
+    # Fall back to existing lyrics/title-derived logic
     lyrics_path = run_dir / "lyrics.json"
     if lyrics_path.exists():
         try:
@@ -381,6 +406,20 @@ def build_overlay_props(
     phrases = _shift_to_segment(all_phrases, segment_start_ms, segment_end_ms)
     edu_images = _shift_to_segment(all_edu_images, segment_start_ms, segment_end_ms)
     edu_diagrams = _shift_to_segment(all_edu_diagrams, segment_start_ms, segment_end_ms)
+
+    # Experiment B treatment: place first edu diagram early (at 2s, right after hook text fades)
+    try:
+        from engagement_experiments import is_engagement_feature_enabled
+        if is_engagement_feature_enabled("audio_pacing_overhaul") and edu_diagrams:
+            first = edu_diagrams[0]
+            original_duration = first["endMs"] - first["startMs"]
+            edu_diagrams = [
+                {**first, "startMs": 2000, "endMs": 2000 + original_duration},
+                *edu_diagrams[1:],
+            ]
+    except Exception:
+        pass
+
     shot_boundaries = [
         {**b, "timeMs": b["timeMs"] - segment_start_ms}
         for b in all_boundaries

@@ -257,3 +257,26 @@ def test_word_times_clamped_to_phrase_bounds(tmp_path: Path):
     words = props["phrases"][0]["words"]
     assert words[0]["startMs"] == 5000   # clamped from 4800 to 5000
     assert words[1]["endMs"] == 8000     # clamped from 8200 to 8000
+
+
+def test_curiosity_hook_used_when_experiment_active(tmp_path):
+    """When hook_overhaul experiment is in treatment, use curiosity hook."""
+    from remotion_props_builder import build_overlay_props
+    from unittest.mock import patch
+
+    (tmp_path / "research.json").write_text(json.dumps({
+        "video_title": "How Chocolate Gets Its Snap",
+        "key_facts": ["Chocolate has 6 crystal forms", "Only form V snaps"],
+    }))
+    (tmp_path / "phrase_groups.json").write_text(json.dumps([]))
+    (tmp_path / "approved_media.json").write_text(json.dumps({"shot_list": []}))
+
+    config = _make_minimal_config()
+
+    with patch("engagement_experiments.get_engagement_experiment_variant") as mock_exp:
+        mock_exp.return_value = "true"
+        with patch("remotion_props_builder._generate_curiosity_hook") as mock_hook:
+            mock_hook.return_value = "6 crystal forms hide in your chocolate"
+            props = build_overlay_props(tmp_path, config, "short_intro", 60000)
+
+    assert props["hookText"] == "6 crystal forms hide in your chocolate"

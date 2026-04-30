@@ -1,9 +1,16 @@
 import json
 import pytest
 from pathlib import Path
+from unittest.mock import patch
 
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent / "agents"))
+
+# Disable A/B experiments during tests so they don't interfere with expected values
+@pytest.fixture(autouse=True)
+def disable_experiments():
+    with patch("engagement_experiments.get_engagement_experiment_variant", return_value=None):
+        yield
 
 
 def _make_config():
