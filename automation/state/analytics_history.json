@@ -528,6 +528,127 @@
           "engagement": 7
         }
       }
+    },
+    {
+      "date": "2026-04-26",
+      "videos_analyzed": 18,
+      "total_views": 2846,
+      "total_engagement": 21,
+      "engagement_rate": 0.74,
+      "avg_retention": 44.65,
+      "subscribers_gained": 1,
+      "subscribers_lost": 0,
+      "net_subscribers": 1,
+      "per_video_metrics": {
+        "9A9OLmg7wWk": {
+          "title": "The 3-Minute Chemical Chain Reaction That Controls Your Blood Sugar",
+          "views": 0,
+          "avg_retention": 0.0,
+          "engagement": 0
+        },
+        "TL40G60hxug": {
+          "title": "Without This, Your Blood Becomes Thicker Than Syrup",
+          "views": 55,
+          "avg_retention": 67.84,
+          "engagement": 1
+        },
+        "1PHjwHC8xfQ": {
+          "title": "How Engineers Squeeze 3x More Power From the Same Motor",
+          "views": 79,
+          "avg_retention": 32.24,
+          "engagement": 1
+        },
+        "bRap54jDzLU": {
+          "title": "The 1788 Device That Stopped Steam Engines From Exploding",
+          "views": 42,
+          "avg_retention": 34.78,
+          "engagement": 1
+        },
+        "DKEICM3WVv8": {
+          "title": "The Hidden Circuit That Makes Every Factory Motor Obey",
+          "views": 1,
+          "avg_retention": 97.74,
+          "engagement": 2
+        },
+        "SnF8trMaA7o": {
+          "title": "The Device That Turns Fixed-Speed Motors Into Variable Ones",
+          "views": 151,
+          "avg_retention": 75.97,
+          "engagement": 2
+        },
+        "y57h6gkYDLE": {
+          "title": "How Two Spinning Balls Prevented Factory Catastrophes for 200 Years",
+          "views": 108,
+          "avg_retention": 44.07,
+          "engagement": 1
+        },
+        "zaWUpklY7Is": {
+          "title": "The 12-Step Stamping Process That Makes 300 Billion Cans a Year",
+          "views": 52,
+          "avg_retention": 21.83,
+          "engagement": 0
+        },
+        "rUU2zxXjVtA": {
+          "title": "This 1788 Invention Still Controls Machines Today \u2014 Here&#39;s Why",
+          "views": 114,
+          "avg_retention": 58.45,
+          "engagement": 1
+        },
+        "oqI-S-NfMCE": {
+          "title": "The Machine That Punches 2,400 Aluminum Cans Per Minute",
+          "views": 246,
+          "avg_retention": 67.36,
+          "engagement": 3
+        },
+        "g1f35JAoh5w": {
+          "title": "The Tiny Cylinder That Makes Excavators 10x Stronger Than Your Muscles",
+          "views": 174,
+          "avg_retention": 17.6,
+          "engagement": 0
+        },
+        "UGXgkLCshx4": {
+          "title": "The 300-Ton Press That Shapes 2,000 Cans Every Minute",
+          "views": 477,
+          "avg_retention": 55.09,
+          "engagement": 0
+        },
+        "nBrpDA-PurU": {
+          "title": "Why Aluminum Cans Are Thinner Than a Human Hair Yet Hold 90 PSI",
+          "views": 1,
+          "avg_retention": 28.76,
+          "engagement": 0
+        },
+        "5NE6f8iYmVM": {
+          "title": "Why Hydraulic Fluid Is Stronger Than Steel Cables",
+          "views": 272,
+          "avg_retention": 35.92,
+          "engagement": 4
+        },
+        "1uI4w6Lrz1g": {
+          "title": "The 2-Degree Gap Your Thermostat Is Secretly Hiding From You",
+          "views": 142,
+          "avg_retention": 44.69,
+          "engagement": 0
+        },
+        "F4n1XKnHOxM": {
+          "title": "Why Hydraulic Fluid at 5,000 PSI Can Lift a 100-Ton Rock",
+          "views": 608,
+          "avg_retention": 55.27000000000001,
+          "engagement": 3
+        },
+        "6Qr5pjaHZPU": {
+          "title": "The  Device That Decides When Your Furnace Turns On",
+          "views": 264,
+          "avg_retention": 34.23,
+          "engagement": 1
+        },
+        "9TvEuAtVrwU": {
+          "title": "Why Your Database Slows to a Crawl Without This One Structure",
+          "views": 60,
+          "avg_retention": 31.879999999999995,
+          "engagement": 1
+        }
+      }
     }
   ]
 }
