@@ -68,17 +68,17 @@ export const OverlayComposition: React.FC<OverlayProps> = (props) => {
           );
         })}
 
-      {/* Layer 3: Hook text (first 2s) */}
+      {/* Layer 3: Hook text (first 3s) -- the main scroll-stopper */}
       {hookText && (
-        <Sequence from={0} durationInFrames={Math.round(fps * 2)}>
-          <HookText text={hookText} durationMs={2000} isShort={isShort} />
+        <Sequence from={0} durationInFrames={Math.round(fps * 3)}>
+          <HookText text={hookText} durationMs={3000} isShort={isShort} />
         </Sequence>
       )}
 
-      {/* Layer 4: Title card (first 2s, positioned below hook) */}
+      {/* Layer 4: Title card (appears at 1s, fades at 3s -- below hook, smaller) */}
       {titleText && (
-        <Sequence from={0} durationInFrames={Math.round(fps * 2)}>
-          <TitleCard text={titleText} durationMs={2000} isShort={isShort} />
+        <Sequence from={Math.round(fps * 0.8)} durationInFrames={Math.round(fps * 2.2)}>
+          <TitleCard text={titleText} durationMs={2200} isShort={isShort} />
         </Sequence>
       )}
 
