@@ -166,37 +166,29 @@ YouTube's July 2025 "inauthentic content" policy targets mass-produced, template
 
 ### Changes
 
-#### 4a. Voice clip library (one-time recording)
+#### 4a. Progressive SVG draw animation (replaces voice clips)
 
-**Setup:** Ethan records ~20 short voice clips (1-3 seconds each) in categories:
-- **Hooks** (8-10 clips): "Wait till you hear this," "You won't believe this one," "Here's something wild," etc.
-- **Reactions** (5-7 clips): "Crazy, right?", "Think about that," "Mind blown," etc.
-- **Outros** (3-5 clips): "That's how it works," "Now you know," "Science is wild," etc.
+**Current behavior:** SVG diagram elements appear as complete shapes via a spring fade-in + scale animation. All strokes within a group appear simultaneously as finished blocks.
 
-**Storage:** `assets/voice_clips/{hooks,reactions,outros}/` directory with numbered WAV/MP3 files.
+**New behavior:** Each SVG element's stroke is progressively drawn over ~0.5 seconds using the `stroke-dashoffset` CSS technique, making it look like someone is sketching the diagram in real-time. Elements within a group are staggered by ~100-200ms. Text labels fade in after the shape they annotate finishes drawing.
 
-**Pipeline integration:** New lightweight Python module `agents/voice_clip_mixer.py`:
-- `select_clips(category, count=1) -> List[Path]` -- randomly selects from the library
-- `mix_voice_clip(base_audio, clip_path, position_seconds, volume=0.8) -> Path` -- mixes a voice clip into the base audio at the specified position using pydub or ffmpeg
-- Called by `agents/5_assemble_video.py` after audio loading:
-  - Select 1 hook clip, insert at t=0 (before/during music start)
-  - Optionally select 1 reaction clip, insert at the "reveal" moment (timing from `lyrics.json` structure)
-  - The voice clips play OVER the music, mixed at ~80% relative volume
+**Why this serves the inauthentic content goal:** Progressive draw animation is visually distinctive and non-templatable -- no two diagrams draw the same way because the SVG content differs. It gives the impression of a human drawing in real-time, which is the "human fingerprint" YouTube's policy is looking for, without requiring actual human effort per video.
 
-**Variation logic:** Random selection ensures no two videos have the same voice clip combination. With 20 clips across 3 categories, there are hundreds of unique combinations.
+**Implementation:** Changes are contained entirely within `agents/remotion/src/compositions/EduSvgDiagram.tsx`:
 
-#### 4b. Structural variation in video assembly
+1. For path/line/rect/circle/ellipse elements rendered by Rough.js:
+   - Set `stroke-dasharray` equal to the path's total length
+   - Animate `stroke-dashoffset` from full length to 0 over ~0.5 seconds
+   - Stagger elements within a group by ~150ms each
 
-**Current behavior:** Every video follows the identical structure: hook text -> karaoke lyrics -> stock footage -> end screen.
+2. For text elements:
+   - Fade in (opacity 0 -> 1) over 0.3 seconds after the shape they label finishes drawing
 
-**New behavior:** Introduce 3-4 structural templates that the pipeline randomly selects from:
+3. For filled shapes:
+   - Draw the outline first via stroke-dashoffset
+   - Fill fades in after stroke completes (0.2s delay, 0.3s fade)
 
-1. **Standard** (current): Hook text -> song with karaoke -> end stat
-2. **Reveal-first**: Voice hook -> quick visual montage (3s) -> song starts -> end stat
-3. **Question-answer**: Hook text as question -> brief pause -> song answers -> end stat
-4. **Cold open**: Song starts immediately (no hook text) -> hook text appears at 3s -> end stat
-
-**Implementation:** Add a `video_structure` field to the pipeline that's randomly assigned. Each template slightly changes the overlay timing and whether the hook text appears at 0s or 3s. This is a config-level variation, not a code rewrite -- it adjusts timing parameters in `remotion_props_builder.py`.
+4. Keep the existing group ordering/delay system (groups still appear in sequence with 800ms minimum gap between tiers)
 
 #### 4c. YouTube AI disclosure labels
 
@@ -230,10 +222,8 @@ YouTube's July 2025 "inauthentic content" policy targets mass-produced, template
 | `agents/remotion/src/types.ts` | #2, #3 | New prop types |
 | `agents/remotion_props_builder.py` | #2, #3, #4 | Pass new props, structural variation |
 | `upload_to_youtube.sh` | #3, #4 | Description template, AI disclosure |
-| `agents/voice_clip_mixer.py` | #4 | New module |
-| `agents/5_assemble_video.py` | #4 | Voice clip mixing integration |
+| `agents/remotion/src/compositions/EduSvgDiagram.tsx` | #4 | Progressive draw animation |
 | `pipeline.sh` | #4 | Day-of-week check |
-| `assets/voice_clips/` | #4 | New directory (voice recordings from Ethan) |
 
 ## Files NOT Modified
 

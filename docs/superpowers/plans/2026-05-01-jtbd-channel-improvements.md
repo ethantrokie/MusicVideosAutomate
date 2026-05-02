@@ -19,11 +19,6 @@
 |------|---------|
 | `agents/remotion/src/compositions/MusicIndicator.tsx` | Animated equalizer bars overlay (first 5s) |
 | `agents/remotion/src/compositions/ShareableStat.tsx` | End-card stat text overlay (last 2.5s) |
-| `agents/voice_clip_mixer.py` | Select + mix human voice clips into audio |
-| `assets/voice_clips/hooks/` | Directory for recorded hook voice clips |
-| `assets/voice_clips/reactions/` | Directory for recorded reaction voice clips |
-| `assets/voice_clips/outros/` | Directory for recorded outro voice clips |
-| `tests/test_voice_clip_mixer.py` | Tests for voice clip selection + mixing |
 | `tests/test_shareable_stat_props.py` | Tests for shareable stat in props pipeline |
 
 ### Modified Files
@@ -31,13 +26,13 @@
 |------|---------|
 | `automation/topic_generator.py` | Rewrite prompt to revelation-framing |
 | `agents/prompts/lyricist_prompt.md` | Restructure to single-reveal + add `shareable_stat` output |
-| `config/config.json` | Update `audio_trim.max_intro_seconds` to 0.5, add `voice_clips` config |
+| `config/config.json` | Update `audio_trim.max_intro_seconds` to 0.5 |
 | `agents/remotion/src/types.ts` | Add `shareableStat` and `musicIndicatorEnabled` to OverlayProps |
 | `agents/remotion/src/compositions/OverlayComposition.tsx` | Add MusicIndicator + ShareableStat layers |
+| `agents/remotion/src/compositions/EduSvgDiagram.tsx` | Progressive stroke-draw animation |
 | `agents/remotion_props_builder.py` | Pass `shareableStat` from lyrics.json, add `musicIndicatorEnabled` |
 | `upload_to_youtube.sh` | Prepend shareable stat to description |
 | `pipeline.sh` | Add weekday check (skip Sat/Sun) |
-| `agents/5_assemble_video.py` | Integrate voice clip mixing |
 
 ---
 
@@ -769,283 +764,51 @@ easy copy-paste when sharing."
 
 ---
 
-## Task 7: Voice Clip Mixer Module
+## Task 7: Progressive SVG Draw Animation
 
 **Files:**
-- Create: `agents/voice_clip_mixer.py`
-- Create: `tests/test_voice_clip_mixer.py`
-- Create: `assets/voice_clips/hooks/.gitkeep`
-- Create: `assets/voice_clips/reactions/.gitkeep`
-- Create: `assets/voice_clips/outros/.gitkeep`
+- Modify: `agents/remotion/src/compositions/EduSvgDiagram.tsx:263-309`
 
-- [ ] **Step 1: Create directory structure**
+- [ ] **Step 1: Replace AnimatedGroup with stroke-draw animation**
+
+Replace the `AnimatedGroup` component (lines 263-309) in `EduSvgDiagram.tsx`. The current version uses spring-based opacity + scale. The new version uses `stroke-dashoffset` animation to progressively draw each SVG path, with text fading in after shapes finish.
+
+Key changes:
+- Add `useRef` to access rendered SVG DOM paths
+- Use `getTotalLength()` to measure each path
+- Animate `strokeDashoffset` from full length to 0 over ~0.5s (quick draw)
+- Stagger elements within a group by 150ms
+- Text elements: fade in (opacity 0->1) over 300ms after shapes complete
+- Fill paths: fade in 200ms after their outline stroke completes
+- Remove the scale transform entirely
+- Keep the quick opacity entrance (3 frames) to avoid flash of unstyled content
+- Use ease-out curve `(1 - (1-t)^2)` for natural pen feel
+
+Constants to add at top of file:
+```typescript
+const DRAW_DURATION_MS = 500;
+const ELEMENT_STAGGER_MS = 150;
+```
+
+- [ ] **Step 2: Verify TypeScript compiles**
+
+Run: `cd agents/remotion && npx tsc --noEmit 2>&1 | head -20`
+Expected: No new TypeScript errors
+
+- [ ] **Step 3: Commit**
 
 ```bash
-mkdir -p assets/voice_clips/hooks assets/voice_clips/reactions assets/voice_clips/outros
-touch assets/voice_clips/hooks/.gitkeep assets/voice_clips/reactions/.gitkeep assets/voice_clips/outros/.gitkeep
-```
+git add agents/remotion/src/compositions/EduSvgDiagram.tsx
+git commit -m "feat: progressive stroke-draw animation for SVG diagrams
 
-- [ ] **Step 2: Write failing tests**
-
-```python
-# tests/test_voice_clip_mixer.py
-import json
-import tempfile
-from pathlib import Path
-from unittest.mock import patch, MagicMock
-import pytest
-
-
-def test_select_clips_returns_random_path():
-    """select_clips should return a random file from the category directory."""
-    from agents.voice_clip_mixer import select_clips
-
-    with tempfile.TemporaryDirectory() as tmp:
-        hooks_dir = Path(tmp) / "hooks"
-        hooks_dir.mkdir()
-        (hooks_dir / "hook_01.mp3").write_bytes(b"fake audio")
-        (hooks_dir / "hook_02.mp3").write_bytes(b"fake audio")
-
-        result = select_clips(hooks_dir, count=1)
-        assert len(result) == 1
-        assert result[0].suffix == ".mp3"
-        assert result[0].parent == hooks_dir
-
-
-def test_select_clips_returns_empty_for_missing_dir():
-    """select_clips should return empty list if directory doesn't exist."""
-    from agents.voice_clip_mixer import select_clips
-
-    result = select_clips(Path("/nonexistent/dir"), count=1)
-    assert result == []
-
-
-def test_select_clips_no_duplicates():
-    """select_clips with count=2 should return 2 different clips."""
-    from agents.voice_clip_mixer import select_clips
-
-    with tempfile.TemporaryDirectory() as tmp:
-        hooks_dir = Path(tmp) / "hooks"
-        hooks_dir.mkdir()
-        for i in range(5):
-            (hooks_dir / f"hook_{i:02d}.mp3").write_bytes(b"fake")
-
-        result = select_clips(hooks_dir, count=2)
-        assert len(result) == 2
-        assert result[0] != result[1]
-
-
-def test_mix_voice_clip_calls_ffmpeg():
-    """mix_voice_clip should invoke ffmpeg to overlay voice on base audio."""
-    from agents.voice_clip_mixer import mix_voice_clip
-
-    with tempfile.TemporaryDirectory() as tmp:
-        base = Path(tmp) / "song.mp3"
-        clip = Path(tmp) / "hook.mp3"
-        output = Path(tmp) / "mixed.mp3"
-        base.write_bytes(b"fake base")
-        clip.write_bytes(b"fake clip")
-
-        with patch("subprocess.run") as mock_run:
-            mock_run.return_value = MagicMock(returncode=0)
-            mix_voice_clip(base, clip, position_seconds=0.0, output_path=output, volume=0.8)
-
-            mock_run.assert_called_once()
-            cmd = mock_run.call_args[0][0]
-            assert "ffmpeg" in cmd[0] or "ffmpeg" in str(cmd)
-```
-
-- [ ] **Step 3: Run tests to verify they fail**
-
-Run: `python3 -m pytest tests/test_voice_clip_mixer.py -v`
-Expected: FAIL (module doesn't exist)
-
-- [ ] **Step 4: Implement voice_clip_mixer.py**
-
-```python
-#!/usr/bin/env python3
-"""
-Select and mix human voice clips into video audio.
-
-Provides human fingerprint variation to differentiate from
-mass-produced AI content. Voice clips are pre-recorded by the creator
-and stored in assets/voice_clips/{hooks,reactions,outros}/.
-"""
-
-import os
-import random
-import subprocess
-import tempfile
-from pathlib import Path
-from typing import List, Optional
-
-AUDIO_EXTENSIONS = {".mp3", ".wav", ".m4a", ".aac"}
-
-
-def select_clips(category_dir: Path, count: int = 1) -> List[Path]:
-    """Select random voice clips from a category directory.
-
-    Args:
-        category_dir: Directory containing voice clip audio files
-        count: Number of clips to select (no duplicates)
-
-    Returns:
-        List of Paths to selected clips. Empty if dir missing or empty.
-    """
-    if not category_dir.exists():
-        return []
-
-    candidates = [
-        f for f in category_dir.iterdir()
-        if f.is_file() and f.suffix.lower() in AUDIO_EXTENSIONS
-    ]
-
-    if not candidates:
-        return []
-
-    count = min(count, len(candidates))
-    return random.sample(candidates, count)
-
-
-def mix_voice_clip(
-    base_audio: Path,
-    clip_path: Path,
-    position_seconds: float,
-    output_path: Path,
-    volume: float = 0.8,
-) -> bool:
-    """Mix a voice clip into base audio at a specified position.
-
-    Uses ffmpeg to overlay the clip on top of the base audio.
-    The clip volume is relative to the base (0.0 to 1.0).
-
-    Args:
-        base_audio: Path to the base audio file (song.mp3)
-        clip_path: Path to the voice clip to overlay
-        position_seconds: Where to place the clip (seconds from start)
-        output_path: Where to write the mixed result
-        volume: Volume of the voice clip relative to base (0.0-1.0)
-
-    Returns:
-        True on success, False on failure.
-    """
-    delay_ms = int(position_seconds * 1000)
-
-    cmd = [
-        "ffmpeg", "-y",
-        "-i", str(base_audio),
-        "-i", str(clip_path),
-        "-filter_complex",
-        f"[1:a]adelay={delay_ms}|{delay_ms},volume={volume}[voice];"
-        f"[0:a][voice]amix=inputs=2:duration=first:dropout_transition=0:normalize=0[out]",
-        "-map", "[out]",
-        "-acodec", "libmp3lame",
-        "-q:a", "2",
-        str(output_path),
-    ]
-
-    try:
-        result = subprocess.run(cmd, capture_output=True, timeout=60)
-        if result.returncode != 0:
-            print(f"  ⚠️ Voice clip mix failed: {result.stderr.decode()[:200]}")
-            return False
-        return output_path.exists() and output_path.stat().st_size > 0
-    except (subprocess.TimeoutExpired, Exception) as e:
-        print(f"  ⚠️ Voice clip mix error: {e}")
-        return False
-```
-
-- [ ] **Step 5: Run tests to verify they pass**
-
-Run: `python3 -m pytest tests/test_voice_clip_mixer.py -v`
-Expected: PASS
-
-- [ ] **Step 6: Add voice_clips config to config.json**
-
-In `config/config.json`, add a new top-level section:
-
-```json
-"voice_clips": {
-    "enabled": false,
-    "hooks_dir": "assets/voice_clips/hooks",
-    "reactions_dir": "assets/voice_clips/reactions",
-    "outros_dir": "assets/voice_clips/outros",
-    "hook_volume": 0.85,
-    "reaction_volume": 0.75
-}
-```
-
-Note: `enabled: false` by default -- will be switched to `true` once Ethan records the voice clips.
-
-- [ ] **Step 7: Commit**
-
-```bash
-git add agents/voice_clip_mixer.py tests/test_voice_clip_mixer.py assets/voice_clips/ config/config.json
-git commit -m "feat: voice clip mixer for human fingerprint variation
-
-Module to randomly select and mix pre-recorded voice clips into
-video audio. Feature-flagged (voice_clips.enabled) until recordings
-are provided."
+Replace block fade-in with stroke-dashoffset draw animation (~0.5s
+per element, 150ms stagger). Text labels fade in after shapes finish.
+Filled shapes draw outline first, then fill fades in."
 ```
 
 ---
 
-## Task 8: Integrate Voice Clips into Video Assembly
-
-**Files:**
-- Modify: `agents/5_assemble_video.py`
-
-- [ ] **Step 1: Add voice clip mixing after audio load**
-
-In `agents/5_assemble_video.py`, find where the audio is loaded and the final video is rendered. After the audio is loaded but before final render, add:
-
-```python
-    # Mix voice clips if enabled
-    project_root = Path(__file__).resolve().parent.parent
-    config_data = json.loads((project_root / "config" / "config.json").read_text())
-    voice_config = config_data.get("voice_clips", {})
-
-    if voice_config.get("enabled", False):
-        try:
-            from voice_clip_mixer import select_clips, mix_voice_clip
-
-            hooks_dir = project_root / voice_config.get("hooks_dir", "assets/voice_clips/hooks")
-            hook_clips = select_clips(hooks_dir, count=1)
-
-            if hook_clips:
-                mixed_path = output_dir / "song_with_voice.mp3"
-                success = mix_voice_clip(
-                    base_audio=song_path,
-                    clip_path=hook_clips[0],
-                    position_seconds=0.0,
-                    output_path=mixed_path,
-                    volume=voice_config.get("hook_volume", 0.85),
-                )
-                if success:
-                    # Use the mixed version as the audio source (preserve original)
-                    song_path = mixed_path
-                    print(f"  🎤 Mixed voice clip: {hook_clips[0].name}")
-                else:
-                    print("  ⚠️ Voice clip mixing failed, using original audio")
-        except Exception as e:
-            print(f"  ⚠️ Voice clip integration skipped: {e}")
-```
-
-The exact insertion point depends on where `song_path` is defined and used -- insert after the audio file is finalized but before it's attached to the video clips.
-
-- [ ] **Step 2: Commit**
-
-```bash
-git add agents/5_assemble_video.py
-git commit -m "feat: integrate voice clip mixing into video assembly
-
-When voice_clips.enabled is true, randomly selects a hook voice clip
-and mixes it at position 0s over the song audio."
-```
-
----
-
-## Task 9: Add Weekday Check to Pipeline (Skip Weekends)
+## Task 8: Add Weekday Check to Pipeline (Skip Weekends)
 
 **Files:**
 - Modify: `pipeline.sh`
@@ -1058,7 +821,7 @@ After the `set -e` line and before any stage processing, add:
 # Skip weekends (date +%u: 1=Monday, 7=Sunday)
 DAY_OF_WEEK=$(date +%u)
 if [ "$DAY_OF_WEEK" -eq 6 ] || [ "$DAY_OF_WEEK" -eq 7 ]; then
-    echo "📅 Skipping pipeline on weekend (day=$DAY_OF_WEEK)"
+    echo "Skipping pipeline on weekend (day=$DAY_OF_WEEK)"
     exit 0
 fi
 ```
@@ -1075,7 +838,7 @@ on Saturday and Sunday."
 
 ---
 
-## Task 10: Integration Test - Full Pipeline Dry Run
+## Task 9: Integration Test - Full Pipeline Dry Run
 
 **Files:**
 - No new files -- verification step
@@ -1099,8 +862,7 @@ Expected: All tests pass
 Run: `python3 -c "
 from pathlib import Path
 from agents.remotion_props_builder import build_overlay_props
-# Just verify it doesn't crash with new fields
-config = {'video_settings': {'resolution': [1080, 1920], 'fps': 30}, 'remotion_overlay': {'channel_name': '@test', 'music_indicator_enabled': True}}
+config = {'video_settings': {'resolution': [1080, 1920], 'fps': 30}, 'remotion_overlay': {'channel_name': '@test', 'music_indicator_enabled': True, 'karaoke_enabled': True, 'edu_reveal_enabled': True, 'transitions_enabled': False}}
 import tempfile, json
 with tempfile.TemporaryDirectory() as tmp:
     run_dir = Path(tmp)
@@ -1126,10 +888,6 @@ git commit -m "chore: integration verification for JTBD channel improvements"
 
 The following spec requirements are deferred to a follow-up PR to keep this plan focused and shippable:
 
-1. **Thumbnail "MUSIC VIDEO" badge (Spec 2c):** Requires understanding the thumbnail generation pipeline (likely in `upload_to_youtube.sh` or a thumbnail agent). Low complexity but separate from the overlay/pipeline changes.
+1. **Thumbnail "MUSIC VIDEO" badge (Spec 2c):** Requires understanding the thumbnail generation pipeline. Low complexity but separate concern.
 
-2. **Structural variation templates (Spec 4b):** The spec describes 4 structural templates (Standard, Reveal-first, Question-answer, Cold open) that vary overlay timing. This is a significant change to `remotion_props_builder.py` and needs its own design iteration to determine how template selection interacts with the existing A/B testing system.
-
-3. **YouTube AI disclosure labels (Spec 4c):** Requires research on the exact YouTube Data API v3 field for AI content disclosure. Once the API field is identified, this is a small change to the upload script.
-
-These are tracked as follow-up work and do not block shipping the core 4 improvements.
+2. **YouTube AI disclosure labels (Spec 4c):** Requires research on the exact YouTube Data API v3 field for AI content disclosure. Small change to the upload script once field is identified.
