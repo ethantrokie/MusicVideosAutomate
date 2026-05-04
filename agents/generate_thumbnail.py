@@ -46,6 +46,16 @@ LOGO_MAX_SIZE = 100
 LOGO_OPACITY = 180  # 0-255, where 255 is fully opaque
 LOGO_MARGIN = 20
 
+# "MUSIC VIDEO" badge constants
+BADGE_TEXT = "MUSIC VIDEO"
+BADGE_FONT_SIZE = 28
+BADGE_PADDING_X = 14
+BADGE_PADDING_Y = 8
+BADGE_MARGIN = 18
+BADGE_BG_COLOR = (0, 0, 0, 160)   # Semi-transparent dark background
+BADGE_TEXT_COLOR = (255, 255, 255, 255)  # White text
+BADGE_CORNER_RADIUS = 6
+
 
 # --- Frame scoring ---
 
@@ -334,6 +344,57 @@ def add_logo_overlay(image: Image.Image, logo_path: str) -> Image.Image:
     return result
 
 
+# --- Badge overlay ---
+
+def add_music_video_badge(image: Image.Image) -> Image.Image:
+    """
+    Add a small "MUSIC VIDEO" badge in the bottom-right corner.
+
+    Renders white text on a dark semi-transparent rounded pill,
+    matching the visual style YouTube uses for its own video badges.
+
+    Args:
+        image: Base PIL Image (RGBA).
+
+    Returns:
+        New PIL Image with badge applied.
+    """
+    result = image.copy()
+
+    font = load_font(BADGE_FONT_SIZE)
+
+    # Measure text dimensions
+    bbox = font.getbbox(BADGE_TEXT)
+    text_w = bbox[2] - bbox[0]
+    text_h = bbox[3] - bbox[1]
+
+    badge_w = text_w + BADGE_PADDING_X * 2
+    badge_h = text_h + BADGE_PADDING_Y * 2
+
+    # Position: bottom-right corner
+    badge_x = THUMBNAIL_WIDTH - badge_w - BADGE_MARGIN
+    badge_y = THUMBNAIL_HEIGHT - badge_h - BADGE_MARGIN
+
+    # Draw badge background on a separate RGBA layer for proper alpha compositing
+    overlay = Image.new("RGBA", result.size, (0, 0, 0, 0))
+    overlay_draw = ImageDraw.Draw(overlay)
+
+    # Rounded rectangle background
+    overlay_draw.rounded_rectangle(
+        [badge_x, badge_y, badge_x + badge_w, badge_y + badge_h],
+        radius=BADGE_CORNER_RADIUS,
+        fill=BADGE_BG_COLOR,
+    )
+
+    # Badge text (centered within the pill)
+    text_x = badge_x + BADGE_PADDING_X - bbox[0]
+    text_y = badge_y + BADGE_PADDING_Y - bbox[1]
+    overlay_draw.text((text_x, text_y), BADGE_TEXT, font=font, fill=BADGE_TEXT_COLOR)
+
+    # Composite onto result
+    return Image.alpha_composite(result, overlay)
+
+
 # --- Main pipeline ---
 
 def generate_thumbnail(
@@ -391,11 +452,14 @@ def generate_thumbnail(
     # Step 3: Add text overlay
     thumbnail = add_text_overlay(thumbnail, title)
 
-    # Step 4: Add logo if provided
+    # Step 4: Add "MUSIC VIDEO" badge
+    thumbnail = add_music_video_badge(thumbnail)
+
+    # Step 5: Add logo if provided
     if logo_path:
         thumbnail = add_logo_overlay(thumbnail, logo_path)
 
-    # Step 5: Save as JPEG
+    # Step 6: Save as JPEG
     output = Path(output_path)
     output.parent.mkdir(parents=True, exist_ok=True)
 
