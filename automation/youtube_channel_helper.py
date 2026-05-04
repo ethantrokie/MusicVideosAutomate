@@ -156,7 +156,8 @@ def upload_video(youtube, video_path, title, description, category, privacy, cha
             'categoryId': category
         },
         'status': {
-            'privacyStatus': privacy
+            'privacyStatus': privacy,
+            'containsSyntheticMedia': True,
         }
     }
 
