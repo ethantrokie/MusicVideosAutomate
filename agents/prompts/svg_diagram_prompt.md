@@ -4,10 +4,23 @@ You are an expert SVG illustrator generating animated educational diagrams for m
 
 ## Task
 
-Generate a single SVG diagram that visually explains the following concept:
+Generate a single SVG diagram that visually explains ONE key insight from this concept:
 
 **Topic**: {{TOPIC}}
 **Key Fact**: {{KEY_FACT}}
+
+## Core Design Principles
+
+**This diagram will be viewed on a phone while music plays. It must be instantly readable at a glance.**
+
+- ONE central idea only — pick the single most visually striking aspect of the key fact
+- MAXIMUM 3 text labels total (including title) — each label must be 1-4 words
+- MAXIMUM 3 shapes/lines — no cluttered multi-step diagrams
+- Huge, bold text — viewers have 3 seconds to absorb this
+- Show the surprising scale, contrast, or relationship — not a process
+
+**BAD**: A diagram with 6 labels explaining a 4-step process
+**GOOD**: Two shapes side by side showing a dramatic size difference, with one bold number
 
 ## SVG Requirements
 
@@ -37,50 +50,38 @@ Generate a single SVG diagram that visually explains the following concept:
 ```
 
 - `data-order`: Integer starting at 1 (animation order)
-- `data-delay`: Milliseconds after video starts (first group = 0, subsequent groups add 600-1200ms)
-- `id`: Descriptive semantic name (e.g., "cylinder", "pressure-arrow", "label-force")
-- Use 4-8 groups total for a good animation sequence
+- `data-delay`: Milliseconds after video starts (first group = 0, subsequent groups add 600-1000ms)
+- `id`: Descriptive semantic name
+- Use **exactly 3-4 groups** — title, main visual, one key label, optional payoff number
 
 ### Shape Style (Rough.js Compatible)
 
-Use simple, clean SVG shapes that will look good with slight roughness applied:
-- Prefer `<rect>`, `<circle>`, `<ellipse>`, `<line>`, `<path>` with simple d attributes
+Use simple, clean SVG shapes:
+- Prefer `<rect>`, `<circle>`, `<ellipse>`, `<line>` — avoid complex `<path>` d attributes
 - Use `fill="none"` with `stroke` for outlined shapes
-- Stroke width: 2-4px for major elements, 1-2px for details
-- Arrows: use `<line>` with `marker-end` or simple `<polygon>` arrowheads
-- Text: `font-family="sans-serif"`, `font-size` 20-36px for labels
-
-### For Complex Photorealistic Objects
-
-If a concept requires a photorealistic object (machinery, biological structure, etc.), use an image placeholder:
-
-```xml
-<image data-fal-prompt="chalk sketch style illustration of [specific object] on dark background, educational diagram" x="400" y="200" width="280" height="200"/>
-```
-
-Use sparingly — only when a drawn shape truly cannot convey the concept.
+- Stroke width: 3-5px — thick, bold lines read better on video
+- Arrows: `<line>` with a simple `<polygon>` arrowhead
+- Text: `font-family="sans-serif"`, `font-weight="bold"`
+  - Title: font-size 48-56px
+  - Labels: font-size 36-44px (much larger than you think you need)
+  - Detail: font-size 28-32px max
 
 ### Layout Guidelines
 
-- Keep main diagram centered: roughly x=100 to x=980, y=80 to y=620
-- Title/label text: upper area (y < 150), font-size 28-36
-- Core diagram: center area (y 150-500)
-- Caption/detail text: lower area (y 520-640), font-size 18-24
-- Leave bottom 80px clear for video subtitles
+- Leave generous whitespace — at least 150px margins on all sides
+- One dominant visual element centered in the frame
+- Title at top (y 60-80), one label below visual, no text below y=620
+- Leave bottom 100px clear for video subtitles
+- **Do NOT stack multiple rows of labels** — spread them out or cut them
 
-## Reference Images
+### What Makes a Good Diagram
 
-The following reference images show the visual style and complexity level to target.
-Study them for layout, label placement, and how to break concepts into animated groups:
+Ask yourself: "If I blur my eyes, does the core contrast/relationship still read?"
+- A tiny object next to a huge one = YES
+- A bold number with a simple shape = YES
+- Three boxes with connecting arrows and 6 labels = NO
 
-- agents/svg_reference_images/ref_btree.png
-- agents/svg_reference_images/ref_pistons.png
-- agents/svg_reference_images/ref_pascals_law.png
-- agents/svg_reference_images/ref_bimetallic.png
-- agents/svg_reference_images/ref_ac_house.png
-- agents/svg_reference_images/ref_excavator.png
-
-## Example SVG
+## Example SVG (scale comparison — the right approach)
 
 ```svg
 <svg viewBox="0 0 1080 720" xmlns="http://www.w3.org/2000/svg">
@@ -88,55 +89,42 @@ Study them for layout, label placement, and how to break concepts into animated 
 
   <!-- Group 1: Title -->
   <g id="title" data-order="1" data-delay="0">
-    <text x="540" y="70" font-family="sans-serif" font-size="34"
+    <text x="540" y="72" font-family="sans-serif" font-size="52"
           fill="#ffd700" text-anchor="middle" font-weight="bold">
       Pascal's Law
     </text>
-    <text x="540" y="105" font-family="sans-serif" font-size="20"
-          fill="#e0e0e0" text-anchor="middle">
-      Pressure applied to a fluid transmits equally in all directions
-    </text>
   </g>
 
-  <!-- Group 2: Left cylinder (input) -->
-  <g id="cylinder-input" data-order="2" data-delay="600">
-    <rect x="180" y="220" width="80" height="200" fill="none" stroke="#e0e0e0" stroke-width="3"/>
-    <ellipse cx="220" cy="220" rx="40" ry="12" fill="none" stroke="#e0e0e0" stroke-width="3"/>
-    <rect x="180" y="160" width="80" height="60" fill="#a8d8ea" opacity="0.3" stroke="#a8d8ea" stroke-width="2"/>
-    <text x="220" y="148" font-family="sans-serif" font-size="18" fill="#a8d8ea" text-anchor="middle">Force F₁</text>
-    <line x1="220" y1="155" x2="220" y2="175" stroke="#a8d8ea" stroke-width="2" marker-end="url(#arrow)"/>
+  <!-- Group 2: Small input piston (left) -->
+  <g id="piston-small" data-order="2" data-delay="600">
+    <rect x="200" y="280" width="80" height="200" fill="none" stroke="#a8d8ea" stroke-width="4"/>
+    <text x="240" y="260" font-family="sans-serif" font-size="40"
+          fill="#a8d8ea" text-anchor="middle" font-weight="bold">Small</text>
+    <line x1="240" y1="265" x2="240" y2="282" stroke="#a8d8ea" stroke-width="3"
+          marker-end="url(#arr-blue)"/>
   </g>
 
-  <!-- Group 3: Connecting fluid chamber -->
-  <g id="fluid-chamber" data-order="3" data-delay="1200">
-    <rect x="260" y="360" width="400" height="60" fill="#a8d8ea" opacity="0.2" stroke="#a8d8ea" stroke-width="2"/>
-    <text x="460" y="400" font-family="sans-serif" font-size="16" fill="#a8d8ea" text-anchor="middle">Fluid transmits pressure equally</text>
+  <!-- Group 3: Large output piston (right) -->
+  <g id="piston-large" data-order="3" data-delay="1200">
+    <rect x="680" y="160" width="200" height="320" fill="none" stroke="#ff6b6b" stroke-width="4"/>
+    <text x="780" y="136" font-family="sans-serif" font-size="40"
+          fill="#ff6b6b" text-anchor="middle" font-weight="bold">25× Bigger</text>
+    <line x1="780" y1="142" x2="780" y2="162" stroke="#ff6b6b" stroke-width="3"
+          marker-end="url(#arr-red)"/>
   </g>
 
-  <!-- Group 4: Right cylinder (output) -->
-  <g id="cylinder-output" data-order="4" data-delay="1800">
-    <rect x="660" y="180" width="160" height="240" fill="none" stroke="#e0e0e0" stroke-width="3"/>
-    <ellipse cx="740" cy="180" rx="80" ry="18" fill="none" stroke="#e0e0e0" stroke-width="3"/>
-    <rect x="660" y="100" width="160" height="80" fill="#ff6b6b" opacity="0.3" stroke="#ff6b6b" stroke-width="2"/>
-    <text x="740" y="88" font-family="sans-serif" font-size="18" fill="#ff6b6b" text-anchor="middle">Force F₂ (larger)</text>
-    <line x1="740" y1="95" x2="740" y2="115" stroke="#ff6b6b" stroke-width="2" marker-end="url(#arrow-red)"/>
+  <!-- Group 4: Connecting line -->
+  <g id="connector" data-order="4" data-delay="1800">
+    <line x1="280" y1="460" x2="680" y2="460" stroke="#e0e0e0" stroke-width="3" stroke-dasharray="12,8"/>
+    <text x="540" y="540" font-family="sans-serif" font-size="32"
+          fill="#e0e0e0" text-anchor="middle">same pressure</text>
   </g>
 
-  <!-- Group 5: Key equation -->
-  <g id="equation" data-order="5" data-delay="2600">
-    <rect x="340" y="560" width="400" height="50" fill="#ffd700" opacity="0.1" stroke="#ffd700" stroke-width="1" rx="8"/>
-    <text x="540" y="592" font-family="sans-serif" font-size="24"
-          fill="#ffd700" text-anchor="middle" font-weight="bold">
-      P = F₁/A₁ = F₂/A₂
-    </text>
-  </g>
-
-  <!-- Arrow markers -->
   <defs>
-    <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+    <marker id="arr-blue" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
       <polygon points="0 0, 10 3.5, 0 7" fill="#a8d8ea"/>
     </marker>
-    <marker id="arrow-red" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+    <marker id="arr-red" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
       <polygon points="0 0, 10 3.5, 0 7" fill="#ff6b6b"/>
     </marker>
   </defs>
@@ -147,6 +135,8 @@ Study them for layout, label placement, and how to break concepts into animated 
 
 - Output ONLY the raw SVG — no markdown fences, no explanation, no preamble.
 - The SVG must be valid XML.
-- Include 4-8 animated `<g>` groups with `data-order` and `data-delay`.
+- Use exactly **3-4 animated `<g>` groups** with `data-order` and `data-delay`.
 - Do NOT use `<script>` or `<style>` tags.
-- The diagram should clearly explain **{{KEY_FACT}}** visually.
+- Maximum **3 text elements** total.
+- Maximum **3 shapes** (rect, circle, line, etc.) total — not counting defs/markers.
+- The diagram must convey **{{KEY_FACT}}** through bold visual contrast, not explanation.
