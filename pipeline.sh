@@ -53,6 +53,13 @@ for arg in "$@"; do
     esac
 done
 
+# Skip weekends (date +%u: 1=Monday, 7=Sunday)
+DAY_OF_WEEK=$(date +%u)
+if [ "$DAY_OF_WEEK" -eq 6 ] || [ "$DAY_OF_WEEK" -eq 7 ]; then
+    echo "Skipping pipeline on weekend (day=$DAY_OF_WEEK)"
+    exit 0
+fi
+
 echo -e "${BLUE}🎬 Educational Video Automation Pipeline${NC}"
 echo "=========================================="
 echo ""
