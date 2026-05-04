@@ -200,6 +200,29 @@ fi
 # Generate metadata based on video type
 generate_metadata "$VIDEO_TYPE" "$TOPIC"
 
+# Read shareable stat from lyrics.json if available
+SHAREABLE_STAT=""
+LYRICS_PATH="${RUN_DIR}/lyrics.json"
+if [ -f "$LYRICS_PATH" ]; then
+    SHAREABLE_STAT=$(python3 -c "
+import json, sys
+try:
+    with open(sys.argv[1]) as f:
+        data = json.load(f)
+    stat = data.get('viral_elements', {}).get('shareable_stat', '')
+    print(stat)
+except Exception:
+    pass
+" "$LYRICS_PATH" 2>/dev/null)
+fi
+
+# Prepend shareable stat to description if available
+if [ -n "$SHAREABLE_STAT" ]; then
+    DESCRIPTION="${SHAREABLE_STAT}
+
+${DESCRIPTION}"
+fi
+
 VIDEO_PATH="$RUN_DIR/$VIDEO_FILE"
 
 if [ ! -f "$VIDEO_PATH" ]; then
