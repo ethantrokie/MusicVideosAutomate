@@ -4,7 +4,6 @@ import {
   Img,
   Sequence,
   interpolate,
-  spring,
   staticFile,
   useCurrentFrame,
   useVideoConfig,
@@ -19,6 +18,8 @@ const CONTAINER_TOP = 600;
 const LABEL_TOP = CONTAINER_TOP - 80;
 const ENTRANCE_DURATION_FRAMES = 15;
 const MIN_DELAY_MS = 800;
+const DRAW_DURATION_MS = 500;
+const ELEMENT_STAGGER_MS = 150;
 
 // ---------------------------------------------------------------------------
 // Rough.js helpers
@@ -267,17 +268,15 @@ const AnimatedGroup: React.FC<{
 }> = ({ children, groupId, groupIndex }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
+  const groupRef = React.useRef<SVGSVGElement>(null);
 
-  const progress = spring({
-    frame,
-    fps,
-    config: { mass: 0.5, damping: 14, stiffness: 100 },
-    durationInFrames: ENTRANCE_DURATION_FRAMES,
+  // Quick entrance opacity (3 frames) to avoid flash of unstyled content
+  const entranceFrames = 3;
+  const opacity = interpolate(frame, [0, entranceFrames], [0, 1], {
+    extrapolateRight: "clamp",
   });
 
-  const opacity = interpolate(progress, [0, 1], [0, 1]);
-  const scale = interpolate(progress, [0, 1], [0.95, 1.0]);
-
+  // Memoize rendered elements — re-render only when group identity changes
   const elements = useMemo(
     () =>
       children.map((child, i) =>
@@ -288,8 +287,72 @@ const AnimatedGroup: React.FC<{
     [groupId, groupIndex],
   );
 
+  // Initialize stroke-dasharray on mount so paths start fully hidden
+  React.useEffect(() => {
+    const svg = groupRef.current;
+    if (!svg) return;
+    const paths = svg.querySelectorAll("path");
+    paths.forEach((path) => {
+      const fill = path.getAttribute("fill");
+      if (fill && fill !== "none") {
+        path.style.opacity = "0";
+      } else {
+        const length = path.getTotalLength();
+        path.style.strokeDasharray = `${length}`;
+        path.style.strokeDashoffset = `${length}`;
+      }
+    });
+    const texts = svg.querySelectorAll("text");
+    texts.forEach((text) => {
+      text.style.opacity = "0";
+    });
+  }, [groupId, groupIndex]);
+
+  // Animate stroke-dashoffset, fill opacity, and text opacity every frame
+  React.useEffect(() => {
+    const svg = groupRef.current;
+    if (!svg) return;
+    const currentTimeMs = (frame / fps) * 1000;
+    const paths = svg.querySelectorAll("path");
+    let strokePathCount = 0;
+
+    paths.forEach((path, i) => {
+      const fill = path.getAttribute("fill");
+      if (fill && fill !== "none") {
+        // Fill path: fade in after corresponding stroke finishes
+        const fillStartMs = i * ELEMENT_STAGGER_MS + DRAW_DURATION_MS + 200;
+        const fillDuration = 300;
+        const elapsed = currentTimeMs - fillStartMs;
+        const fillOpacity = Math.min(Math.max(elapsed / fillDuration, 0), 1);
+        path.style.opacity = `${fillOpacity}`;
+      } else {
+        // Stroke path: animate dashoffset with ease-out curve
+        const length = path.getTotalLength();
+        const elementStartMs = strokePathCount * ELEMENT_STAGGER_MS;
+        const elapsed = currentTimeMs - elementStartMs;
+        const progress = Math.min(Math.max(elapsed / DRAW_DURATION_MS, 0), 1);
+        const eased = 1 - Math.pow(1 - progress, 2);
+        path.style.strokeDashoffset = `${length * (1 - eased)}`;
+        strokePathCount++;
+      }
+    });
+
+    // Text: fade in after all stroke paths finish drawing
+    const texts = svg.querySelectorAll("text");
+    const lastStrokeStartMs = Math.max(0, strokePathCount - 1) * ELEMENT_STAGGER_MS;
+    const textStartMs = lastStrokeStartMs + DRAW_DURATION_MS + 100;
+    const textFadeDuration = 300;
+
+    texts.forEach((text) => {
+      const elapsed = currentTimeMs - textStartMs;
+      const textOpacity = Math.min(Math.max(elapsed / textFadeDuration, 0), 1);
+      text.style.opacity = `${textOpacity}`;
+    });
+  });
+
   return (
     <svg
+      ref={groupRef}
       viewBox={`0 0 ${SVG_VIEWBOX_WIDTH} ${SVG_VIEWBOX_HEIGHT}`}
       width={SVG_VIEWBOX_WIDTH}
       height={SVG_VIEWBOX_HEIGHT}
@@ -298,8 +361,6 @@ const AnimatedGroup: React.FC<{
         top: 0,
         left: 0,
         opacity,
-        transform: `scale(${scale})`,
-        transformOrigin: "center center",
         overflow: "visible",
       }}
     >
