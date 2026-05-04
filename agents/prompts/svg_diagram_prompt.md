@@ -15,12 +15,12 @@ Generate a single SVG diagram that visually explains ONE key insight from this c
 
 - ONE central idea only — pick the single most visually striking aspect of the key fact
 - MAXIMUM 3 text labels total (including title) — each label must be 1-4 words
-- MAXIMUM 3 shapes/lines — no cluttered multi-step diagrams
+- MAXIMUM 3 **objects** — each object can be made of multiple shapes (e.g. a cylinder = rect + ellipse + ellipse is ONE object)
 - Huge, bold text — viewers have 3 seconds to absorb this
 - Show the surprising scale, contrast, or relationship — not a process
 
 **BAD**: A diagram with 6 labels explaining a 4-step process
-**GOOD**: Two shapes side by side showing a dramatic size difference, with one bold number
+**GOOD**: Two detailed objects side by side showing a dramatic size difference, with one bold number — each object can be richly drawn (a hydraulic cylinder with piston, fluid chamber, seals) but there are only TWO of them, not six
 
 ## SVG Requirements
 
@@ -138,5 +138,5 @@ Ask yourself: "If I blur my eyes, does the core contrast/relationship still read
 - Use exactly **3-4 animated `<g>` groups** with `data-order` and `data-delay`.
 - Do NOT use `<script>` or `<style>` tags.
 - Maximum **3 text elements** total.
-- Maximum **3 shapes** (rect, circle, line, etc.) total — not counting defs/markers.
+- Maximum **3 objects** total — each object (a `<g>` group) can contain as many shapes as needed to look realistic, but keep it purposeful.
 - The diagram must convey **{{KEY_FACT}}** through bold visual contrast, not explanation.
