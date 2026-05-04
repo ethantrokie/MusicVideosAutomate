@@ -3,6 +3,7 @@ import { AbsoluteFill, Sequence } from "remotion";
 import { EduSvgDiagram } from "./EduSvgDiagram";
 import { KaraokeSubtitles } from "./KaraokeSubtitles";
 import { HookText } from "./HookText";
+import { MusicIndicator } from "./MusicIndicator";
 import { TitleCard } from "./TitleCard";
 import { TransitionOverlay } from "./SceneTransitions";
 import { EndScreen } from "./EndScreen";
@@ -21,6 +22,7 @@ export const OverlayComposition: React.FC<OverlayProps> = (props) => {
     karaokeEnabled,
     eduRevealEnabled,
     transitionsEnabled,
+    musicIndicatorEnabled,
   } = props;
 
   return (
@@ -72,6 +74,13 @@ export const OverlayComposition: React.FC<OverlayProps> = (props) => {
       {hookText && (
         <Sequence from={0} durationInFrames={Math.round(fps * 3)}>
           <HookText text={hookText} durationMs={3000} isShort={isShort} />
+        </Sequence>
+      )}
+
+      {/* Layer 3b: Music indicator (first 5s) -- signals this is a music video */}
+      {musicIndicatorEnabled && (
+        <Sequence from={0} durationInFrames={Math.round(fps * 5)}>
+          <MusicIndicator durationMs={5000} />
         </Sequence>
       )}
 

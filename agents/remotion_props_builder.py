@@ -443,4 +443,5 @@ def build_overlay_props(
         "karaokeEnabled": remotion_config.get("karaoke_enabled", True),
         "eduRevealEnabled": remotion_config.get("edu_reveal_enabled", True),
         "transitionsEnabled": remotion_config.get("transitions_enabled", False),
+        "musicIndicatorEnabled": remotion_config.get("music_indicator_enabled", True),
     }

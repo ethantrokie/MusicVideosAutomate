@@ -62,4 +62,6 @@ export interface OverlayProps {
   karaokeEnabled: boolean;
   eduRevealEnabled: boolean;
   transitionsEnabled: boolean;
+  animateHook: boolean;
+  musicIndicatorEnabled: boolean;
 }

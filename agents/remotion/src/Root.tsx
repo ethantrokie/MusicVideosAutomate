@@ -13,10 +13,13 @@ const defaultProps: OverlayProps = {
   isShort: true,
   phrases: [],
   eduImages: [],
+  eduDiagrams: [],
   shotBoundaries: [],
   karaokeEnabled: true,
   eduRevealEnabled: true,
   transitionsEnabled: false,
+  animateHook: false,
+  musicIndicatorEnabled: true,
 };
 
 const calculateMetadata = ({ props }: { props: OverlayProps }) => ({

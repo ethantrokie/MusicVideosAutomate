@@ -130,7 +130,8 @@
     "edu_reveal_enabled": true,
     "transitions_enabled": false,
     "animated_end_screen": true,
-    "channel_name": "@learningsciencemusic"
+    "channel_name": "@learningsciencemusic",
+    "music_indicator_enabled": true
   },
   "ai_clips": {
     "enabled": false,
