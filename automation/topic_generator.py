@@ -401,34 +401,46 @@ CRITICAL UNIQUENESS REQUIREMENTS:
 
     prompt = f"""SYSTEM CONTEXT: This is an automated pipeline. Do NOT use brainstorming skills. Do NOT ask clarifying questions. Just generate the output directly.
 
-You are a topic generator for educational science videos. Generate ONE topic ONLY.
+You are a topic generator for educational science music videos. Generate ONE topic ONLY.
 {trends_section}{category_section}{recent_topics_section}
 REQUIREMENTS:
 - Category: One of {categories}
 - K-12 appropriate (ages 10-18)
 - Visually interesting (stock footage available)
-- Specific educational science concept (no broad topics) focused on everyday phenomena
+- EVERYDAY RELEVANCE: The topic MUST relate to something the viewer personally encounters in daily life (their car, phone, body, food, home appliances, workplace tools, the buildings they enter, the clothes they wear, etc.)
 - UNIQUENESS: Your topic will be compared against recent videos listed below (DO NOT repeat)
 
+TOPIC FRAMING - CRITICAL:
+Frame every topic as a SINGLE SURPRISING REVELATION, not a process explanation.
+- DO NOT write "How X works" or "How X is made"
+- DO NOT write multi-step process topics (e.g., "The 12 steps of aluminum stamping")
+- DO frame as: "The reason X does Y" or "Why X is actually Y" or "The hidden Z inside every W"
+- The topic should make someone say "Wait, really?!" -- a single counterintuitive or mind-blowing fact
+
+GOOD EXAMPLES (revelation-framed, everyday relevance):
+- The reason your dishwasher actually uses less water than washing by hand
+- Why the tiny holes in airplane windows keep you alive at 35,000 feet
+- The hidden generator inside your car that charges itself every time you brake
+- Why aluminum cans are thinner than a human hair yet hold 90 PSI of pressure
+- The 1788 device inside every engine that prevents it from tearing itself apart
+
+BAD EXAMPLES (process-framed, avoid these):
+- How freeze-drying preserves food through sublimation
+- How aluminum cans are manufactured through a 12-step stamping process
+- How regenerative braking converts kinetic energy into electrical energy
+- How solenoid valves control fluid flow through electromagnetic actuation
+
 TOPIC VARIETY - Diversify across these categories (ranked by audience retention):
-- Mechanical Engineering (TOP PERFORMER): Turbofan engines, hydraulic systems, pneumatic mechanisms, gear systems
+- Mechanical Engineering (TOP PERFORMER): Engines, brakes, hydraulic systems, pneumatic mechanisms, gear systems
 - Biology (TOP PERFORMER, highest subscriber growth): Anatomy, physiology, cell processes, organ systems
-- Computer Science (TOP PERFORMER): Microchip fabrication, algorithms, data structures, networking
-- Electrical Engineering: Motors, transformers, circuits, power systems, piezoelectrics
-- Manufacturing: "How it's made" production processes, industrial systems, materials
-- Metalworking (REDUCE - over-indexed): CNC, welding, forging, laser cutting — produce LESS of these
+- Computer Science (TOP PERFORMER): Microchip fabrication, algorithms, networking, data structures
+- Electrical Engineering: Motors, transformers, circuits, power systems
+- Manufacturing: Production processes, industrial systems, materials
 - Physics: Waves, optics, motion, forces, thermodynamics
 - Chemistry: Reactions, materials science, chemical processes
 
-EXAMPLE DIVERSE TOPICS:
-- How turbofan jet engines generate thrust through bypass airflow (mechanical engineering)
-- How your kidneys filter blood and produce urine (biology)
-- How microchips are patterned using photolithography (computer science)
-- How transformers step voltage up and down using electromagnetic induction (electrical engineering)
-- How injection molding creates plastic parts through high-pressure manufacturing (manufacturing)
-
 CRITICAL OUTPUT FORMAT - Output EXACTLY these two lines with no other text:
-Topic: [specific educational science concept]
+Topic: [single surprising revelation about an everyday thing]
 Tone: [musical tone matched to the topic - see guidelines below]
 
 {tone_guidelines}
