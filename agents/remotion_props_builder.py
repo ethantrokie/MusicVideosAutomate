@@ -256,6 +256,18 @@ def _build_shot_boundaries(approved_data: Dict) -> List[Dict]:
     return boundaries
 
 
+def _get_shareable_stat(run_dir: Path) -> str:
+    """Extract shareable_stat from lyrics.json viral_elements."""
+    lyrics_path = run_dir / "lyrics.json"
+    if not lyrics_path.exists():
+        return ""
+    try:
+        data = json.loads(lyrics_path.read_text())
+        return data.get("viral_elements", {}).get("shareable_stat", "")
+    except (json.JSONDecodeError, OSError):
+        return ""
+
+
 def _is_short_format(format_type: FormatType) -> bool:
     """Return True if the format is a short-form vertical video."""
     return format_type in ("short_hook", "short_educational", "short_intro")
@@ -444,4 +456,5 @@ def build_overlay_props(
         "eduRevealEnabled": remotion_config.get("edu_reveal_enabled", True),
         "transitionsEnabled": remotion_config.get("transitions_enabled", False),
         "musicIndicatorEnabled": remotion_config.get("music_indicator_enabled", True),
+        "shareableStat": _get_shareable_stat(run_dir),
     }

@@ -64,4 +64,5 @@ export interface OverlayProps {
   transitionsEnabled: boolean;
   animateHook: boolean;
   musicIndicatorEnabled: boolean;
+  shareableStat: string;
 }

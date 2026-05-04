@@ -7,6 +7,7 @@ import { MusicIndicator } from "./MusicIndicator";
 import { TitleCard } from "./TitleCard";
 import { TransitionOverlay } from "./SceneTransitions";
 import { EndScreen } from "./EndScreen";
+import { ShareableStat } from "./ShareableStat";
 import type { OverlayProps } from "../types";
 
 export const OverlayComposition: React.FC<OverlayProps> = (props) => {
@@ -94,6 +95,16 @@ export const OverlayComposition: React.FC<OverlayProps> = (props) => {
       {/* Layer 5: Karaoke subtitles (full duration, always on top of images) */}
       {karaokeEnabled && phrases.length > 0 && (
         <KaraokeSubtitles phrases={phrases} isShort={isShort} />
+      )}
+
+      {/* Layer 5b: Shareable stat (last 2.5s, above karaoke, below end screen) */}
+      {props.shareableStat && (
+        <Sequence
+          from={Math.round(((durationMs - 2500) / 1000) * fps)}
+          durationInFrames={Math.round(fps * 2.5)}
+        >
+          <ShareableStat text={props.shareableStat} durationMs={2500} />
+        </Sequence>
       )}
 
       {/* Layer 6: End screen (last 3s) */}

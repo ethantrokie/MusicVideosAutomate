@@ -20,6 +20,7 @@ const defaultProps: OverlayProps = {
   transitionsEnabled: false,
   animateHook: false,
   musicIndicatorEnabled: true,
+  shareableStat: "",
 };
 
 const calculateMetadata = ({ props }: { props: OverlayProps }) => ({
