@@ -386,7 +386,11 @@ def build_overlay_props(
         Dict matching OverlayProps TypeScript interface
     """
     video_settings = config.get("video_settings", {})
-    resolution = video_settings.get("resolution", [1080, 1920])
+    # Full video is landscape (1920x1080); shorts are portrait (1080x1920)
+    if format_type == "full":
+        resolution = [1920, 1080]
+    else:
+        resolution = video_settings.get("resolution", [1080, 1920])
     fps = video_settings.get("fps", 30)
 
     research = _read_json(run_dir / "research.json")

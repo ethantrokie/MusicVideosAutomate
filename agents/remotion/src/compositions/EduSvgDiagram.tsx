@@ -14,8 +14,6 @@ import type { ParsedElement } from "../utils/svgToReact";
 
 const SVG_VIEWBOX_WIDTH = 1080;
 const SVG_VIEWBOX_HEIGHT = 720;
-const CONTAINER_TOP = 600;
-const LABEL_TOP = CONTAINER_TOP - 80;
 const ENTRANCE_DURATION_FRAMES = 15;
 const MIN_DELAY_MS = 800;
 const DRAW_DURATION_MS = 500;
@@ -200,7 +198,7 @@ function renderElement(el: ParsedElement, key: string): React.ReactNode {
           fill={String(p.fill ?? "#ffffff")}
           fontSize={String(p["font-size"] ?? p.fontSize ?? "16")}
           fontFamily="'Caveat', 'Patrick Hand', cursive, sans-serif"
-          textAnchor={String(p["text-anchor"] ?? "start")}
+          textAnchor={String(p["text-anchor"] ?? "start") as "start" | "middle" | "end" | "inherit"}
         >
           {el.textContent ?? ""}
           {el.children?.map((child, ci) =>
@@ -370,29 +368,40 @@ const AnimatedGroup: React.FC<{
 };
 
 // ---------------------------------------------------------------------------
-// ConceptLabel
+// ConceptLabel — short caption inside the diagram area
 // ---------------------------------------------------------------------------
+
+/** Truncate concept text to a short caption (≤8 words). */
+function shortenConcept(text: string): string {
+  const words = text.trim().split(/\s+/);
+  if (words.length <= 8) return text;
+  // Try to break at a natural boundary (comma, dash, em-dash)
+  const short = text.replace(/[,—–].+$/, "").trim();
+  const shortWords = short.split(/\s+/);
+  if (shortWords.length <= 8) return short;
+  return words.slice(0, 7).join(" ") + "…";
+}
 
 const ConceptLabel: React.FC<{ text: string }> = ({ text }) => (
   <div
     style={{
-      backgroundColor: "rgba(0, 0, 0, 0.75)",
-      borderRadius: 14,
-      padding: "8px 20px",
-      maxWidth: "88%",
+      backgroundColor: "rgba(0, 0, 0, 0.6)",
+      borderRadius: 10,
+      padding: "6px 16px",
+      maxWidth: "86%",
     }}
   >
     <span
       style={{
-        color: "#FFFFFF",
-        fontSize: 26,
+        color: "#ffd700",
+        fontSize: 22,
         fontFamily: "SF Pro Display, -apple-system, system-ui, sans-serif",
         fontWeight: 600,
         textAlign: "center",
         lineHeight: 1.3,
       }}
     >
-      {text}
+      {shortenConcept(text)}
     </span>
   </div>
 );
@@ -406,7 +415,7 @@ export const EduSvgDiagram: React.FC<{
   concept: string;
 }> = ({ svgContent, concept }) => {
   const frame = useCurrentFrame();
-  const { fps, durationInFrames } = useVideoConfig();
+  const { fps, durationInFrames, width, height } = useVideoConfig();
 
   const groups = useMemo(() => parseSvgGroups(svgContent), [svgContent]);
 
@@ -461,27 +470,31 @@ export const EduSvgDiagram: React.FC<{
     { extrapolateLeft: "clamp", extrapolateRight: "clamp" },
   );
 
+  // Center the 1080×720 SVG within the actual frame dimensions
+  const containerLeft = Math.round((width - SVG_VIEWBOX_WIDTH) / 2);
+  const containerTop = Math.round((height - SVG_VIEWBOX_HEIGHT) / 2);
+
   return (
     <AbsoluteFill style={{ opacity: exitOpacity }}>
-      {/* Opaque dark background behind the diagram so stock footage doesn't show through */}
+      {/* Opaque dark background behind the diagram */}
       <div
         style={{
           position: "absolute",
-          top: CONTAINER_TOP - 20,
-          left: 0,
-          width: SVG_VIEWBOX_WIDTH,
+          top: containerTop - 20,
+          left: containerLeft - 20,
+          width: SVG_VIEWBOX_WIDTH + 40,
           height: SVG_VIEWBOX_HEIGHT + 40,
           backgroundColor: "#1a1a2e",
           borderRadius: 12,
         }}
       />
 
-      {/* SVG diagram container -- centered vertically (720px tall in 1920px frame) */}
+      {/* SVG diagram container — centered in frame */}
       <div
         style={{
           position: "absolute",
-          top: CONTAINER_TOP,
-          left: 0,
+          top: containerTop,
+          left: containerLeft,
           width: SVG_VIEWBOX_WIDTH,
           height: SVG_VIEWBOX_HEIGHT,
         }}
@@ -501,14 +514,14 @@ export const EduSvgDiagram: React.FC<{
         ))}
       </div>
 
-      {/* Concept label positioned above the SVG container */}
+      {/* Concept label — bottom of SVG area, inside the diagram */}
       {concept && (
         <div
           style={{
             position: "absolute",
-            top: LABEL_TOP,
-            left: 0,
-            right: 0,
+            top: containerTop + SVG_VIEWBOX_HEIGHT - 52,
+            left: containerLeft,
+            width: SVG_VIEWBOX_WIDTH,
             display: "flex",
             justifyContent: "center",
             opacity: labelOpacity,
