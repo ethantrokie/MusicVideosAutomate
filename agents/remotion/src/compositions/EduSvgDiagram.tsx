@@ -465,7 +465,10 @@ export const EduSvgDiagram: React.FC<{
 
   return (
     <AbsoluteFill style={{ opacity: exitOpacity }}>
-      {/* Single full-canvas SVG that centers the 1080×720 diagram via preserveAspectRatio */}
+      {/* Full-width dark background so no letterbox bars show */}
+      <div style={{ position: "absolute", inset: 0, backgroundColor: "#1a1a2e" }} />
+
+      {/* Single full-canvas SVG that centers the 1080×720 diagram */}
       <svg
         viewBox={`0 0 ${SVG_VIEWBOX_WIDTH} ${SVG_VIEWBOX_HEIGHT}`}
         preserveAspectRatio="xMidYMid meet"
@@ -477,8 +480,6 @@ export const EduSvgDiagram: React.FC<{
           height: "100%",
         }}
       >
-        {/* Dark background covering the viewBox */}
-        <rect width={SVG_VIEWBOX_WIDTH} height={SVG_VIEWBOX_HEIGHT} fill="#1a1a2e" rx={12} />
 
         {groups.map((group, i) => (
           <Sequence
