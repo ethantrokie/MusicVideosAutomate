@@ -266,7 +266,7 @@ const AnimatedGroup: React.FC<{
 }> = ({ children, groupId, groupIndex }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
-  const groupRef = React.useRef<SVGSVGElement>(null);
+  const groupRef = React.useRef<SVGGElement>(null);
 
   // Quick entrance opacity (3 frames) to avoid flash of unstyled content
   const entranceFrames = 3;
@@ -349,21 +349,9 @@ const AnimatedGroup: React.FC<{
   });
 
   return (
-    <svg
-      ref={groupRef}
-      viewBox={`0 0 ${SVG_VIEWBOX_WIDTH} ${SVG_VIEWBOX_HEIGHT}`}
-      width={SVG_VIEWBOX_WIDTH}
-      height={SVG_VIEWBOX_HEIGHT}
-      style={{
-        position: "absolute",
-        top: 0,
-        left: 0,
-        opacity,
-        overflow: "visible",
-      }}
-    >
+    <g ref={groupRef as React.RefObject<SVGGElement>} style={{ opacity }}>
       {elements}
-    </svg>
+    </g>
   );
 };
 
@@ -415,7 +403,7 @@ export const EduSvgDiagram: React.FC<{
   concept: string;
 }> = ({ svgContent, concept }) => {
   const frame = useCurrentFrame();
-  const { fps, durationInFrames, width, height } = useVideoConfig();
+  const { fps, durationInFrames } = useVideoConfig();
 
   const groups = useMemo(() => parseSvgGroups(svgContent), [svgContent]);
 
@@ -470,35 +458,28 @@ export const EduSvgDiagram: React.FC<{
     { extrapolateLeft: "clamp", extrapolateRight: "clamp" },
   );
 
-  // Center the 1080×720 SVG within the actual frame dimensions
-  const containerLeft = Math.round((width - SVG_VIEWBOX_WIDTH) / 2);
-  const containerTop = Math.round((height - SVG_VIEWBOX_HEIGHT) / 2);
+  // The SVG viewBox is 1080×720. We render it into a full-canvas AbsoluteFill
+  // using preserveAspectRatio="xMidYMid meet" so it centers itself within
+  // whatever canvas size Remotion uses (1920×1080 for full, 1080×1920 for shorts).
+  // A dark background rect fills just the diagram area via the SVG background rect.
 
   return (
     <AbsoluteFill style={{ opacity: exitOpacity }}>
-      {/* Opaque dark background behind the diagram */}
-      <div
+      {/* Single full-canvas SVG that centers the 1080×720 diagram via preserveAspectRatio */}
+      <svg
+        viewBox={`0 0 ${SVG_VIEWBOX_WIDTH} ${SVG_VIEWBOX_HEIGHT}`}
+        preserveAspectRatio="xMidYMid meet"
         style={{
           position: "absolute",
-          top: containerTop - 20,
-          left: containerLeft - 20,
-          width: SVG_VIEWBOX_WIDTH + 40,
-          height: SVG_VIEWBOX_HEIGHT + 40,
-          backgroundColor: "#1a1a2e",
-          borderRadius: 12,
-        }}
-      />
-
-      {/* SVG diagram container — centered in frame */}
-      <div
-        style={{
-          position: "absolute",
-          top: containerTop,
-          left: containerLeft,
-          width: SVG_VIEWBOX_WIDTH,
-          height: SVG_VIEWBOX_HEIGHT,
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
         }}
       >
+        {/* Dark background covering the viewBox */}
+        <rect width={SVG_VIEWBOX_WIDTH} height={SVG_VIEWBOX_HEIGHT} fill="#1a1a2e" rx={12} />
+
         {groups.map((group, i) => (
           <Sequence
             key={`svg-group-${group.id}`}
@@ -512,24 +493,30 @@ export const EduSvgDiagram: React.FC<{
             />
           </Sequence>
         ))}
-      </div>
 
-      {/* Concept label — bottom of SVG area, inside the diagram */}
-      {concept && (
-        <div
-          style={{
-            position: "absolute",
-            top: containerTop + SVG_VIEWBOX_HEIGHT - 52,
-            left: containerLeft,
-            width: SVG_VIEWBOX_WIDTH,
-            display: "flex",
-            justifyContent: "center",
-            opacity: labelOpacity,
-          }}
-        >
-          <ConceptLabel text={concept} />
-        </div>
-      )}
+        {/* Concept label inside the SVG at the bottom edge */}
+        {concept && (
+          <foreignObject
+            x={0}
+            y={SVG_VIEWBOX_HEIGHT - 52}
+            width={SVG_VIEWBOX_WIDTH}
+            height={52}
+            style={{ opacity: labelOpacity }}
+          >
+            <div
+              style={{
+                width: "100%",
+                height: "100%",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <ConceptLabel text={concept} />
+            </div>
+          </foreignObject>
+        )}
+      </svg>
     </AbsoluteFill>
   );
 };
