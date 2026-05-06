@@ -76,6 +76,39 @@ def slice_audio(song_path: str, start: float, duration: float, output_path: str,
         return False
 
 
+def generate_hook_sfx(output_path: str = "/tmp/hook_sfx.wav") -> str:
+    """
+    Generate an attention-grabbing 'pop' sound for frame 0.
+
+    Creates a bright, short pop using 800Hz + 1200Hz layered tones
+    with sharp attack and fast decay -- designed to cut through music
+    and trigger attention without being annoying.
+    """
+    ffmpeg = _find_binary("ffmpeg")
+    try:
+        result = subprocess.run(
+            [
+                ffmpeg, "-y",
+                "-f", "lavfi",
+                "-i", "sine=frequency=800:duration=0.08",
+                "-f", "lavfi",
+                "-i", "sine=frequency=1200:duration=0.05",
+                "-filter_complex",
+                "[0]afade=t=out:d=0.08,volume=0.4[a];"
+                "[1]afade=t=out:d=0.05,volume=0.25[b];"
+                "[a][b]amix=inputs=2:duration=shortest",
+                output_path,
+            ],
+            capture_output=True,
+            timeout=10,
+        )
+        if result.returncode == 0:
+            return output_path
+    except Exception as e:
+        print(f"    Hook SFX generation failed: {e}")
+    return ""
+
+
 def get_audio_duration(audio_path: str) -> float:
     """
     Get duration of audio file in seconds.

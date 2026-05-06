@@ -17,7 +17,10 @@ import tempfile
 from pathlib import Path
 from typing import Dict, List
 
-from agents.audio_utils import _find_binary
+import sys
+from pathlib import Path as _Path
+sys.path.insert(0, str(_Path(__file__).parent))
+from audio_utils import _find_binary
 
 
 # ── Pure functions ────────────────────────────────────────────────────────────

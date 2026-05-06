@@ -1,1 +1,22 @@
-[]
+[
+  {
+    "change": "video_duration",
+    "current_value": 75,
+    "proposed_value": 60,
+    "rationale": "Top-performing videos by retention (97.74%, 75.97%, 67.84%) are all in the 45-60 second range. The current 75-second duration may be pushing past the optimal Short attention window. Reducing to 60 seconds will force tighter, more focused explanations while maintaining educational value.",
+    "confidence": 0.78,
+    "expected_impact": "Increase average retention from ~45% to 55-65% by matching the sweet spot of high-retention videos",
+    "validation_status": "NEEDS_REVIEW",
+    "validation_reason": "Medium confidence"
+  },
+  {
+    "change": "max_media_items",
+    "current_value": 14,
+    "proposed_value": 10,
+    "rationale": "Videos with lower media item counts appear to maintain higher retention, suggesting viewers prefer focused visual storytelling over rapid-fire scene changes. Reducing max media items from 14 to 10 will encourage deeper visual exploration of each concept rather than surface-level coverage of many steps.",
+    "confidence": 0.72,
+    "expected_impact": "Improve engaged view rate from ~25% to 30-35% by reducing cognitive load and allowing viewers to absorb each visual concept",
+    "validation_status": "NEEDS_REVIEW",
+    "validation_reason": "Medium confidence"
+  }
+]

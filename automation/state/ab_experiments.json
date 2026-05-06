@@ -1,31 +1,405 @@
 {
   "experiments": [
     {
-      "id": "exp_20260309_144317",
-      "name": "Avatar Appearance: Perfect vs Natural",
-      "config_key": "performer_variant",
-      "control_value": "male.png",
-      "treatment_value": "male_variant_b.png",
-      "duration_weeks": 4,
-      "created_at": "2026-03-09T14:43:17.246683",
+      "id": "exp_20260430_hook_overhaul",
+      "name": "Hook Overhaul: Curiosity Text + Pop SFX + Visual Boost",
+      "config_key": "hook_overhaul",
+      "control_value": "false",
+      "treatment_value": "true",
+      "duration_weeks": 12,
+      "created_at": "2026-04-30T00:00:00.000000",
       "status": "active",
+      "phase_offset": 0,
+      "stagger_applied_at": "2026-04-30T00:00:00.000000",
       "current_week": 1,
-      "current_variant": "control",
+      "current_variant": "treatment",
       "results": {
         "control": {
-          "videos": [],
-          "total_views": 0,
-          "total_engagement": 0,
-          "avg_retention": 0
+          "videos": [
+            {
+              "video_id": "6nnlmOlRxWo",
+              "views": 61,
+              "engagement": 0,
+              "retention": 44.24,
+              "engaged_view_rate": 11.475409836065573,
+              "subscribers_gained": 0,
+              "tone": "driving rock with mechanical rhythms, powerful guitars, and energetic momentum",
+              "concurrent_experiments": {},
+              "date": "2026-05-03T10:00:07.998619"
+            },
+            {
+              "video_id": "LFs6ViLMF6M",
+              "views": 90,
+              "engagement": 1,
+              "retention": 69.86,
+              "engaged_view_rate": 26.666666666666668,
+              "subscribers_gained": 0,
+              "tone": "energetic pop punk with driving guitars, pounding drums, and rebellious energy",
+              "concurrent_experiments": {},
+              "date": "2026-05-03T10:00:07.998671"
+            },
+            {
+              "video_id": "LM5LN9t1ToY",
+              "views": 284,
+              "engagement": 2,
+              "retention": 22.78,
+              "engaged_view_rate": 22.183098591549296,
+              "subscribers_gained": 0,
+              "tone": "energetic pop punk with driving guitars, pounding drums, and rebellious energy",
+              "concurrent_experiments": {},
+              "date": "2026-05-03T10:00:07.998688"
+            },
+            {
+              "video_id": "2sLdHqfGeek",
+              "views": 77,
+              "engagement": 0,
+              "retention": 50.85999999999999,
+              "engaged_view_rate": 15.584415584415584,
+              "subscribers_gained": 0,
+              "tone": "energetic pop punk with driving guitars, pounding drums, and rebellious energy",
+              "concurrent_experiments": {},
+              "date": "2026-05-03T10:00:07.998699"
+            },
+            {
+              "video_id": "j9hY_HLyNbQ",
+              "views": 762,
+              "engagement": 24,
+              "retention": 36.38,
+              "engaged_view_rate": 39.89501312335958,
+              "subscribers_gained": 4,
+              "tone": "energetic pop punk with driving guitars, pounding drums, and rebellious energy",
+              "concurrent_experiments": {},
+              "date": "2026-05-03T10:00:07.998711"
+            },
+            {
+              "video_id": "axRCkU8Gn-8",
+              "views": 73,
+              "engagement": 1,
+              "retention": 16.48,
+              "engaged_view_rate": 13.698630136986301,
+              "subscribers_gained": 0,
+              "tone": "energetic pop punk with driving guitars, pounding drums, and rebellious energy",
+              "concurrent_experiments": {},
+              "date": "2026-05-03T10:00:07.998721"
+            },
+            {
+              "video_id": "IsbMht5Akjc",
+              "views": 82,
+              "engagement": 1,
+              "retention": 124.42,
+              "engaged_view_rate": 9.75609756097561,
+              "subscribers_gained": 0,
+              "tone": "energetic pop punk with driving guitars, pounding drums, and rebellious energy",
+              "concurrent_experiments": {},
+              "date": "2026-05-03T10:00:07.998730"
+            },
+            {
+              "video_id": "DJGu1579_rs",
+              "views": 281,
+              "engagement": 5,
+              "retention": 30.97,
+              "engaged_view_rate": 33.096085409252666,
+              "subscribers_gained": 1,
+              "tone": "energetic pop punk with driving guitars, pounding drums, and rebellious energy",
+              "concurrent_experiments": {},
+              "date": "2026-05-03T10:00:07.998738"
+            },
+            {
+              "video_id": "hgHPusT08fQ",
+              "views": 13,
+              "engagement": 1,
+              "retention": 12.05,
+              "engaged_view_rate": 23.076923076923077,
+              "subscribers_gained": 0,
+              "tone": "upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy",
+              "concurrent_experiments": {},
+              "date": "2026-05-03T10:00:07.998755"
+            },
+            {
+              "video_id": "TP2WiFkLbzw",
+              "views": 219,
+              "engagement": 2,
+              "retention": 50.99,
+              "engaged_view_rate": 26.94063926940639,
+              "subscribers_gained": 0,
+              "tone": "energetic pop punk with driving guitars, pounding drums, and rebellious energy",
+              "concurrent_experiments": {},
+              "date": "2026-05-03T10:00:07.998764"
+            },
+            {
+              "video_id": "ZI4jsbb2KYY",
+              "views": 81,
+              "engagement": 0,
+              "retention": 15.35,
+              "engaged_view_rate": 16.049382716049383,
+              "subscribers_gained": 0,
+              "tone": "energetic pop punk with driving guitars, pounding drums, and rebellious energy",
+              "concurrent_experiments": {},
+              "date": "2026-05-03T10:00:07.998772"
+            },
+            {
+              "video_id": "pEdKaIryCG4",
+              "views": 68,
+              "engagement": 0,
+              "retention": 34.74,
+              "engaged_view_rate": 13.23529411764706,
+              "subscribers_gained": 0,
+              "tone": "upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy",
+              "concurrent_experiments": {},
+              "date": "2026-05-03T10:00:07.998780"
+            },
+            {
+              "video_id": "bKamHNinhbQ",
+              "views": 995,
+              "engagement": 4,
+              "retention": 51.080000000000005,
+              "engaged_view_rate": 33.768844221105525,
+              "subscribers_gained": 0,
+              "tone": "upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy",
+              "concurrent_experiments": {},
+              "date": "2026-05-03T10:00:07.998788"
+            },
+            {
+              "video_id": "eyuSGu9Z-pM",
+              "views": 907,
+              "engagement": 3,
+              "retention": 25.239999999999995,
+              "engaged_view_rate": 34.729878721058434,
+              "subscribers_gained": 0,
+              "tone": "energetic pop punk with driving guitars, pounding drums, and rebellious energy",
+              "concurrent_experiments": {},
+              "date": "2026-05-03T10:00:07.998797"
+            },
+            {
+              "video_id": "Ne8KMrFNREc",
+              "views": 79,
+              "engagement": 0,
+              "retention": 15.52,
+              "engaged_view_rate": 15.18987341772152,
+              "subscribers_gained": 0,
+              "tone": "upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy",
+              "concurrent_experiments": {},
+              "date": "2026-05-03T10:00:07.998805"
+            }
+          ],
+          "total_views": 4072,
+          "total_engagement": 44,
+          "avg_retention": 40.064,
+          "avg_engaged_view_rate": 22.35641682994551,
+          "total_subscribers_gained": 5
         },
         "treatment": {
           "videos": [],
           "total_views": 0,
           "total_engagement": 0,
-          "avg_retention": 0
+          "avg_retention": 0,
+          "avg_engaged_view_rate": 0,
+          "total_subscribers_gained": 0
         }
-      }
+      },
+      "gap_days": 0
     },
+    {
+      "id": "exp_20260430_audio_pacing",
+      "name": "Audio & Pacing: Aggressive Trim + Early Edu Diagram",
+      "config_key": "audio_pacing_overhaul",
+      "control_value": "false",
+      "treatment_value": "true",
+      "duration_weeks": 12,
+      "created_at": "2026-04-30T00:00:00.000000",
+      "status": "active",
+      "phase_offset": 1,
+      "stagger_applied_at": "2026-04-30T00:00:00.000000",
+      "current_week": 1,
+      "current_variant": "treatment",
+      "results": {
+        "control": {
+          "videos": [],
+          "total_views": 0,
+          "total_engagement": 0,
+          "avg_retention": 0,
+          "avg_engaged_view_rate": 0,
+          "total_subscribers_gained": 0
+        },
+        "treatment": {
+          "videos": [
+            {
+              "video_id": "6nnlmOlRxWo",
+              "views": 61,
+              "engagement": 0,
+              "retention": 44.24,
+              "engaged_view_rate": 11.475409836065573,
+              "subscribers_gained": 0,
+              "tone": "driving rock with mechanical rhythms, powerful guitars, and energetic momentum",
+              "concurrent_experiments": {},
+              "date": "2026-05-03T10:00:07.998819"
+            },
+            {
+              "video_id": "LFs6ViLMF6M",
+              "views": 90,
+              "engagement": 1,
+              "retention": 69.86,
+              "engaged_view_rate": 26.666666666666668,
+              "subscribers_gained": 0,
+              "tone": "energetic pop punk with driving guitars, pounding drums, and rebellious energy",
+              "concurrent_experiments": {},
+              "date": "2026-05-03T10:00:07.998828"
+            },
+            {
+              "video_id": "LM5LN9t1ToY",
+              "views": 284,
+              "engagement": 2,
+              "retention": 22.78,
+              "engaged_view_rate": 22.183098591549296,
+              "subscribers_gained": 0,
+              "tone": "energetic pop punk with driving guitars, pounding drums, and rebellious energy",
+              "concurrent_experiments": {},
+              "date": "2026-05-03T10:00:07.998835"
+            },
+            {
+              "video_id": "2sLdHqfGeek",
+              "views": 77,
+              "engagement": 0,
+              "retention": 50.85999999999999,
+              "engaged_view_rate": 15.584415584415584,
+              "subscribers_gained": 0,
+              "tone": "energetic pop punk with driving guitars, pounding drums, and rebellious energy",
+              "concurrent_experiments": {},
+              "date": "2026-05-03T10:00:07.998843"
+            },
+            {
+              "video_id": "j9hY_HLyNbQ",
+              "views": 762,
+              "engagement": 24,
+              "retention": 36.38,
+              "engaged_view_rate": 39.89501312335958,
+              "subscribers_gained": 4,
+              "tone": "energetic pop punk with driving guitars, pounding drums, and rebellious energy",
+              "concurrent_experiments": {},
+              "date": "2026-05-03T10:00:07.998850"
+            },
+            {
+              "video_id": "axRCkU8Gn-8",
+              "views": 73,
+              "engagement": 1,
+              "retention": 16.48,
+              "engaged_view_rate": 13.698630136986301,
+              "subscribers_gained": 0,
+              "tone": "energetic pop punk with driving guitars, pounding drums, and rebellious energy",
+              "concurrent_experiments": {},
+              "date": "2026-05-03T10:00:07.998858"
+            },
+            {
+              "video_id": "IsbMht5Akjc",
+              "views": 82,
+              "engagement": 1,
+              "retention": 124.42,
+              "engaged_view_rate": 9.75609756097561,
+              "subscribers_gained": 0,
+              "tone": "energetic pop punk with driving guitars, pounding drums, and rebellious energy",
+              "concurrent_experiments": {},
+              "date": "2026-05-03T10:00:07.998865"
+            },
+            {
+              "video_id": "DJGu1579_rs",
+              "views": 281,
+              "engagement": 5,
+              "retention": 30.97,
+              "engaged_view_rate": 33.096085409252666,
+              "subscribers_gained": 1,
+              "tone": "energetic pop punk with driving guitars, pounding drums, and rebellious energy",
+              "concurrent_experiments": {},
+              "date": "2026-05-03T10:00:07.998873"
+            },
+            {
+              "video_id": "hgHPusT08fQ",
+              "views": 13,
+              "engagement": 1,
+              "retention": 12.05,
+              "engaged_view_rate": 23.076923076923077,
+              "subscribers_gained": 0,
+              "tone": "upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy",
+              "concurrent_experiments": {},
+              "date": "2026-05-03T10:00:07.998880"
+            },
+            {
+              "video_id": "TP2WiFkLbzw",
+              "views": 219,
+              "engagement": 2,
+              "retention": 50.99,
+              "engaged_view_rate": 26.94063926940639,
+              "subscribers_gained": 0,
+              "tone": "energetic pop punk with driving guitars, pounding drums, and rebellious energy",
+              "concurrent_experiments": {},
+              "date": "2026-05-03T10:00:07.998888"
+            },
+            {
+              "video_id": "ZI4jsbb2KYY",
+              "views": 81,
+              "engagement": 0,
+              "retention": 15.35,
+              "engaged_view_rate": 16.049382716049383,
+              "subscribers_gained": 0,
+              "tone": "energetic pop punk with driving guitars, pounding drums, and rebellious energy",
+              "concurrent_experiments": {},
+              "date": "2026-05-03T10:00:07.998895"
+            },
+            {
+              "video_id": "pEdKaIryCG4",
+              "views": 68,
+              "engagement": 0,
+              "retention": 34.74,
+              "engaged_view_rate": 13.23529411764706,
+              "subscribers_gained": 0,
+              "tone": "upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy",
+              "concurrent_experiments": {},
+              "date": "2026-05-03T10:00:07.998902"
+            },
+            {
+              "video_id": "bKamHNinhbQ",
+              "views": 995,
+              "engagement": 4,
+              "retention": 51.080000000000005,
+              "engaged_view_rate": 33.768844221105525,
+              "subscribers_gained": 0,
+              "tone": "upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy",
+              "concurrent_experiments": {},
+              "date": "2026-05-03T10:00:07.998910"
+            },
+            {
+              "video_id": "eyuSGu9Z-pM",
+              "views": 907,
+              "engagement": 3,
+              "retention": 25.239999999999995,
+              "engaged_view_rate": 34.729878721058434,
+              "subscribers_gained": 0,
+              "tone": "energetic pop punk with driving guitars, pounding drums, and rebellious energy",
+              "concurrent_experiments": {},
+              "date": "2026-05-03T10:00:07.998917"
+            },
+            {
+              "video_id": "Ne8KMrFNREc",
+              "views": 79,
+              "engagement": 0,
+              "retention": 15.52,
+              "engaged_view_rate": 15.18987341772152,
+              "subscribers_gained": 0,
+              "tone": "upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy",
+              "concurrent_experiments": {},
+              "date": "2026-05-03T10:00:07.998925"
+            }
+          ],
+          "total_views": 4072,
+          "total_engagement": 44,
+          "avg_retention": 40.064,
+          "avg_engaged_view_rate": 22.35641682994551,
+          "total_subscribers_gained": 5
+        }
+      },
+      "gap_days": 0
+    }
+  ],
+  "completed": [
     {
       "id": "exp_20260311_174702",
       "name": "Musical Tone: Baseline vs Diversified",
@@ -34,24 +408,1597 @@
       "treatment_value": "diversified",
       "duration_weeks": 8,
       "created_at": "2026-03-11T17:47:02.000000",
-      "status": "active",
-      "current_week": 1,
-      "current_variant": "control",
+      "status": "completed",
+      "current_week": 2,
+      "current_variant": "treatment",
       "results": {
         "control": {
-          "videos": [],
-          "total_views": 0,
-          "total_engagement": 0,
-          "avg_retention": 0
+          "videos": [
+            {
+              "video_id": "aoxDHtzyftE",
+              "views": 0,
+              "engagement": 0,
+              "retention": 0.0,
+              "engaged_view_rate": 0.0,
+              "subscribers_gained": 0,
+              "tone": "unknown",
+              "concurrent_experiments": {},
+              "date": "2026-04-05T10:00:08.162983"
+            },
+            {
+              "video_id": "D8uQD65VQJ4",
+              "views": 225,
+              "engagement": 2,
+              "retention": 70.94,
+              "engaged_view_rate": 36.888888888888886,
+              "subscribers_gained": 1,
+              "tone": "unknown",
+              "concurrent_experiments": {},
+              "date": "2026-04-05T10:00:08.163036"
+            },
+            {
+              "video_id": "nsL5JoBoFlo",
+              "views": 826,
+              "engagement": 12,
+              "retention": 30.17,
+              "engaged_view_rate": 48.426150121065376,
+              "subscribers_gained": 1,
+              "tone": "unknown",
+              "concurrent_experiments": {},
+              "date": "2026-04-05T10:00:08.163053"
+            },
+            {
+              "video_id": "3fH96W4ztMU",
+              "views": 258,
+              "engagement": 6,
+              "retention": 39.27,
+              "engaged_view_rate": 53.100775193798455,
+              "subscribers_gained": 0,
+              "tone": "unknown",
+              "concurrent_experiments": {},
+              "date": "2026-04-05T10:00:08.163063"
+            },
+            {
+              "video_id": "IobncE_PsG0",
+              "views": 1314,
+              "engagement": 4,
+              "retention": 25.44,
+              "engaged_view_rate": 38.58447488584475,
+              "subscribers_gained": 0,
+              "tone": "unknown",
+              "concurrent_experiments": {},
+              "date": "2026-04-05T10:00:08.163072"
+            },
+            {
+              "video_id": "vu3VT0bYP74",
+              "views": 1,
+              "engagement": 0,
+              "retention": 3.29,
+              "engaged_view_rate": 100.0,
+              "subscribers_gained": 0,
+              "tone": "unknown",
+              "concurrent_experiments": {},
+              "date": "2026-04-05T10:00:08.163081"
+            },
+            {
+              "video_id": "AfuTfNLcRV0",
+              "views": 350,
+              "engagement": 6,
+              "retention": 42.74,
+              "engaged_view_rate": 54.0,
+              "subscribers_gained": 0,
+              "tone": "unknown",
+              "concurrent_experiments": {},
+              "date": "2026-04-05T10:00:08.163089"
+            },
+            {
+              "video_id": "9S319j5NcDY",
+              "views": 270,
+              "engagement": 1,
+              "retention": 50.4,
+              "engaged_view_rate": 23.703703703703706,
+              "subscribers_gained": 0,
+              "tone": "upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy",
+              "concurrent_experiments": {
+                "educational_images_enabled": "control",
+                "engagement_hook_source": "control",
+                "engagement_opening_enhance": "control",
+                "engagement_hook_sfx": "control",
+                "engagement_fast_pacing": "control",
+                "engagement_animated_hook": "control"
+              },
+              "date": "2026-04-12T10:00:04.197604"
+            },
+            {
+              "video_id": "KeFvFOawjj4",
+              "views": 1,
+              "engagement": 0,
+              "retention": 21.23,
+              "engaged_view_rate": 100.0,
+              "subscribers_gained": 0,
+              "tone": "upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy",
+              "concurrent_experiments": {
+                "educational_images_enabled": "control",
+                "engagement_hook_source": "control",
+                "engagement_opening_enhance": "control",
+                "engagement_hook_sfx": "control",
+                "engagement_fast_pacing": "control",
+                "engagement_animated_hook": "control"
+              },
+              "date": "2026-04-12T10:00:04.197663"
+            },
+            {
+              "video_id": "4CTB7I9knHU",
+              "views": 273,
+              "engagement": 4,
+              "retention": 33.18,
+              "engaged_view_rate": 42.49084249084249,
+              "subscribers_gained": 0,
+              "tone": "unknown",
+              "concurrent_experiments": {},
+              "date": "2026-04-12T10:00:04.197680"
+            },
+            {
+              "video_id": "MDvfBB2t8dI",
+              "views": 156,
+              "engagement": 1,
+              "retention": 33.57,
+              "engaged_view_rate": 16.666666666666664,
+              "subscribers_gained": 0,
+              "tone": "unknown",
+              "concurrent_experiments": {},
+              "date": "2026-04-12T10:00:04.197692"
+            },
+            {
+              "video_id": "V26nzDQHW4M",
+              "views": 1,
+              "engagement": 0,
+              "retention": 15.73,
+              "engaged_view_rate": 100.0,
+              "subscribers_gained": 0,
+              "tone": "unknown",
+              "concurrent_experiments": {},
+              "date": "2026-04-12T10:00:04.197702"
+            },
+            {
+              "video_id": "0akALMjBgSw",
+              "views": 80,
+              "engagement": 1,
+              "retention": 34.8,
+              "engaged_view_rate": 20.0,
+              "subscribers_gained": 1,
+              "tone": "unknown",
+              "concurrent_experiments": {},
+              "date": "2026-04-12T10:00:04.197711"
+            },
+            {
+              "video_id": "9715MBm_bhI",
+              "views": 1,
+              "engagement": 0,
+              "retention": 24.58,
+              "engaged_view_rate": 100.0,
+              "subscribers_gained": 0,
+              "tone": "unknown",
+              "concurrent_experiments": {},
+              "date": "2026-04-12T10:00:04.197719"
+            },
+            {
+              "video_id": "ACGxtfYpdtY",
+              "views": 1,
+              "engagement": 0,
+              "retention": 5.41,
+              "engaged_view_rate": 100.0,
+              "subscribers_gained": 0,
+              "tone": "unknown",
+              "concurrent_experiments": {},
+              "date": "2026-04-12T10:00:04.197728"
+            },
+            {
+              "video_id": "2KtC4tVUw-s",
+              "views": 34,
+              "engagement": 1,
+              "retention": 25.8,
+              "engaged_view_rate": 32.35294117647059,
+              "subscribers_gained": 0,
+              "tone": "unknown",
+              "concurrent_experiments": {},
+              "date": "2026-04-12T10:00:04.197736"
+            },
+            {
+              "video_id": "vSqQ9CefhbE",
+              "views": 151,
+              "engagement": 3,
+              "retention": 26.11,
+              "engaged_view_rate": 20.52980132450331,
+              "subscribers_gained": 0,
+              "tone": "upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy",
+              "concurrent_experiments": {
+                "educational_images_enabled": "control",
+                "engagement_hook_source": "control",
+                "engagement_opening_enhance": "control",
+                "engagement_hook_sfx": "control",
+                "engagement_fast_pacing": "control",
+                "engagement_animated_hook": "control"
+              },
+              "date": "2026-04-19T10:00:06.030240"
+            },
+            {
+              "video_id": "cEaPIbi2qJ0",
+              "views": 77,
+              "engagement": 1,
+              "retention": 20.34,
+              "engaged_view_rate": 9.090909090909092,
+              "subscribers_gained": 0,
+              "tone": "energetic pop punk with driving guitars, pounding drums, and rebellious energy",
+              "concurrent_experiments": {
+                "educational_images_enabled": "control",
+                "engagement_hook_source": "control",
+                "engagement_opening_enhance": "control",
+                "engagement_hook_sfx": "control",
+                "engagement_fast_pacing": "control",
+                "engagement_animated_hook": "control"
+              },
+              "date": "2026-04-19T10:00:06.030658"
+            },
+            {
+              "video_id": "sVlQr9PStKw",
+              "views": 7,
+              "engagement": 1,
+              "retention": 55.35,
+              "engaged_view_rate": 42.857142857142854,
+              "subscribers_gained": 0,
+              "tone": "upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy",
+              "concurrent_experiments": {
+                "educational_images_enabled": "control",
+                "engagement_hook_source": "control",
+                "engagement_opening_enhance": "control",
+                "engagement_hook_sfx": "control",
+                "engagement_fast_pacing": "control",
+                "engagement_animated_hook": "control"
+              },
+              "date": "2026-04-19T10:00:06.030663"
+            },
+            {
+              "video_id": "8gy5dZTlM6Q",
+              "views": 1,
+              "engagement": 1,
+              "retention": 28.17,
+              "engaged_view_rate": 100.0,
+              "subscribers_gained": 0,
+              "tone": "upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy",
+              "concurrent_experiments": {
+                "educational_images_enabled": "control",
+                "engagement_hook_source": "control",
+                "engagement_opening_enhance": "control",
+                "engagement_hook_sfx": "control",
+                "engagement_fast_pacing": "control",
+                "engagement_animated_hook": "control"
+              },
+              "date": "2026-04-19T10:00:06.030668"
+            },
+            {
+              "video_id": "0hfOAWWvMrU",
+              "views": 47,
+              "engagement": 2,
+              "retention": 94.35,
+              "engaged_view_rate": 40.42553191489361,
+              "subscribers_gained": 0,
+              "tone": "upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy",
+              "concurrent_experiments": {
+                "educational_images_enabled": "control",
+                "engagement_hook_source": "control",
+                "engagement_opening_enhance": "control",
+                "engagement_hook_sfx": "control",
+                "engagement_fast_pacing": "control",
+                "engagement_animated_hook": "control"
+              },
+              "date": "2026-04-19T10:00:06.030672"
+            },
+            {
+              "video_id": "h84Guqb_CUM",
+              "views": 823,
+              "engagement": 13,
+              "retention": 40.03,
+              "engaged_view_rate": 42.40583232077764,
+              "subscribers_gained": 0,
+              "tone": "energetic pop punk with driving guitars, pounding drums, and rebellious energy",
+              "concurrent_experiments": {
+                "educational_images_enabled": "control",
+                "engagement_hook_source": "control",
+                "engagement_opening_enhance": "control",
+                "engagement_hook_sfx": "control",
+                "engagement_fast_pacing": "control",
+                "engagement_animated_hook": "control"
+              },
+              "date": "2026-04-19T10:00:06.030677"
+            },
+            {
+              "video_id": "KVcG7tz3gEE",
+              "views": 560,
+              "engagement": 7,
+              "retention": 129.66,
+              "engaged_view_rate": 38.57142857142858,
+              "subscribers_gained": 5,
+              "tone": "upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy",
+              "concurrent_experiments": {
+                "educational_images_enabled": "control",
+                "engagement_hook_source": "control",
+                "engagement_opening_enhance": "control",
+                "engagement_hook_sfx": "control",
+                "engagement_fast_pacing": "control",
+                "engagement_animated_hook": "control"
+              },
+              "date": "2026-04-19T10:00:06.030683"
+            }
+          ],
+          "total_views": 8216,
+          "total_engagement": 95,
+          "avg_retention": 37.33524999999999,
+          "total_subscribers_gained": 9,
+          "avg_engaged_view_rate": 50.53620844313148
         },
         "treatment": {
-          "videos": [],
-          "total_views": 0,
-          "total_engagement": 0,
-          "avg_retention": 0
+          "videos": [
+            {
+              "video_id": "gcKe7_6qXgA",
+              "views": 120,
+              "engagement": 2,
+              "retention": 79.65,
+              "engaged_view_rate": 18.333333333333332,
+              "subscribers_gained": 0,
+              "tone": "organic flowing pop with ambient textures, melodic hooks, and warm educational energy",
+              "concurrent_experiments": {
+                "educational_images_enabled": "treatment",
+                "engagement_hook_source": "control",
+                "engagement_opening_enhance": "control",
+                "engagement_hook_sfx": "control",
+                "engagement_fast_pacing": "control",
+                "engagement_animated_hook": "control"
+              },
+              "date": "2026-04-19T10:00:06.030168"
+            },
+            {
+              "video_id": "KKSdAVNO_6U",
+              "views": 195,
+              "engagement": 1,
+              "retention": 30.75,
+              "engaged_view_rate": 28.717948717948715,
+              "subscribers_gained": 0,
+              "tone": "upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy",
+              "concurrent_experiments": {
+                "educational_images_enabled": "treatment",
+                "engagement_hook_source": "control",
+                "engagement_opening_enhance": "control",
+                "engagement_hook_sfx": "control",
+                "engagement_fast_pacing": "control",
+                "engagement_animated_hook": "control"
+              },
+              "date": "2026-04-19T10:00:06.030202"
+            },
+            {
+              "video_id": "1hs7OyvvWdA",
+              "views": 93,
+              "engagement": 1,
+              "retention": 23.95,
+              "engaged_view_rate": 24.731182795698924,
+              "subscribers_gained": 0,
+              "tone": "upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy",
+              "concurrent_experiments": {
+                "educational_images_enabled": "treatment",
+                "engagement_hook_source": "control",
+                "engagement_opening_enhance": "control",
+                "engagement_hook_sfx": "control",
+                "engagement_fast_pacing": "control",
+                "engagement_animated_hook": "control"
+              },
+              "date": "2026-04-19T10:00:06.030213"
+            },
+            {
+              "video_id": "3h1mOCEyfnI",
+              "views": 55,
+              "engagement": 1,
+              "retention": 60.53999999999999,
+              "engaged_view_rate": 14.545454545454545,
+              "subscribers_gained": 0,
+              "tone": "upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy",
+              "concurrent_experiments": {
+                "educational_images_enabled": "treatment",
+                "engagement_hook_source": "control",
+                "engagement_opening_enhance": "control",
+                "engagement_hook_sfx": "control",
+                "engagement_fast_pacing": "control",
+                "engagement_animated_hook": "control"
+              },
+              "date": "2026-04-19T10:00:06.030218"
+            },
+            {
+              "video_id": "a1hMRr7Uln4",
+              "views": 85,
+              "engagement": 1,
+              "retention": 56.779999999999994,
+              "engaged_view_rate": 36.470588235294116,
+              "subscribers_gained": 0,
+              "tone": "upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy",
+              "concurrent_experiments": {
+                "educational_images_enabled": "treatment",
+                "engagement_hook_source": "control",
+                "engagement_opening_enhance": "control",
+                "engagement_hook_sfx": "control",
+                "engagement_fast_pacing": "control",
+                "engagement_animated_hook": "control"
+              },
+              "date": "2026-04-19T10:00:06.030223"
+            },
+            {
+              "video_id": "HYZXm_udMzU",
+              "views": 65,
+              "engagement": 2,
+              "retention": 28.84,
+              "engaged_view_rate": 21.53846153846154,
+              "subscribers_gained": 0,
+              "tone": "upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy",
+              "concurrent_experiments": {
+                "educational_images_enabled": "treatment",
+                "engagement_hook_source": "control",
+                "engagement_opening_enhance": "control",
+                "engagement_hook_sfx": "control",
+                "engagement_fast_pacing": "control",
+                "engagement_animated_hook": "control"
+              },
+              "date": "2026-04-19T10:00:06.030229"
+            },
+            {
+              "video_id": "Cc9yQHIUndE",
+              "views": 209,
+              "engagement": 1,
+              "retention": 69.55,
+              "engaged_view_rate": 33.97129186602871,
+              "subscribers_gained": 0,
+              "tone": "upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy",
+              "concurrent_experiments": {
+                "educational_images_enabled": "treatment",
+                "engagement_hook_source": "control",
+                "engagement_opening_enhance": "control",
+                "engagement_hook_sfx": "control",
+                "engagement_fast_pacing": "control",
+                "engagement_animated_hook": "control"
+              },
+              "date": "2026-04-19T10:00:06.030234"
+            },
+            {
+              "video_id": "3P7wUFEz4qE",
+              "views": 269,
+              "engagement": 4,
+              "retention": 33.43,
+              "engaged_view_rate": 32.342007434944236,
+              "subscribers_gained": 1,
+              "tone": "upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy",
+              "concurrent_experiments": {
+                "educational_images_enabled": "treatment",
+                "engagement_hook_source": "control",
+                "engagement_opening_enhance": "control",
+                "engagement_hook_sfx": "control",
+                "engagement_fast_pacing": "control",
+                "engagement_animated_hook": "control"
+              },
+              "date": "2026-04-19T10:00:06.030244"
+            },
+            {
+              "video_id": "i-vGwsjOBYw",
+              "views": 119,
+              "engagement": 1,
+              "retention": 57.46,
+              "engaged_view_rate": 22.689075630252102,
+              "subscribers_gained": 0,
+              "tone": "upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy",
+              "concurrent_experiments": {
+                "educational_images_enabled": "treatment",
+                "engagement_hook_source": "control",
+                "engagement_opening_enhance": "control",
+                "engagement_hook_sfx": "control",
+                "engagement_fast_pacing": "control",
+                "engagement_animated_hook": "control"
+              },
+              "date": "2026-04-19T10:00:06.030641"
+            },
+            {
+              "video_id": "HcafJTK3gys",
+              "views": 12,
+              "engagement": 6,
+              "retention": 44.11,
+              "engaged_view_rate": 100.0,
+              "subscribers_gained": 0,
+              "tone": "upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy",
+              "concurrent_experiments": {
+                "educational_images_enabled": "treatment",
+                "engagement_hook_source": "control",
+                "engagement_opening_enhance": "control",
+                "engagement_hook_sfx": "control",
+                "engagement_fast_pacing": "control",
+                "engagement_animated_hook": "control"
+              },
+              "date": "2026-04-19T10:00:06.030652"
+            },
+            {
+              "video_id": "9A9OLmg7wWk",
+              "views": 0,
+              "engagement": 0,
+              "retention": 0.0,
+              "engaged_view_rate": 0.0,
+              "subscribers_gained": 0,
+              "tone": "upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy",
+              "concurrent_experiments": {},
+              "date": "2026-04-26T10:00:07.867189"
+            },
+            {
+              "video_id": "TL40G60hxug",
+              "views": 55,
+              "engagement": 1,
+              "retention": 67.84,
+              "engaged_view_rate": 9.090909090909092,
+              "subscribers_gained": 0,
+              "tone": "upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy",
+              "concurrent_experiments": {},
+              "date": "2026-04-26T10:00:07.867240"
+            },
+            {
+              "video_id": "1PHjwHC8xfQ",
+              "views": 79,
+              "engagement": 1,
+              "retention": 32.24,
+              "engaged_view_rate": 29.11392405063291,
+              "subscribers_gained": 0,
+              "tone": "driving rock with mechanical rhythms, powerful guitars, and energetic momentum",
+              "concurrent_experiments": {},
+              "date": "2026-04-26T10:00:07.867259"
+            },
+            {
+              "video_id": "bRap54jDzLU",
+              "views": 42,
+              "engagement": 1,
+              "retention": 34.78,
+              "engaged_view_rate": 33.33333333333333,
+              "subscribers_gained": 0,
+              "tone": "driving rock with mechanical rhythms, powerful guitars, and energetic momentum",
+              "concurrent_experiments": {},
+              "date": "2026-04-26T10:00:07.867271"
+            },
+            {
+              "video_id": "DKEICM3WVv8",
+              "views": 1,
+              "engagement": 2,
+              "retention": 97.74,
+              "engaged_view_rate": 100.0,
+              "subscribers_gained": 0,
+              "tone": "driving rock with mechanical rhythms, powerful guitars, and energetic momentum",
+              "concurrent_experiments": {},
+              "date": "2026-04-26T10:00:07.867280"
+            },
+            {
+              "video_id": "SnF8trMaA7o",
+              "views": 151,
+              "engagement": 2,
+              "retention": 75.97,
+              "engaged_view_rate": 21.192052980132452,
+              "subscribers_gained": 0,
+              "tone": "driving rock with mechanical rhythms, powerful guitars, and energetic momentum",
+              "concurrent_experiments": {},
+              "date": "2026-04-26T10:00:07.867289"
+            },
+            {
+              "video_id": "y57h6gkYDLE",
+              "views": 108,
+              "engagement": 1,
+              "retention": 44.07,
+              "engaged_view_rate": 27.77777777777778,
+              "subscribers_gained": 0,
+              "tone": "driving rock with mechanical rhythms, powerful guitars, and energetic momentum",
+              "concurrent_experiments": {},
+              "date": "2026-04-26T10:00:07.867298"
+            },
+            {
+              "video_id": "zaWUpklY7Is",
+              "views": 52,
+              "engagement": 0,
+              "retention": 21.83,
+              "engaged_view_rate": 46.15384615384615,
+              "subscribers_gained": 0,
+              "tone": "energetic pop punk with driving guitars, pounding drums, and rebellious energy",
+              "concurrent_experiments": {
+                "educational_images_enabled": "treatment",
+                "engagement_hook_source": "treatment",
+                "engagement_opening_enhance": "treatment",
+                "engagement_hook_sfx": "treatment",
+                "engagement_fast_pacing": "treatment",
+                "engagement_animated_hook": "treatment"
+              },
+              "date": "2026-04-26T10:00:07.867313"
+            },
+            {
+              "video_id": "rUU2zxXjVtA",
+              "views": 114,
+              "engagement": 1,
+              "retention": 58.45,
+              "engaged_view_rate": 16.666666666666664,
+              "subscribers_gained": 0,
+              "tone": "driving rock with mechanical rhythms, powerful guitars, and energetic momentum",
+              "concurrent_experiments": {},
+              "date": "2026-04-26T10:00:07.867322"
+            },
+            {
+              "video_id": "oqI-S-NfMCE",
+              "views": 246,
+              "engagement": 3,
+              "retention": 67.36,
+              "engaged_view_rate": 31.70731707317073,
+              "subscribers_gained": 0,
+              "tone": "energetic pop punk with driving guitars, pounding drums, and rebellious energy",
+              "concurrent_experiments": {
+                "educational_images_enabled": "treatment",
+                "engagement_hook_source": "treatment",
+                "engagement_opening_enhance": "treatment",
+                "engagement_hook_sfx": "treatment",
+                "engagement_fast_pacing": "treatment",
+                "engagement_animated_hook": "treatment"
+              },
+              "date": "2026-04-26T10:00:07.867333"
+            },
+            {
+              "video_id": "g1f35JAoh5w",
+              "views": 174,
+              "engagement": 0,
+              "retention": 17.6,
+              "engaged_view_rate": 15.517241379310345,
+              "subscribers_gained": 0,
+              "tone": "driving rock with mechanical rhythms, powerful guitars, and energetic momentum",
+              "concurrent_experiments": {
+                "educational_images_enabled": "treatment",
+                "engagement_hook_source": "control",
+                "engagement_opening_enhance": "control",
+                "engagement_hook_sfx": "control",
+                "engagement_fast_pacing": "control",
+                "engagement_animated_hook": "control"
+              },
+              "date": "2026-04-26T10:00:07.867344"
+            },
+            {
+              "video_id": "UGXgkLCshx4",
+              "views": 477,
+              "engagement": 0,
+              "retention": 55.09,
+              "engaged_view_rate": 29.350104821802937,
+              "subscribers_gained": 0,
+              "tone": "energetic pop punk with driving guitars, pounding drums, and rebellious energy",
+              "concurrent_experiments": {
+                "educational_images_enabled": "treatment",
+                "engagement_hook_source": "treatment",
+                "engagement_opening_enhance": "treatment",
+                "engagement_hook_sfx": "treatment",
+                "engagement_fast_pacing": "treatment",
+                "engagement_animated_hook": "treatment"
+              },
+              "date": "2026-04-26T10:00:07.867354"
+            },
+            {
+              "video_id": "nBrpDA-PurU",
+              "views": 1,
+              "engagement": 0,
+              "retention": 28.76,
+              "engaged_view_rate": 100.0,
+              "subscribers_gained": 0,
+              "tone": "energetic pop punk with driving guitars, pounding drums, and rebellious energy",
+              "concurrent_experiments": {
+                "educational_images_enabled": "treatment",
+                "engagement_hook_source": "treatment",
+                "engagement_opening_enhance": "treatment",
+                "engagement_hook_sfx": "treatment",
+                "engagement_fast_pacing": "treatment",
+                "engagement_animated_hook": "treatment"
+              },
+              "date": "2026-04-26T10:00:07.867364"
+            },
+            {
+              "video_id": "5NE6f8iYmVM",
+              "views": 272,
+              "engagement": 4,
+              "retention": 35.92,
+              "engaged_view_rate": 23.897058823529413,
+              "subscribers_gained": 0,
+              "tone": "driving rock with mechanical rhythms, powerful guitars, and energetic momentum",
+              "concurrent_experiments": {
+                "educational_images_enabled": "treatment",
+                "engagement_hook_source": "control",
+                "engagement_opening_enhance": "control",
+                "engagement_hook_sfx": "control",
+                "engagement_fast_pacing": "control",
+                "engagement_animated_hook": "control"
+              },
+              "date": "2026-04-26T10:00:07.867376"
+            },
+            {
+              "video_id": "1uI4w6Lrz1g",
+              "views": 142,
+              "engagement": 0,
+              "retention": 44.69,
+              "engaged_view_rate": 19.718309859154928,
+              "subscribers_gained": 0,
+              "tone": "upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy",
+              "concurrent_experiments": {
+                "educational_images_enabled": "treatment",
+                "engagement_hook_source": "control",
+                "engagement_opening_enhance": "control",
+                "engagement_hook_sfx": "control",
+                "engagement_fast_pacing": "control",
+                "engagement_animated_hook": "control"
+              },
+              "date": "2026-04-26T10:00:07.867387"
+            },
+            {
+              "video_id": "F4n1XKnHOxM",
+              "views": 608,
+              "engagement": 3,
+              "retention": 55.27000000000001,
+              "engaged_view_rate": 28.618421052631575,
+              "subscribers_gained": 1,
+              "tone": "driving rock with mechanical rhythms, powerful guitars, and energetic momentum",
+              "concurrent_experiments": {
+                "educational_images_enabled": "treatment",
+                "engagement_hook_source": "control",
+                "engagement_opening_enhance": "control",
+                "engagement_hook_sfx": "control",
+                "engagement_fast_pacing": "control",
+                "engagement_animated_hook": "control"
+              },
+              "date": "2026-04-26T10:00:07.867397"
+            },
+            {
+              "video_id": "6Qr5pjaHZPU",
+              "views": 264,
+              "engagement": 1,
+              "retention": 34.23,
+              "engaged_view_rate": 26.136363636363637,
+              "subscribers_gained": 0,
+              "tone": "upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy",
+              "concurrent_experiments": {
+                "educational_images_enabled": "treatment",
+                "engagement_hook_source": "control",
+                "engagement_opening_enhance": "control",
+                "engagement_hook_sfx": "control",
+                "engagement_fast_pacing": "control",
+                "engagement_animated_hook": "control"
+              },
+              "date": "2026-04-26T10:00:07.867406"
+            },
+            {
+              "video_id": "9TvEuAtVrwU",
+              "views": 60,
+              "engagement": 1,
+              "retention": 31.879999999999995,
+              "engaged_view_rate": 6.666666666666667,
+              "subscribers_gained": 0,
+              "tone": "lo-fi electronic with digital glitch textures, steady beats, and curious energy",
+              "concurrent_experiments": {
+                "educational_images_enabled": "treatment",
+                "engagement_hook_source": "control",
+                "engagement_opening_enhance": "control",
+                "engagement_hook_sfx": "control",
+                "engagement_fast_pacing": "control",
+                "engagement_animated_hook": "control"
+              },
+              "date": "2026-04-26T10:00:07.867417"
+            }
+          ],
+          "total_views": 6366,
+          "total_engagement": 68,
+          "avg_retention": 42.29472222222221,
+          "total_subscribers_gained": 4,
+          "avg_engaged_view_rate": 38.12483777601449
         }
-      }
+      },
+      "phase_offset": 0,
+      "stagger_applied_at": "2026-04-01T00:00:00.000000",
+      "gap_days": 43,
+      "completed_at": "2026-05-03T10:00:06.893367"
+    },
+    {
+      "id": "exp_20260311_edu_images",
+      "name": "Educational Images: Concept Illustrations vs Stock Only",
+      "config_key": "educational_images_enabled",
+      "control_value": "false",
+      "treatment_value": "true",
+      "duration_weeks": 8,
+      "created_at": "2026-03-11T20:00:00.000000",
+      "status": "completed",
+      "current_week": 2,
+      "current_variant": "treatment",
+      "results": {
+        "control": {
+          "videos": [
+            {
+              "video_id": "aoxDHtzyftE",
+              "views": 0,
+              "engagement": 0,
+              "retention": 0.0,
+              "engaged_view_rate": 0.0,
+              "subscribers_gained": 0,
+              "tone": "unknown",
+              "concurrent_experiments": {},
+              "date": "2026-04-05T10:00:08.163109"
+            },
+            {
+              "video_id": "D8uQD65VQJ4",
+              "views": 225,
+              "engagement": 2,
+              "retention": 70.94,
+              "engaged_view_rate": 36.888888888888886,
+              "subscribers_gained": 1,
+              "tone": "unknown",
+              "concurrent_experiments": {},
+              "date": "2026-04-05T10:00:08.163118"
+            },
+            {
+              "video_id": "nsL5JoBoFlo",
+              "views": 826,
+              "engagement": 12,
+              "retention": 30.17,
+              "engaged_view_rate": 48.426150121065376,
+              "subscribers_gained": 1,
+              "tone": "unknown",
+              "concurrent_experiments": {},
+              "date": "2026-04-05T10:00:08.163170"
+            },
+            {
+              "video_id": "3fH96W4ztMU",
+              "views": 258,
+              "engagement": 6,
+              "retention": 39.27,
+              "engaged_view_rate": 53.100775193798455,
+              "subscribers_gained": 0,
+              "tone": "unknown",
+              "concurrent_experiments": {},
+              "date": "2026-04-05T10:00:08.163184"
+            },
+            {
+              "video_id": "IobncE_PsG0",
+              "views": 1314,
+              "engagement": 4,
+              "retention": 25.44,
+              "engaged_view_rate": 38.58447488584475,
+              "subscribers_gained": 0,
+              "tone": "unknown",
+              "concurrent_experiments": {},
+              "date": "2026-04-05T10:00:08.163193"
+            },
+            {
+              "video_id": "vu3VT0bYP74",
+              "views": 1,
+              "engagement": 0,
+              "retention": 3.29,
+              "engaged_view_rate": 100.0,
+              "subscribers_gained": 0,
+              "tone": "unknown",
+              "concurrent_experiments": {},
+              "date": "2026-04-05T10:00:08.163202"
+            },
+            {
+              "video_id": "AfuTfNLcRV0",
+              "views": 350,
+              "engagement": 6,
+              "retention": 42.74,
+              "engaged_view_rate": 54.0,
+              "subscribers_gained": 0,
+              "tone": "unknown",
+              "concurrent_experiments": {},
+              "date": "2026-04-05T10:00:08.163211"
+            },
+            {
+              "video_id": "9S319j5NcDY",
+              "views": 270,
+              "engagement": 1,
+              "retention": 50.4,
+              "engaged_view_rate": 23.703703703703706,
+              "subscribers_gained": 0,
+              "tone": "upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy",
+              "concurrent_experiments": {
+                "tone_mode": "control",
+                "engagement_hook_source": "control",
+                "engagement_opening_enhance": "control",
+                "engagement_hook_sfx": "control",
+                "engagement_fast_pacing": "control",
+                "engagement_animated_hook": "control"
+              },
+              "date": "2026-04-12T10:00:04.197762"
+            },
+            {
+              "video_id": "KeFvFOawjj4",
+              "views": 1,
+              "engagement": 0,
+              "retention": 21.23,
+              "engaged_view_rate": 100.0,
+              "subscribers_gained": 0,
+              "tone": "upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy",
+              "concurrent_experiments": {
+                "tone_mode": "control",
+                "engagement_hook_source": "control",
+                "engagement_opening_enhance": "control",
+                "engagement_hook_sfx": "control",
+                "engagement_fast_pacing": "control",
+                "engagement_animated_hook": "control"
+              },
+              "date": "2026-04-12T10:00:04.197797"
+            },
+            {
+              "video_id": "4CTB7I9knHU",
+              "views": 273,
+              "engagement": 4,
+              "retention": 33.18,
+              "engaged_view_rate": 42.49084249084249,
+              "subscribers_gained": 0,
+              "tone": "unknown",
+              "concurrent_experiments": {},
+              "date": "2026-04-12T10:00:04.197807"
+            },
+            {
+              "video_id": "MDvfBB2t8dI",
+              "views": 156,
+              "engagement": 1,
+              "retention": 33.57,
+              "engaged_view_rate": 16.666666666666664,
+              "subscribers_gained": 0,
+              "tone": "unknown",
+              "concurrent_experiments": {},
+              "date": "2026-04-12T10:00:04.197815"
+            },
+            {
+              "video_id": "V26nzDQHW4M",
+              "views": 1,
+              "engagement": 0,
+              "retention": 15.73,
+              "engaged_view_rate": 100.0,
+              "subscribers_gained": 0,
+              "tone": "unknown",
+              "concurrent_experiments": {},
+              "date": "2026-04-12T10:00:04.197823"
+            },
+            {
+              "video_id": "0akALMjBgSw",
+              "views": 80,
+              "engagement": 1,
+              "retention": 34.8,
+              "engaged_view_rate": 20.0,
+              "subscribers_gained": 1,
+              "tone": "unknown",
+              "concurrent_experiments": {},
+              "date": "2026-04-12T10:00:04.197830"
+            },
+            {
+              "video_id": "9715MBm_bhI",
+              "views": 1,
+              "engagement": 0,
+              "retention": 24.58,
+              "engaged_view_rate": 100.0,
+              "subscribers_gained": 0,
+              "tone": "unknown",
+              "concurrent_experiments": {},
+              "date": "2026-04-12T10:00:04.197837"
+            },
+            {
+              "video_id": "ACGxtfYpdtY",
+              "views": 1,
+              "engagement": 0,
+              "retention": 5.41,
+              "engaged_view_rate": 100.0,
+              "subscribers_gained": 0,
+              "tone": "unknown",
+              "concurrent_experiments": {},
+              "date": "2026-04-12T10:00:04.197845"
+            },
+            {
+              "video_id": "2KtC4tVUw-s",
+              "views": 34,
+              "engagement": 1,
+              "retention": 25.8,
+              "engaged_view_rate": 32.35294117647059,
+              "subscribers_gained": 0,
+              "tone": "unknown",
+              "concurrent_experiments": {},
+              "date": "2026-04-12T10:00:04.197852"
+            },
+            {
+              "video_id": "vSqQ9CefhbE",
+              "views": 151,
+              "engagement": 3,
+              "retention": 26.11,
+              "engaged_view_rate": 20.52980132450331,
+              "subscribers_gained": 0,
+              "tone": "upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy",
+              "concurrent_experiments": {
+                "tone_mode": "control",
+                "engagement_hook_source": "control",
+                "engagement_opening_enhance": "control",
+                "engagement_hook_sfx": "control",
+                "engagement_fast_pacing": "control",
+                "engagement_animated_hook": "control"
+              },
+              "date": "2026-04-19T10:00:06.030731"
+            },
+            {
+              "video_id": "cEaPIbi2qJ0",
+              "views": 77,
+              "engagement": 1,
+              "retention": 20.34,
+              "engaged_view_rate": 9.090909090909092,
+              "subscribers_gained": 0,
+              "tone": "energetic pop punk with driving guitars, pounding drums, and rebellious energy",
+              "concurrent_experiments": {
+                "tone_mode": "control",
+                "engagement_hook_source": "control",
+                "engagement_opening_enhance": "control",
+                "engagement_hook_sfx": "control",
+                "engagement_fast_pacing": "control",
+                "engagement_animated_hook": "control"
+              },
+              "date": "2026-04-19T10:00:06.030747"
+            },
+            {
+              "video_id": "sVlQr9PStKw",
+              "views": 7,
+              "engagement": 1,
+              "retention": 55.35,
+              "engaged_view_rate": 42.857142857142854,
+              "subscribers_gained": 0,
+              "tone": "upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy",
+              "concurrent_experiments": {
+                "tone_mode": "control",
+                "engagement_hook_source": "control",
+                "engagement_opening_enhance": "control",
+                "engagement_hook_sfx": "control",
+                "engagement_fast_pacing": "control",
+                "engagement_animated_hook": "control"
+              },
+              "date": "2026-04-19T10:00:06.030751"
+            },
+            {
+              "video_id": "8gy5dZTlM6Q",
+              "views": 1,
+              "engagement": 1,
+              "retention": 28.17,
+              "engaged_view_rate": 100.0,
+              "subscribers_gained": 0,
+              "tone": "upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy",
+              "concurrent_experiments": {
+                "tone_mode": "control",
+                "engagement_hook_source": "control",
+                "engagement_opening_enhance": "control",
+                "engagement_hook_sfx": "control",
+                "engagement_fast_pacing": "control",
+                "engagement_animated_hook": "control"
+              },
+              "date": "2026-04-19T10:00:06.030755"
+            },
+            {
+              "video_id": "0hfOAWWvMrU",
+              "views": 47,
+              "engagement": 2,
+              "retention": 94.35,
+              "engaged_view_rate": 40.42553191489361,
+              "subscribers_gained": 0,
+              "tone": "upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy",
+              "concurrent_experiments": {
+                "tone_mode": "control",
+                "engagement_hook_source": "control",
+                "engagement_opening_enhance": "control",
+                "engagement_hook_sfx": "control",
+                "engagement_fast_pacing": "control",
+                "engagement_animated_hook": "control"
+              },
+              "date": "2026-04-19T10:00:06.030759"
+            },
+            {
+              "video_id": "h84Guqb_CUM",
+              "views": 823,
+              "engagement": 13,
+              "retention": 40.03,
+              "engaged_view_rate": 42.40583232077764,
+              "subscribers_gained": 0,
+              "tone": "energetic pop punk with driving guitars, pounding drums, and rebellious energy",
+              "concurrent_experiments": {
+                "tone_mode": "control",
+                "engagement_hook_source": "control",
+                "engagement_opening_enhance": "control",
+                "engagement_hook_sfx": "control",
+                "engagement_fast_pacing": "control",
+                "engagement_animated_hook": "control"
+              },
+              "date": "2026-04-19T10:00:06.030763"
+            },
+            {
+              "video_id": "KVcG7tz3gEE",
+              "views": 560,
+              "engagement": 7,
+              "retention": 129.66,
+              "engaged_view_rate": 38.57142857142858,
+              "subscribers_gained": 5,
+              "tone": "upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy",
+              "concurrent_experiments": {
+                "tone_mode": "control",
+                "engagement_hook_source": "control",
+                "engagement_opening_enhance": "control",
+                "engagement_hook_sfx": "control",
+                "engagement_fast_pacing": "control",
+                "engagement_animated_hook": "control"
+              },
+              "date": "2026-04-19T10:00:06.030768"
+            }
+          ],
+          "total_views": 8216,
+          "total_engagement": 95,
+          "avg_retention": 37.33524999999999,
+          "total_subscribers_gained": 9,
+          "avg_engaged_view_rate": 50.53620844313148
+        },
+        "treatment": {
+          "videos": [
+            {
+              "video_id": "gcKe7_6qXgA",
+              "views": 120,
+              "engagement": 2,
+              "retention": 79.65,
+              "engaged_view_rate": 18.333333333333332,
+              "subscribers_gained": 0,
+              "tone": "organic flowing pop with ambient textures, melodic hooks, and warm educational energy",
+              "concurrent_experiments": {
+                "tone_mode": "treatment",
+                "engagement_hook_source": "control",
+                "engagement_opening_enhance": "control",
+                "engagement_hook_sfx": "control",
+                "engagement_fast_pacing": "control",
+                "engagement_animated_hook": "control"
+              },
+              "date": "2026-04-19T10:00:06.030699"
+            },
+            {
+              "video_id": "KKSdAVNO_6U",
+              "views": 195,
+              "engagement": 1,
+              "retention": 30.75,
+              "engaged_view_rate": 28.717948717948715,
+              "subscribers_gained": 0,
+              "tone": "upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy",
+              "concurrent_experiments": {
+                "tone_mode": "treatment",
+                "engagement_hook_source": "control",
+                "engagement_opening_enhance": "control",
+                "engagement_hook_sfx": "control",
+                "engagement_fast_pacing": "control",
+                "engagement_animated_hook": "control"
+              },
+              "date": "2026-04-19T10:00:06.030705"
+            },
+            {
+              "video_id": "1hs7OyvvWdA",
+              "views": 93,
+              "engagement": 1,
+              "retention": 23.95,
+              "engaged_view_rate": 24.731182795698924,
+              "subscribers_gained": 0,
+              "tone": "upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy",
+              "concurrent_experiments": {
+                "tone_mode": "treatment",
+                "engagement_hook_source": "control",
+                "engagement_opening_enhance": "control",
+                "engagement_hook_sfx": "control",
+                "engagement_fast_pacing": "control",
+                "engagement_animated_hook": "control"
+              },
+              "date": "2026-04-19T10:00:06.030710"
+            },
+            {
+              "video_id": "3h1mOCEyfnI",
+              "views": 55,
+              "engagement": 1,
+              "retention": 60.53999999999999,
+              "engaged_view_rate": 14.545454545454545,
+              "subscribers_gained": 0,
+              "tone": "upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy",
+              "concurrent_experiments": {
+                "tone_mode": "treatment",
+                "engagement_hook_source": "control",
+                "engagement_opening_enhance": "control",
+                "engagement_hook_sfx": "control",
+                "engagement_fast_pacing": "control",
+                "engagement_animated_hook": "control"
+              },
+              "date": "2026-04-19T10:00:06.030715"
+            },
+            {
+              "video_id": "a1hMRr7Uln4",
+              "views": 85,
+              "engagement": 1,
+              "retention": 56.779999999999994,
+              "engaged_view_rate": 36.470588235294116,
+              "subscribers_gained": 0,
+              "tone": "upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy",
+              "concurrent_experiments": {
+                "tone_mode": "treatment",
+                "engagement_hook_source": "control",
+                "engagement_opening_enhance": "control",
+                "engagement_hook_sfx": "control",
+                "engagement_fast_pacing": "control",
+                "engagement_animated_hook": "control"
+              },
+              "date": "2026-04-19T10:00:06.030718"
+            },
+            {
+              "video_id": "HYZXm_udMzU",
+              "views": 65,
+              "engagement": 2,
+              "retention": 28.84,
+              "engaged_view_rate": 21.53846153846154,
+              "subscribers_gained": 0,
+              "tone": "upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy",
+              "concurrent_experiments": {
+                "tone_mode": "treatment",
+                "engagement_hook_source": "control",
+                "engagement_opening_enhance": "control",
+                "engagement_hook_sfx": "control",
+                "engagement_fast_pacing": "control",
+                "engagement_animated_hook": "control"
+              },
+              "date": "2026-04-19T10:00:06.030723"
+            },
+            {
+              "video_id": "Cc9yQHIUndE",
+              "views": 209,
+              "engagement": 1,
+              "retention": 69.55,
+              "engaged_view_rate": 33.97129186602871,
+              "subscribers_gained": 0,
+              "tone": "upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy",
+              "concurrent_experiments": {
+                "tone_mode": "treatment",
+                "engagement_hook_source": "control",
+                "engagement_opening_enhance": "control",
+                "engagement_hook_sfx": "control",
+                "engagement_fast_pacing": "control",
+                "engagement_animated_hook": "control"
+              },
+              "date": "2026-04-19T10:00:06.030726"
+            },
+            {
+              "video_id": "3P7wUFEz4qE",
+              "views": 269,
+              "engagement": 4,
+              "retention": 33.43,
+              "engaged_view_rate": 32.342007434944236,
+              "subscribers_gained": 1,
+              "tone": "upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy",
+              "concurrent_experiments": {
+                "tone_mode": "treatment",
+                "engagement_hook_source": "control",
+                "engagement_opening_enhance": "control",
+                "engagement_hook_sfx": "control",
+                "engagement_fast_pacing": "control",
+                "engagement_animated_hook": "control"
+              },
+              "date": "2026-04-19T10:00:06.030735"
+            },
+            {
+              "video_id": "i-vGwsjOBYw",
+              "views": 119,
+              "engagement": 1,
+              "retention": 57.46,
+              "engaged_view_rate": 22.689075630252102,
+              "subscribers_gained": 0,
+              "tone": "upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy",
+              "concurrent_experiments": {
+                "tone_mode": "treatment",
+                "engagement_hook_source": "control",
+                "engagement_opening_enhance": "control",
+                "engagement_hook_sfx": "control",
+                "engagement_fast_pacing": "control",
+                "engagement_animated_hook": "control"
+              },
+              "date": "2026-04-19T10:00:06.030739"
+            },
+            {
+              "video_id": "HcafJTK3gys",
+              "views": 12,
+              "engagement": 6,
+              "retention": 44.11,
+              "engaged_view_rate": 100.0,
+              "subscribers_gained": 0,
+              "tone": "upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy",
+              "concurrent_experiments": {
+                "tone_mode": "treatment",
+                "engagement_hook_source": "control",
+                "engagement_opening_enhance": "control",
+                "engagement_hook_sfx": "control",
+                "engagement_fast_pacing": "control",
+                "engagement_animated_hook": "control"
+              },
+              "date": "2026-04-19T10:00:06.030743"
+            },
+            {
+              "video_id": "9A9OLmg7wWk",
+              "views": 0,
+              "engagement": 0,
+              "retention": 0.0,
+              "engaged_view_rate": 0.0,
+              "subscribers_gained": 0,
+              "tone": "upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy",
+              "concurrent_experiments": {},
+              "date": "2026-04-26T10:00:07.867447"
+            },
+            {
+              "video_id": "TL40G60hxug",
+              "views": 55,
+              "engagement": 1,
+              "retention": 67.84,
+              "engaged_view_rate": 9.090909090909092,
+              "subscribers_gained": 0,
+              "tone": "upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy",
+              "concurrent_experiments": {},
+              "date": "2026-04-26T10:00:07.867456"
+            },
+            {
+              "video_id": "1PHjwHC8xfQ",
+              "views": 79,
+              "engagement": 1,
+              "retention": 32.24,
+              "engaged_view_rate": 29.11392405063291,
+              "subscribers_gained": 0,
+              "tone": "driving rock with mechanical rhythms, powerful guitars, and energetic momentum",
+              "concurrent_experiments": {},
+              "date": "2026-04-26T10:00:07.867463"
+            },
+            {
+              "video_id": "bRap54jDzLU",
+              "views": 42,
+              "engagement": 1,
+              "retention": 34.78,
+              "engaged_view_rate": 33.33333333333333,
+              "subscribers_gained": 0,
+              "tone": "driving rock with mechanical rhythms, powerful guitars, and energetic momentum",
+              "concurrent_experiments": {},
+              "date": "2026-04-26T10:00:07.867471"
+            },
+            {
+              "video_id": "DKEICM3WVv8",
+              "views": 1,
+              "engagement": 2,
+              "retention": 97.74,
+              "engaged_view_rate": 100.0,
+              "subscribers_gained": 0,
+              "tone": "driving rock with mechanical rhythms, powerful guitars, and energetic momentum",
+              "concurrent_experiments": {},
+              "date": "2026-04-26T10:00:07.867479"
+            },
+            {
+              "video_id": "SnF8trMaA7o",
+              "views": 151,
+              "engagement": 2,
+              "retention": 75.97,
+              "engaged_view_rate": 21.192052980132452,
+              "subscribers_gained": 0,
+              "tone": "driving rock with mechanical rhythms, powerful guitars, and energetic momentum",
+              "concurrent_experiments": {},
+              "date": "2026-04-26T10:00:07.867486"
+            },
+            {
+              "video_id": "y57h6gkYDLE",
+              "views": 108,
+              "engagement": 1,
+              "retention": 44.07,
+              "engaged_view_rate": 27.77777777777778,
+              "subscribers_gained": 0,
+              "tone": "driving rock with mechanical rhythms, powerful guitars, and energetic momentum",
+              "concurrent_experiments": {},
+              "date": "2026-04-26T10:00:07.867494"
+            },
+            {
+              "video_id": "zaWUpklY7Is",
+              "views": 52,
+              "engagement": 0,
+              "retention": 21.83,
+              "engaged_view_rate": 46.15384615384615,
+              "subscribers_gained": 0,
+              "tone": "energetic pop punk with driving guitars, pounding drums, and rebellious energy",
+              "concurrent_experiments": {
+                "tone_mode": "treatment",
+                "engagement_hook_source": "treatment",
+                "engagement_opening_enhance": "treatment",
+                "engagement_hook_sfx": "treatment",
+                "engagement_fast_pacing": "treatment",
+                "engagement_animated_hook": "treatment"
+              },
+              "date": "2026-04-26T10:00:07.867504"
+            },
+            {
+              "video_id": "rUU2zxXjVtA",
+              "views": 114,
+              "engagement": 1,
+              "retention": 58.45,
+              "engaged_view_rate": 16.666666666666664,
+              "subscribers_gained": 0,
+              "tone": "driving rock with mechanical rhythms, powerful guitars, and energetic momentum",
+              "concurrent_experiments": {},
+              "date": "2026-04-26T10:00:07.867537"
+            },
+            {
+              "video_id": "oqI-S-NfMCE",
+              "views": 246,
+              "engagement": 3,
+              "retention": 67.36,
+              "engaged_view_rate": 31.70731707317073,
+              "subscribers_gained": 0,
+              "tone": "energetic pop punk with driving guitars, pounding drums, and rebellious energy",
+              "concurrent_experiments": {
+                "tone_mode": "treatment",
+                "engagement_hook_source": "treatment",
+                "engagement_opening_enhance": "treatment",
+                "engagement_hook_sfx": "treatment",
+                "engagement_fast_pacing": "treatment",
+                "engagement_animated_hook": "treatment"
+              },
+              "date": "2026-04-26T10:00:07.867548"
+            },
+            {
+              "video_id": "g1f35JAoh5w",
+              "views": 174,
+              "engagement": 0,
+              "retention": 17.6,
+              "engaged_view_rate": 15.517241379310345,
+              "subscribers_gained": 0,
+              "tone": "driving rock with mechanical rhythms, powerful guitars, and energetic momentum",
+              "concurrent_experiments": {
+                "tone_mode": "treatment",
+                "engagement_hook_source": "control",
+                "engagement_opening_enhance": "control",
+                "engagement_hook_sfx": "control",
+                "engagement_fast_pacing": "control",
+                "engagement_animated_hook": "control"
+              },
+              "date": "2026-04-26T10:00:07.867558"
+            },
+            {
+              "video_id": "UGXgkLCshx4",
+              "views": 477,
+              "engagement": 0,
+              "retention": 55.09,
+              "engaged_view_rate": 29.350104821802937,
+              "subscribers_gained": 0,
+              "tone": "energetic pop punk with driving guitars, pounding drums, and rebellious energy",
+              "concurrent_experiments": {
+                "tone_mode": "treatment",
+                "engagement_hook_source": "treatment",
+                "engagement_opening_enhance": "treatment",
+                "engagement_hook_sfx": "treatment",
+                "engagement_fast_pacing": "treatment",
+                "engagement_animated_hook": "treatment"
+              },
+              "date": "2026-04-26T10:00:07.867568"
+            },
+            {
+              "video_id": "nBrpDA-PurU",
+              "views": 1,
+              "engagement": 0,
+              "retention": 28.76,
+              "engaged_view_rate": 100.0,
+              "subscribers_gained": 0,
+              "tone": "energetic pop punk with driving guitars, pounding drums, and rebellious energy",
+              "concurrent_experiments": {
+                "tone_mode": "treatment",
+                "engagement_hook_source": "treatment",
+                "engagement_opening_enhance": "treatment",
+                "engagement_hook_sfx": "treatment",
+                "engagement_fast_pacing": "treatment",
+                "engagement_animated_hook": "treatment"
+              },
+              "date": "2026-04-26T10:00:07.867577"
+            },
+            {
+              "video_id": "5NE6f8iYmVM",
+              "views": 272,
+              "engagement": 4,
+              "retention": 35.92,
+              "engaged_view_rate": 23.897058823529413,
+              "subscribers_gained": 0,
+              "tone": "driving rock with mechanical rhythms, powerful guitars, and energetic momentum",
+              "concurrent_experiments": {
+                "tone_mode": "treatment",
+                "engagement_hook_source": "control",
+                "engagement_opening_enhance": "control",
+                "engagement_hook_sfx": "control",
+                "engagement_fast_pacing": "control",
+                "engagement_animated_hook": "control"
+              },
+              "date": "2026-04-26T10:00:07.867586"
+            },
+            {
+              "video_id": "1uI4w6Lrz1g",
+              "views": 142,
+              "engagement": 0,
+              "retention": 44.69,
+              "engaged_view_rate": 19.718309859154928,
+              "subscribers_gained": 0,
+              "tone": "upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy",
+              "concurrent_experiments": {
+                "tone_mode": "treatment",
+                "engagement_hook_source": "control",
+                "engagement_opening_enhance": "control",
+                "engagement_hook_sfx": "control",
+                "engagement_fast_pacing": "control",
+                "engagement_animated_hook": "control"
+              },
+              "date": "2026-04-26T10:00:07.867604"
+            },
+            {
+              "video_id": "F4n1XKnHOxM",
+              "views": 608,
+              "engagement": 3,
+              "retention": 55.27000000000001,
+              "engaged_view_rate": 28.618421052631575,
+              "subscribers_gained": 1,
+              "tone": "driving rock with mechanical rhythms, powerful guitars, and energetic momentum",
+              "concurrent_experiments": {
+                "tone_mode": "treatment",
+                "engagement_hook_source": "control",
+                "engagement_opening_enhance": "control",
+                "engagement_hook_sfx": "control",
+                "engagement_fast_pacing": "control",
+                "engagement_animated_hook": "control"
+              },
+              "date": "2026-04-26T10:00:07.867615"
+            },
+            {
+              "video_id": "6Qr5pjaHZPU",
+              "views": 264,
+              "engagement": 1,
+              "retention": 34.23,
+              "engaged_view_rate": 26.136363636363637,
+              "subscribers_gained": 0,
+              "tone": "upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy",
+              "concurrent_experiments": {
+                "tone_mode": "treatment",
+                "engagement_hook_source": "control",
+                "engagement_opening_enhance": "control",
+                "engagement_hook_sfx": "control",
+                "engagement_fast_pacing": "control",
+                "engagement_animated_hook": "control"
+              },
+              "date": "2026-04-26T10:00:07.867624"
+            },
+            {
+              "video_id": "9TvEuAtVrwU",
+              "views": 60,
+              "engagement": 1,
+              "retention": 31.879999999999995,
+              "engaged_view_rate": 6.666666666666667,
+              "subscribers_gained": 0,
+              "tone": "lo-fi electronic with digital glitch textures, steady beats, and curious energy",
+              "concurrent_experiments": {
+                "tone_mode": "treatment",
+                "engagement_hook_source": "control",
+                "engagement_opening_enhance": "control",
+                "engagement_hook_sfx": "control",
+                "engagement_fast_pacing": "control",
+                "engagement_animated_hook": "control"
+              },
+              "date": "2026-04-26T10:00:07.867634"
+            }
+          ],
+          "total_views": 6366,
+          "total_engagement": 68,
+          "avg_retention": 42.29472222222221,
+          "total_subscribers_gained": 4,
+          "avg_engaged_view_rate": 38.12483777601449
+        }
+      },
+      "phase_offset": 0,
+      "stagger_applied_at": "2026-04-01T00:00:00.000000",
+      "gap_days": 43,
+      "completed_at": "2026-05-03T10:00:06.894237"
     }
-  ],
-  "completed": []
+  ]
 }

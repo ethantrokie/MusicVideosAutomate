@@ -11,7 +11,7 @@
     "unsplash_api_key": "OPTIONAL_UNSPLASH_API_KEY"
   },
   "video_settings": {
-    "duration": 50,
+    "duration": 75,
     "resolution": [
       1080,
       1920
@@ -21,7 +21,7 @@
   },
   "pipeline_settings": {
     "express_mode": false,
-    "max_media_items": 20,
+    "max_media_items": 14,
     "min_media_items": 12
   },
   "youtube": {
@@ -66,7 +66,7 @@
     }
   },
   "video_formats": {
-    "format_mode": "reduced",
+    "format_mode": "full",
     "format_mode_description": "full = all 4 formats (full + hook + educational + intro), reduced = 2 formats (full + intro short). A/B test by alternating weekly.",
     "full_video": {
       "enabled": true,
@@ -96,12 +96,45 @@
   "fal_api": {
     "api_key": "f206eb75-a2ec-48a4-8fae-ebd82273358a:2bc3cfd8c3270232773b0da491bccba1"
   },
+  "engagement": {
+    "hook_source_lyrics": false,
+    "opening_enhance_enabled": false,
+    "opening_saturation": 1.35,
+    "opening_contrast": 1.2,
+    "opening_brightness": 1.05,
+    "hook_sfx_enabled": false,
+    "hook_sfx_volume": 0.4,
+    "fast_pacing_enabled": false,
+    "opening_shot_duration": 1.5,
+    "opening_shot_count": 5,
+    "animated_hook_text": false
+  },
   "audio_trim": {
     "enabled": true,
-    "max_intro_seconds": 2.0
+    "max_intro_seconds": 0.5
+  },
+  "educational_images": {
+    "enabled": true,
+    "count": 3,
+    "duration_seconds": 12.0,
+    "min_count": 2,
+    "max_count": 10,
+    "svg_model": "claude-sonnet-4-6",
+    "fal_embed_model": "fal-ai/reve/text-to-image",
+    "fallback_to_stock": true,
+    "style": "hand-drawn whiteboard sketch, dark charcoal background, white chalk-like lines, educational diagram, minimal labels in upper portion"
+  },
+  "remotion_overlay": {
+    "enabled": true,
+    "karaoke_enabled": true,
+    "edu_reveal_enabled": true,
+    "transitions_enabled": false,
+    "animated_end_screen": true,
+    "channel_name": "@learningsciencemusic",
+    "music_indicator_enabled": true
   },
   "ai_clips": {
-    "enabled": true,
+    "enabled": false,
     "count": 3,
     "duration_seconds": 5,
     "placement_window_seconds": 60,

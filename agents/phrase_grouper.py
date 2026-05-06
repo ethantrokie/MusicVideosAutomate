@@ -57,12 +57,14 @@ class PhraseGrouper:
                 phrases.append(self._build_phrase(current_phrase))
 
         # Defensive Fallback #1: Punctuation-based splitting if < 3 phrase groups
-        if len(phrases) < 3:
+        # Only apply fallbacks when there are enough words to expect 3+ groups;
+        # for short inputs (< 10 words), 1-2 groups via gap detection is valid.
+        if len(phrases) < 3 and len(aligned_words) >= 10:
             self.logger.warning(f"Gap-based detection produced only {len(phrases)} phrase groups. Trying punctuation-based splitting...")
             phrases = self._split_by_punctuation(aligned_words)
 
         # Defensive Fallback #2: Structural marker splitting if still < 3 groups
-        if len(phrases) < 3:
+        if len(phrases) < 3 and len(aligned_words) >= 10:
             self.logger.warning(f"Punctuation-based detection produced only {len(phrases)} phrase groups. Trying structural marker splitting...")
             phrases = self._split_by_structural_markers(aligned_words)
 

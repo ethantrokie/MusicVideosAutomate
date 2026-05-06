@@ -34,6 +34,7 @@ import moviepy.video.fx.all as vfx
 import logging
 from typing import List, Dict
 from consolidate_clips import consolidate_phrase_groups
+from engagement_experiments import is_engagement_feature_enabled
 
 
 def load_config():
@@ -63,6 +64,45 @@ def load_sync_config():
             "semantic_coherence_threshold": 0.3
         }
     })
+
+
+def load_engagement_config():
+    """Load engagement settings from config."""
+    config_path = Path("config/config.json")
+    with open(config_path) as f:
+        config = json.load(f)
+    return config.get("engagement", {})
+
+
+def enhance_opening_clip(clip, engagement_config: dict):
+    """
+    Apply saturation, contrast, and brightness boost to the opening clip.
+
+    Research: high-contrast openings yield +39% engagement. Only applied
+    when the engagement_opening_enhance A/B experiment is in treatment.
+
+    Args:
+        clip: MoviePy clip to enhance
+        engagement_config: Engagement config dict with saturation/contrast/brightness values
+
+    Returns:
+        Enhanced clip (new object, original not mutated)
+    """
+    from PIL import ImageEnhance, Image as PILImage
+    import numpy as np
+
+    saturation = engagement_config.get("opening_saturation", 1.25)
+    contrast = engagement_config.get("opening_contrast", 1.15)
+    brightness = engagement_config.get("opening_brightness", 1.05)
+
+    def enhance_frame(frame):
+        img = PILImage.fromarray(frame)
+        img = ImageEnhance.Color(img).enhance(saturation)
+        img = ImageEnhance.Contrast(img).enhance(contrast)
+        img = ImageEnhance.Brightness(img).enhance(brightness)
+        return np.array(img)
+
+    return clip.fl_image(enhance_frame)
 
 
 def load_approved_media():
@@ -122,6 +162,11 @@ def create_clip_from_shot(shot: dict, video_settings: dict):
         if media_type == "image":
             # Create image clip
             clip = ImageClip(local_path, duration=duration)
+
+            # Ken Burns gentle zoom for educational images to prevent "frozen screen" feel
+            if shot.get("source") == "educational_image" and duration > 0:
+                zoom_factor = 0.03  # 3% zoom over clip duration
+                clip = clip.resize(lambda t: 1 + zoom_factor * (t / duration))
         else:
             # Load video clip
             clip = VideoFileClip(local_path)
@@ -145,7 +190,16 @@ def create_clip_from_shot(shot: dict, video_settings: dict):
         clip_aspect = clip.w / clip.h
         target_aspect = target_width / target_height
 
-        if clip_aspect > target_aspect:
+        # For AI-generated clips that already match the target aspect ratio,
+        # only downscale (never upscale) to avoid amplifying baked-in camera motion
+        is_ai_clip = shot.get("source") == "ai_generated"
+        aspect_match = abs(clip_aspect - target_aspect) < 0.05
+
+        if is_ai_clip and aspect_match and clip.w <= target_width:
+            # AI clip matches aspect ratio and is same size or smaller — keep native resolution
+            # Upscaling would magnify any subtle camera motion from the model
+            pass
+        elif clip_aspect > target_aspect:
             # Video is wider than target (horizontal video for vertical format)
             # Fit to width, add black bars top/bottom (letterbox)
             clip = clip.resize(width=target_width)
@@ -562,11 +616,21 @@ def assemble_video(approved_data: dict, video_settings: dict, audio_path: str, a
 
     clips = []
 
+    # A/B tested: opening frame saturation/contrast boost (shot 1 only)
+    enhance_opening = is_engagement_feature_enabled("hook_overhaul")
+    engagement_config = load_engagement_config() if enhance_opening else {}
+
     # Create clips for each shot
     print(f"  Creating {len(available_shots)} video clips...")
     for i, shot in enumerate(available_shots, 1):
         print(f"    [{i}/{len(available_shots)}] Shot {shot['shot_number']}: {shot['description'][:40]}...")
         clip = create_clip_from_shot(shot, video_settings)
+
+        # Apply saturation/contrast boost to first shot only
+        if enhance_opening and shot.get("shot_number") == 1:
+            print(f"    🧪 A/B: Enhancing opening clip (sat={engagement_config.get('opening_saturation', 1.25)}, con={engagement_config.get('opening_contrast', 1.15)})")
+            clip = enhance_opening_clip(clip, engagement_config)
+
         clips.append(clip)
 
     # Concatenate all clips
@@ -598,7 +662,21 @@ def assemble_video(approved_data: dict, video_settings: dict, audio_path: str, a
         final_video = final_video.subclip(0, target_duration)
         print(f"  Trimmed video to {target_duration}s (matches audio)")
 
-    final_video = final_video.set_audio(audio)
+    # A/B tested: synthetic audio hit at t=0 (pattern interrupt)
+    hook_sfx_enabled = is_engagement_feature_enabled("hook_overhaul")
+    if hook_sfx_enabled:
+        from audio_utils import generate_hook_sfx
+        sfx_path = generate_hook_sfx()
+        if sfx_path:
+            sfx_volume = load_engagement_config().get("hook_sfx_volume", 0.25)
+            sfx_clip = AudioFileClip(sfx_path).volumex(sfx_volume)
+            combined_audio = CompositeAudioClip([audio, sfx_clip.set_start(0)])
+            final_video = final_video.set_audio(combined_audio)
+            print(f"  🧪 A/B: Hook SFX added at t=0 (volume={sfx_volume})")
+        else:
+            final_video = final_video.set_audio(audio)
+    else:
+        final_video = final_video.set_audio(audio)
 
     # Export final video
     ensure_output_dir()

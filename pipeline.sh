@@ -53,6 +53,13 @@ for arg in "$@"; do
     esac
 done
 
+# Skip weekends (date +%u: 1=Monday, 7=Sunday)
+DAY_OF_WEEK=$(date +%u)
+if [ "$DAY_OF_WEEK" -eq 6 ] || [ "$DAY_OF_WEEK" -eq 7 ]; then
+    echo "Skipping pipeline on weekend (day=$DAY_OF_WEEK)"
+    exit 0
+fi
+
 echo -e "${BLUE}🎬 Educational Video Automation Pipeline${NC}"
 echo "=========================================="
 echo ""
@@ -221,7 +228,17 @@ if [ $START_STAGE -le 3 ]; then
         exit 1
     fi
 
-    # Stage 3.1: Trim audio intro
+    # Stage 3.1: Local forced alignment (replaces flaky Suno API alignment)
+    # Must run BEFORE trim so trim has correct timestamps for first lyric
+    echo "🎯 Running local forced alignment (demucs + ctc-forced-aligner)..."
+    if ./venv/bin/python3 agents/align_lyrics_local.py; then
+        echo "✅ Local alignment complete"
+    else
+        echo -e "${YELLOW}⚠️  Local alignment failed, using Suno alignment as fallback${NC}"
+    fi
+    echo ""
+
+    # Stage 3.2: Trim audio intro (uses aligned timestamps to find first lyric)
     echo "✂️ Trimming audio intro..."
     if ./venv/bin/python3 agents/trim_audio.py; then
         echo "✅ Audio trim complete"
@@ -231,6 +248,17 @@ if [ $START_STAGE -le 3 ]; then
     echo ""
 
     # Stage 3.5: Create phrase groups for curator
+    echo "📝 Creating phrase groups from word-level timestamps..."
+    ./agents/3_5_create_phrase_groups.sh
+    if [ $? -ne 0 ]; then
+        echo -e "${RED}❌ Phrase grouping failed${NC}"
+        exit 1
+    fi
+    echo ""
+fi
+
+# Stage 3.5: Create phrase groups (must be separate from stage 3 for resume logic)
+if [ $START_STAGE -le 4 ] && [ ! -f "${RUN_DIR}/phrase_groups.json" ]; then
     echo "📝 Creating phrase groups from word-level timestamps..."
     ./agents/3_5_create_phrase_groups.sh
     if [ $? -ne 0 ]; then
@@ -286,6 +314,21 @@ if [ $START_STAGE -le 4 ]; then
     else
         echo -e "${YELLOW}⚠️  AI clip generation failed or skipped, will use stock footage only${NC}"
         # Non-critical failure - continue pipeline
+    fi
+    echo ""
+fi
+
+# Stage 4.6: Educational SVG Diagram Generation
+if [ $START_STAGE -le 4 ]; then
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${BLUE}Stage 4.6/7: Educational SVG Diagram Generation${NC}"
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+
+    echo "🎨 Generating educational SVG diagrams..."
+    if ./venv/bin/python3 agents/generate_edu_svg.py; then
+        echo "✅ SVG diagram generation complete"
+    else
+        echo -e "${YELLOW}⚠️  SVG diagram generation failed, will use stock footage only${NC}"
     fi
     echo ""
 fi
@@ -595,9 +638,14 @@ with open('$TEMP_GAP_PROMPT', 'w') as f:
     f.write(content)
 EOF
 
-                # Run gap-filling research
+                # Run gap-filling research with 30-minute timeout to prevent pipeline hangs
                 echo "  Finding media for $TARGET_COUNT missing concepts..."
-                /Users/ethantrokie/.local/bin/claude -p "$(cat $TEMP_GAP_PROMPT)" --model claude-sonnet-4-5 --dangerously-skip-permissions
+                /Users/ethantrokie/.local/bin/claude -p "$(cat $TEMP_GAP_PROMPT)" --model claude-sonnet-4-6 --dangerously-skip-permissions &
+                CLAUDE_PID=$!
+                ( sleep 1800 && kill $CLAUDE_PID 2>/dev/null && echo "  ⚠️  Gap-fill timed out after 30 minutes" ) &
+                TIMER_PID=$!
+                wait $CLAUDE_PID 2>/dev/null
+                kill $TIMER_PID 2>/dev/null
 
                 rm "$TEMP_GAP_PROMPT"
 
@@ -797,6 +845,71 @@ if [ $START_STAGE -le 6 ]; then
     echo ""
 fi
 
+# Stage 7.4: Remotion Overlay Rendering (optional)
+if [ $START_STAGE -le 7 ]; then
+    REMOTION_OVERLAY_ENABLED=$(python3 -c "
+import json
+with open('config/config.json') as f:
+    config = json.load(f)
+print(config.get('remotion_overlay', {}).get('enabled', False))
+" 2>/dev/null || echo "False")
+
+    if [ "$REMOTION_OVERLAY_ENABLED" = "True" ]; then
+        echo ""
+        echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+        echo -e "${BLUE}Stage 7.4: Remotion Overlay Rendering${NC}"
+        echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+
+        REMOTION_SUCCESS=false
+
+        for video_file in "${RUN_DIR}"/*.mp4; do
+            [ -f "$video_file" ] || continue
+            basename_file=$(basename "$video_file" .mp4)
+
+            # Determine format type from filename
+            case "$basename_file" in
+                full) FORMAT_TYPE="full" ;;
+                short_hook) FORMAT_TYPE="short_hook" ;;
+                short_educational) FORMAT_TYPE="short_educational" ;;
+                short_intro) FORMAT_TYPE="short_intro" ;;
+                *) continue ;;
+            esac
+
+            # Get video duration in ms (use shutil.which + fallback for launchd compatibility)
+            DURATION_MS=$(python3 -c "
+import subprocess, json, shutil, os
+ffprobe = shutil.which('ffprobe')
+if not ffprobe:
+    for p in ['/opt/homebrew/bin/ffprobe', '/usr/local/bin/ffprobe']:
+        if os.path.isfile(p):
+            ffprobe = p
+            break
+result = subprocess.run([ffprobe, '-v', 'error', '-show_entries', 'format=duration', '-of', 'json', '$video_file'], capture_output=True, text=True)
+d = json.loads(result.stdout)
+print(int(float(d['format']['duration']) * 1000))
+" 2>/dev/null || echo "0")
+
+            echo "  🎨 Rendering Remotion overlay for $basename_file (${DURATION_MS}ms)..."
+            if ./venv/bin/python3 agents/render_remotion_overlays.py \
+                --run-dir="${RUN_DIR}" \
+                --format="${FORMAT_TYPE}" \
+                --video="${video_file}" \
+                --duration-ms="${DURATION_MS}"; then
+                echo "  ✅ Remotion overlay applied to $basename_file"
+                REMOTION_SUCCESS=true
+            else
+                echo -e "${YELLOW}  ⚠️  Remotion overlay failed for $basename_file, will use fallback${NC}"
+            fi
+        done
+
+        if [ "$REMOTION_SUCCESS" = "true" ]; then
+            touch "${RUN_DIR}/.remotion_overlay_applied"
+            echo "✅ Remotion overlays applied (fallback stages will be skipped)"
+        fi
+        echo ""
+    fi
+fi
+
 # Stage 7: Subtitle Generation
 if [ $START_STAGE -le 7 ]; then
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
@@ -854,6 +967,9 @@ if [ $START_STAGE -le 8 ] && [ -f "${RUN_DIR}/full.mp4" ]; then
     # Get video title from research.json
     VIDEO_TITLE=$(python3 -c "import json; data=json.load(open('${RUN_DIR}/research.json')); print(data.get('video_title', 'Educational Video'))" 2>/dev/null || echo "Educational Video")
     echo "  Video title: ${VIDEO_TITLE}"
+
+    # Hook text is now resolved inside video_overlays.py via A/B experiment
+    # (engagement_hook_source: control=title-derived, treatment=lyrics hook_line)
 
     # Add overlays to full video
     if [ -f "${RUN_DIR}/full.mp4" ]; then

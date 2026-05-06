@@ -14,6 +14,7 @@ from typing import Optional, Tuple
 # Add agents directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent))
 from output_helper import get_output_path
+from engagement_experiments import is_engagement_feature_enabled
 
 # Monkey patch for Pillow 10+ compatibility with moviepy 1.0.3
 try:
@@ -175,7 +176,8 @@ def create_hook_overlay(
     hook_text: str,
     video_size: Tuple[int, int],
     duration: float = 2.0,
-    is_short: bool = False
+    is_short: bool = False,
+    animate: bool = False
 ) -> TextClip:
     """
     Create bold hook text overlay for frame 0.
@@ -187,9 +189,10 @@ def create_hook_overlay(
         video_size: (width, height) tuple
         duration: How long to show hook text
         is_short: Whether this is short-form video
+        animate: If True, apply 0.15s scale-up pop-in animation (80% -> 100%)
 
     Returns:
-        TextClip with hook text
+        TextClip/VideoClip with hook text
     """
     width, height = video_size
 
@@ -223,6 +226,11 @@ def create_hook_overlay(
     # Position at top — instant appearance, no fade-in
     txt_clip = txt_clip.set_position(('center', y_position))
     txt_clip = txt_clip.set_duration(duration)
+
+    # A/B tested: animated pop-in (0.15s scale 80% -> 100%)
+    if animate:
+        txt_clip = txt_clip.resize(lambda t: min(1.0, 0.8 + (t / 0.15) * 0.2))
+
     txt_clip = txt_clip.crossfadeout(0.3)  # Smooth exit only
 
     return txt_clip
@@ -340,7 +348,8 @@ def add_overlays_to_video(
     title_duration: float = 2.0,
     end_screen_duration: float = 3.0,
     channel_name: str = "@learningsciencemusic",
-    hook_text: str = None
+    hook_text: str = None,
+    animate_hook: bool = False
 ) -> Path:
     """
     Add title, hook text, and end screen overlays to a video.
@@ -372,7 +381,7 @@ def add_overlays_to_video(
 
     # Create hook text overlay (bold, yellow, appears instantly at frame 0)
     print(f"  Creating hook overlay: '{hook_text}'")
-    hook_clip = create_hook_overlay(hook_text, video_size, min(title_duration, 2.0), is_short)
+    hook_clip = create_hook_overlay(hook_text, video_size, min(title_duration, 2.0), is_short, animate=animate_hook)
     hook_clip = hook_clip.set_start(0)
 
     # Create title overlay (appears at start, positioned below hook)
@@ -409,6 +418,52 @@ def add_overlays_to_video(
 
     print(f"  ✅ Overlays added successfully")
     return output_path
+
+
+def get_hook_line_from_lyrics(run_dir: Path = None) -> Optional[str]:
+    """
+    Read hook text from lyrics.json viral_elements.
+
+    Priority: display_hook_text > hook_line (truncated to 7 words) > None (fallback).
+
+    Args:
+        run_dir: Directory containing lyrics.json
+
+    Returns:
+        Hook text string or None if not available
+    """
+    if run_dir is None:
+        run_dir = get_output_path("").parent
+
+    lyrics_path = run_dir / "lyrics.json"
+    if not lyrics_path.exists():
+        return None
+
+    try:
+        with open(lyrics_path) as f:
+            lyrics_data = json.load(f)
+    except (json.JSONDecodeError, OSError):
+        return None
+
+    viral = lyrics_data.get("viral_elements", {})
+
+    # Priority 1: display_hook_text (purpose-built for overlay)
+    display_hook = viral.get("display_hook_text", "").strip()
+    if display_hook:
+        words = display_hook.split()
+        if len(words) <= 7:
+            return display_hook
+        return " ".join(words[:7]) + "..."
+
+    # Priority 2: hook_line (truncate if >7 words)
+    hook_line = viral.get("hook_line", "").strip()
+    if hook_line:
+        words = hook_line.split()
+        if len(words) <= 7:
+            return hook_line
+        return " ".join(words[:7]) + "..."
+
+    return None
 
 
 def get_video_title(run_dir: Path = None) -> str:
@@ -453,6 +508,12 @@ def main():
 
     args = parser.parse_args()
 
+    # Skip if Remotion overlay already applied
+    remotion_flag = Path(args.video).parent / ".remotion_overlay_applied"
+    if remotion_flag.exists():
+        print("  ⏭️  Skipping MoviePy overlays (Remotion overlay already applied)")
+        return
+
     video_path = Path(args.video)
     if not video_path.exists():
         print(f"❌ Error: Video not found: {video_path}")
@@ -468,11 +529,25 @@ def main():
     # Get title
     title = args.title or get_video_title(video_path.parent)
 
-    # Get hook text (auto-generate if not provided)
-    hook = args.hook_text or generate_hook_text(title)
+    # Determine hook text source (A/B tested: lyrics vs title-derived)
+    hook = args.hook_text
+    if hook is None:
+        use_lyrics_hook = is_engagement_feature_enabled("engagement_hook_source")
+        if use_lyrics_hook:
+            hook = get_hook_line_from_lyrics(video_path.parent)
+            if hook:
+                print(f"  🧪 A/B: Using lyrics hook_line: '{hook}'")
+        if hook is None:
+            hook = generate_hook_text(title)
+            print(f"  Using title-derived hook: '{hook}'")
 
     # Determine if short
     is_short = args.type in ['short_hook', 'short_educational', 'short_intro']
+
+    # A/B tested: animated hook text pop-in
+    animate_hook = is_engagement_feature_enabled("engagement_animated_hook")
+    if animate_hook:
+        print(f"  🧪 A/B: Animated hook text enabled")
 
     print(f"🎬 Adding overlays to video...")
     print(f"  Type: {args.type}")
@@ -487,7 +562,8 @@ def main():
         title_duration=args.title_duration,
         end_screen_duration=args.end_duration,
         channel_name=args.channel,
-        hook_text=hook
+        hook_text=hook,
+        animate_hook=animate_hook
     )
 
     # Replace original if no explicit output specified

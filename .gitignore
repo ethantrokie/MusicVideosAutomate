@@ -32,3 +32,11 @@ env/
 # Temp files
 *.tmp
 *.swp
+
+# Remotion
+agents/remotion/node_modules/
+agents/remotion/out/
+agents/remotion/dist/
+
+# Alert dedup files
+automation/state/alert_*.sent

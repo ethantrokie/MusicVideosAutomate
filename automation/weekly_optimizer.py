@@ -107,7 +107,7 @@ def get_video_analytics(analytics, video_ids):
         ids='channel==MINE',
         startDate=start_date.isoformat(),
         endDate=end_date.isoformat(),
-        metrics='views,estimatedMinutesWatched,likes,comments,shares,averageViewPercentage,subscribersGained,subscribersLost',
+        metrics='views,estimatedMinutesWatched,likes,comments,shares,averageViewPercentage,subscribersGained,subscribersLost,engagedViews',
         dimensions='video',
         filters=f'video=={video_ids_str}'
     )
@@ -117,25 +117,51 @@ def get_video_analytics(analytics, video_ids):
     metrics = {}
     for row in response.get('rows', []):
         video_id = row[0]
+        views = int(row[1])
+        engaged_views = int(row[9]) if len(row) > 9 else views
         metrics[video_id] = {
-            'views': int(row[1]),
+            'views': views,
             'watch_time_minutes': int(row[2]),
             'likes': int(row[3]),
             'comments': int(row[4]),
             'shares': int(row[5]),
             'avg_retention': float(row[6]),
             'subscribers_gained': int(row[7]),
-            'subscribers_lost': int(row[8])
+            'subscribers_lost': int(row[8]),
+            'engaged_views': engaged_views,
+            'engaged_view_rate': (engaged_views / views * 100) if views > 0 else 0.0,
         }
 
     return metrics
 
 
+def _load_experiment_snapshot(run_dir: str) -> dict:
+    """
+    Load the experiment snapshot saved during video production.
+    Returns a dict mapping config_key -> variant info, or empty dict.
+    """
+    snapshot_path = Path(run_dir) / "experiment_snapshot.json"
+    if not snapshot_path.exists():
+        return {}
+    try:
+        with open(snapshot_path) as f:
+            return json.load(f).get("experiments", {})
+    except (json.JSONDecodeError, IOError):
+        return {}
+
+
 def record_ab_test_results(metrics_data):
     """
-    Record video performance into active A/B experiments.
-    Maps video_id → tone via the upload queue, then records into
-    the tone_mode experiment. Also records performer_variant results.
+    Record video performance into ALL active A/B experiments.
+
+    Uses the experiment_snapshot.json saved during video production to
+    attribute each video to the correct variant — even if the experiment
+    has since advanced to a different week. This ensures results are
+    never misattributed due to timing.
+
+    Also records which variant of every OTHER concurrent experiment was
+    active when the video was produced (confound tracking), so you can
+    check for cross-experiment interference during analysis.
     """
     queue_path = Path("automation/youtube_upload_queue.json")
     if not queue_path.exists():
@@ -147,17 +173,19 @@ def record_ab_test_results(metrics_data):
     except (json.JSONDecodeError, IOError):
         return
 
-    # Build video_id → metadata mapping from queue
+    # Build video_id -> metadata mapping from queue
     video_metadata = {}
     for entry in queue_data.get("queue", []):
         tone = entry.get("tone", "unknown")
         run_dir = entry.get("run_dir", "")
+        snapshot = _load_experiment_snapshot(run_dir)
         for video_type, video_info in entry.get("videos", {}).items():
             vid = video_info.get("video_id")
             if vid:
                 video_metadata[vid] = {
                     "tone": tone,
                     "run_dir": run_dir,
+                    "experiment_snapshot": snapshot,
                 }
 
     # Load experiments
@@ -171,49 +199,69 @@ def record_ab_test_results(metrics_data):
     except (json.JSONDecodeError, IOError):
         return
 
+    # Collect all existing video IDs across both variants to avoid duplicates
     recorded_count = 0
     for exp in exp_data.get("experiments", []):
         if exp.get("status") != "active":
             continue
 
-        variant = exp.get("current_variant", "control")
-        results = exp["results"][variant]
-        existing_video_ids = {v["video_id"] for v in results.get("videos", [])}
+        config_key = exp.get("config_key", "")
+        all_existing_ids = set()
+        for variant_key in ("control", "treatment"):
+            for v in exp["results"][variant_key].get("videos", []):
+                all_existing_ids.add(v["video_id"])
 
         for vid, m in metrics_data.items():
-            if vid in existing_video_ids:
+            if vid in all_existing_ids:
                 continue
 
-            should_record = False
+            meta = video_metadata.get(vid, {})
+            snapshot = meta.get("experiment_snapshot", {})
 
-            if exp.get("config_key") == "tone_mode":
-                # Record all videos — tone experiment covers everything
-                should_record = True
-            elif exp.get("config_key") == "performer_variant":
-                # Record all videos — avatar experiment covers everything
-                should_record = True
+            # Determine which variant this video was produced under.
+            # Prefer the production-time snapshot; fall back to current variant.
+            if config_key in snapshot:
+                variant = snapshot[config_key]["variant"]
+            else:
+                variant = exp.get("current_variant", "control")
 
-            if should_record:
-                views = m.get("views", 0)
-                engagement = m.get("likes", 0) + m.get("comments", 0) + m.get("shares", 0)
-                retention = m.get("avg_retention", 0)
+            results = exp["results"][variant]
+            views = m.get("views", 0)
+            engagement = m.get("likes", 0) + m.get("comments", 0) + m.get("shares", 0)
+            retention = m.get("avg_retention", 0)
+            engaged_view_rate = m.get("engaged_view_rate", 0.0)
+            subscribers_gained = m.get("subscribers_gained", 0)
 
-                results["videos"].append({
-                    "video_id": vid,
-                    "views": views,
-                    "engagement": engagement,
-                    "retention": retention,
-                    "tone": video_metadata.get(vid, {}).get("tone", "unknown"),
-                    "date": datetime.now().isoformat()
-                })
-                results["total_views"] += views
-                results["total_engagement"] += engagement
+            # Build confound metadata: variants of all OTHER experiments
+            concurrent_variants = {
+                key: info["variant"]
+                for key, info in snapshot.items()
+                if key != config_key
+            }
 
-                video_count = len(results["videos"])
-                results["avg_retention"] = (
-                    (results["avg_retention"] * (video_count - 1) + retention) / video_count
-                )
-                recorded_count += 1
+            results["videos"].append({
+                "video_id": vid,
+                "views": views,
+                "engagement": engagement,
+                "retention": retention,
+                "engaged_view_rate": engaged_view_rate,
+                "subscribers_gained": subscribers_gained,
+                "tone": meta.get("tone", "unknown"),
+                "concurrent_experiments": concurrent_variants,
+                "date": datetime.now().isoformat()
+            })
+            results["total_views"] += views
+            results["total_engagement"] += engagement
+            results["total_subscribers_gained"] = results.get("total_subscribers_gained", 0) + subscribers_gained
+
+            video_count = len(results["videos"])
+            results["avg_retention"] = (
+                (results["avg_retention"] * (video_count - 1) + retention) / video_count
+            )
+            results["avg_engaged_view_rate"] = (
+                (results.get("avg_engaged_view_rate", 0) * (video_count - 1) + engaged_view_rate) / video_count
+            )
+            recorded_count += 1
 
     if recorded_count > 0:
         with open(experiments_path, "w") as f:
@@ -327,7 +375,7 @@ RULES:
 Respond with ONLY valid JSON, no markdown or explanation:"""
 
     result = subprocess.run(
-        ["/Users/ethantrokie/.local/bin/claude", "-p", prompt, "--model", "claude-sonnet-4-5", "--dangerously-skip-permissions"],
+        ["/Users/ethantrokie/.local/bin/claude", "-p", prompt, "--model", "claude-sonnet-4-6", "--dangerously-skip-permissions"],
         capture_output=True,
         text=True,
         timeout=60

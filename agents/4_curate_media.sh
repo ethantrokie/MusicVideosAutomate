@@ -72,7 +72,13 @@ echo '```' >> "$TEMP_PROMPT"
 
 # Call Claude Code CLI - it will write directly to outputs/media_plan.json
 echo "  Calling Claude Code for media curation..."
-/Users/ethantrokie/.local/bin/claude -p "$(cat $TEMP_PROMPT)" --model claude-sonnet-4-5 --dangerously-skip-permissions
+# Run with 30-minute timeout to prevent pipeline hangs
+/Users/ethantrokie/.local/bin/claude -p "$(cat $TEMP_PROMPT)" --model claude-sonnet-4-6 --dangerously-skip-permissions &
+CLAUDE_PID=$!
+( sleep 1800 && kill $CLAUDE_PID 2>/dev/null && echo "  ⚠️  Claude timed out after 30 minutes" ) &
+TIMER_PID=$!
+wait $CLAUDE_PID 2>/dev/null
+kill $TIMER_PID 2>/dev/null
 
 # Clean up temp prompt
 rm "$TEMP_PROMPT"

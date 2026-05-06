@@ -1,0 +1,27 @@
+{
+  "name": "music-video-overlays",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "npx remotion studio",
+    "build": "npx remotion render src/index.ts OverlayComposition out/overlay.mov",
+    "render": "npx remotion render"
+  },
+  "dependencies": {
+    "@remotion/bundler": "^4.0.0",
+    "@remotion/captions": "^4.0.0",
+    "@remotion/cli": "^4.0.0",
+    "@remotion/renderer": "^4.0.0",
+    "@remotion/transitions": "^4.0.0",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "remotion": "^4.0.0",
+    "roughjs": "^4.6.6",
+    "svg-parser": "^2.0.4"
+  },
+  "devDependencies": {
+    "@types/react": "^18.0.0",
+    "@types/svg-parser": "^2.0.6",
+    "typescript": "^5.0.0"
+  }
+}

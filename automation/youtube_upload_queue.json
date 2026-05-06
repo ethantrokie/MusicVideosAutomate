@@ -1187,6 +1187,754 @@
         }
       },
       "crosslink_status": "pending"
+    },
+    {
+      "run_id": "20260409_090029",
+      "run_dir": "outputs/runs/20260409_090029",
+      "topic": "How Centrifugal Pumps Work Explained",
+      "tone": "upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy",
+      "created_at": "2026-04-09T09:25:33.814069-05:00",
+      "videos": {
+        "full": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-09",
+          "uploaded_at": "2026-04-09T09:25:33.814069-05:00",
+          "video_id": "KeFvFOawjj4"
+        },
+        "short_hook": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-09",
+          "uploaded_at": "2026-04-09T09:25:33.814069-05:00",
+          "video_id": "9S319j5NcDY"
+        },
+        "short_educational": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-10",
+          "uploaded_at": "2026-04-10T08:00:04.526061-05:00",
+          "video_id": "WyHP06Xi5SQ"
+        },
+        "short_intro": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-11",
+          "uploaded_at": "2026-04-11T08:00:04.754426-05:00",
+          "video_id": "l55wo0Ffj_Q"
+        }
+      },
+      "crosslink_status": "pending"
+    },
+    {
+      "run_id": "20260410_090019",
+      "run_dir": "outputs/runs/20260410_090019",
+      "topic": "How Submarine Sonar Works Explained",
+      "tone": "upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy",
+      "created_at": "2026-04-10T09:28:43.820604-05:00",
+      "videos": {
+        "full": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-10",
+          "uploaded_at": "2026-04-10T09:28:43.820604-05:00",
+          "video_id": "K4i9039-ysU"
+        },
+        "short_hook": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-10",
+          "uploaded_at": "2026-04-10T09:28:43.820604-05:00",
+          "video_id": "LzF0mPHpml4"
+        },
+        "short_educational": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-11",
+          "uploaded_at": "2026-04-11T08:00:04.754426-05:00",
+          "video_id": "0nGELeBgsGU"
+        },
+        "short_intro": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-12",
+          "uploaded_at": "2026-04-12T08:00:04.708889-05:00",
+          "video_id": "KVcG7tz3gEE"
+        }
+      },
+      "crosslink_status": "pending"
+    },
+    {
+      "run_id": "20260411_090029",
+      "run_dir": "outputs/runs/20260411_090029",
+      "topic": "How Antilock Brakes Work Explained",
+      "tone": "energetic pop punk with driving guitars, pounding drums, and rebellious energy",
+      "created_at": "2026-04-11T09:28:21.773348-05:00",
+      "videos": {
+        "full": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-11",
+          "uploaded_at": "2026-04-11T09:28:21.773348-05:00",
+          "video_id": "7sBgyERtv5Q"
+        },
+        "short_hook": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-11",
+          "uploaded_at": "2026-04-11T09:28:21.773348-05:00",
+          "video_id": "x9Gsn56AbTY"
+        },
+        "short_educational": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-12",
+          "uploaded_at": "2026-04-12T08:00:04.708889-05:00",
+          "video_id": "h84Guqb_CUM"
+        },
+        "short_intro": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-13",
+          "uploaded_at": "2026-04-13T08:00:05.539043-05:00",
+          "video_id": "cEaPIbi2qJ0"
+        }
+      },
+      "crosslink_status": "pending"
+    },
+    {
+      "run_id": "20260412_090027",
+      "run_dir": "outputs/runs/20260412_090027",
+      "topic": "How Nerve Impulses Work Explained",
+      "tone": "upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy",
+      "created_at": "2026-04-12T09:27:27.129288-05:00",
+      "videos": {
+        "full": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-12",
+          "uploaded_at": "2026-04-12T09:27:27.129288-05:00",
+          "video_id": "8gy5dZTlM6Q"
+        },
+        "short_hook": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-12",
+          "uploaded_at": "2026-04-12T09:27:27.129288-05:00",
+          "video_id": "0hfOAWWvMrU"
+        },
+        "short_educational": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-13",
+          "uploaded_at": "2026-04-13T08:00:05.539043-05:00",
+          "video_id": "sVlQr9PStKw"
+        },
+        "short_intro": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-14",
+          "uploaded_at": "2026-04-14T08:00:04.306663-05:00",
+          "video_id": "vSqQ9CefhbE"
+        }
+      },
+      "crosslink_status": "pending"
+    },
+    {
+      "run_id": "20260413_090018",
+      "run_dir": "outputs/runs/20260413_090018",
+      "topic": "How Antilock Brakes Work Explained",
+      "tone": "upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy",
+      "created_at": "2026-04-13T09:33:43.633443-05:00",
+      "videos": {
+        "full": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-13",
+          "uploaded_at": "2026-04-13T09:33:43.633443-05:00",
+          "video_id": "HcafJTK3gys"
+        },
+        "short_hook": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-13",
+          "uploaded_at": "2026-04-13T09:33:43.633443-05:00",
+          "video_id": "i-vGwsjOBYw"
+        },
+        "short_educational": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-14",
+          "uploaded_at": "2026-04-14T08:00:04.306663-05:00",
+          "video_id": "3P7wUFEz4qE"
+        },
+        "short_intro": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-15",
+          "uploaded_at": "2026-04-15T08:00:05.759504-05:00",
+          "video_id": "HYZXm_udMzU"
+        }
+      },
+      "crosslink_status": "pending"
+    },
+    {
+      "run_id": "20260414_090038",
+      "run_dir": "outputs/runs/20260414_090038",
+      "topic": "How Transistors Amplify Signals Explained",
+      "tone": "upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy",
+      "created_at": "2026-04-14T09:33:02.384573-05:00",
+      "videos": {
+        "full": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-14",
+          "uploaded_at": "2026-04-14T09:33:02.384573-05:00",
+          "video_id": "rIi7pI6Poqs"
+        },
+        "short_hook": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-14",
+          "uploaded_at": "2026-04-14T09:33:02.384573-05:00",
+          "video_id": "Cc9yQHIUndE"
+        },
+        "short_educational": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-15",
+          "uploaded_at": "2026-04-15T08:00:05.759504-05:00",
+          "video_id": "a1hMRr7Uln4"
+        },
+        "short_intro": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-16",
+          "uploaded_at": "2026-04-16T08:00:05.505260-05:00",
+          "video_id": "1hs7OyvvWdA"
+        }
+      },
+      "crosslink_status": "pending"
+    },
+    {
+      "run_id": "20260415_090025",
+      "run_dir": "outputs/runs/20260415_090025",
+      "topic": "How MRI Scanners Work Explained",
+      "tone": "upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy",
+      "created_at": "2026-04-15T09:38:35.195365-05:00",
+      "videos": {
+        "full": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-15",
+          "uploaded_at": "2026-04-15T09:38:35.195365-05:00",
+          "video_id": "mlCboVAWqtc"
+        },
+        "short_hook": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-15",
+          "uploaded_at": "2026-04-15T09:38:35.195365-05:00",
+          "video_id": "3h1mOCEyfnI"
+        },
+        "short_educational": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-16",
+          "uploaded_at": "2026-04-16T08:00:05.505260-05:00",
+          "video_id": "KKSdAVNO_6U"
+        },
+        "short_intro": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-17",
+          "uploaded_at": "2026-04-17T08:00:04.952059-05:00",
+          "video_id": "ao0dxg7eQhA"
+        }
+      },
+      "crosslink_status": "pending"
+    },
+    {
+      "run_id": "20260416_090035",
+      "run_dir": "outputs/runs/20260416_090035",
+      "topic": "How Your Heart Pumps Blood Explained",
+      "tone": "organic flowing pop with ambient textures, melodic hooks, and warm educational energy",
+      "created_at": "2026-04-16T09:37:41.884043-05:00",
+      "videos": {
+        "full": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-16",
+          "uploaded_at": "2026-04-16T09:37:41.884043-05:00",
+          "video_id": "y-Kqgs3CmYk"
+        },
+        "short_hook": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-16",
+          "uploaded_at": "2026-04-16T09:37:41.884043-05:00",
+          "video_id": "gcKe7_6qXgA"
+        },
+        "short_educational": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-17",
+          "uploaded_at": "2026-04-17T08:00:04.952059-05:00",
+          "video_id": "aq64M7tVbE0"
+        },
+        "short_intro": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-18",
+          "uploaded_at": "2026-04-18T08:00:04.188025-05:00",
+          "video_id": "r759FPkxq6I"
+        }
+      },
+      "crosslink_status": "pending"
+    },
+    {
+      "run_id": "20260417_090023",
+      "run_dir": "outputs/runs/20260417_090023",
+      "topic": "How Database Indexes Work Explained",
+      "tone": "lo-fi electronic with digital glitch textures, steady beats, and curious energy",
+      "created_at": "2026-04-17T09:37:22.910568-05:00",
+      "videos": {
+        "full": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-17",
+          "uploaded_at": "2026-04-17T09:37:22.910568-05:00",
+          "video_id": "ocp5Z4CE7K8"
+        },
+        "short_hook": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-17",
+          "uploaded_at": "2026-04-17T09:37:22.910568-05:00",
+          "video_id": "D3F1-LWQhfc"
+        },
+        "short_educational": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-18",
+          "uploaded_at": "2026-04-18T08:00:04.188025-05:00",
+          "video_id": "8Wr1UdsjGbk"
+        },
+        "short_intro": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-19",
+          "uploaded_at": "2026-04-19T08:00:05.296150-05:00",
+          "video_id": "9TvEuAtVrwU"
+        }
+      },
+      "crosslink_status": "pending"
+    },
+    {
+      "run_id": "20260418_090032",
+      "run_dir": "outputs/runs/20260418_090032",
+      "topic": "How Thermostats Control Your Heat Explained",
+      "tone": "upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy",
+      "created_at": "2026-04-18T09:37:47.917574-05:00",
+      "videos": {
+        "full": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-18",
+          "uploaded_at": "2026-04-18T09:37:47.917574-05:00",
+          "video_id": "fqy3I3cFJfM"
+        },
+        "short_hook": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-18",
+          "uploaded_at": "2026-04-18T09:37:47.917574-05:00",
+          "video_id": "QBpvn8pHNPQ"
+        },
+        "short_educational": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-19",
+          "uploaded_at": "2026-04-19T08:00:05.296150-05:00",
+          "video_id": "6Qr5pjaHZPU"
+        },
+        "short_intro": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-20",
+          "uploaded_at": "2026-04-20T08:00:00.913172-05:00",
+          "video_id": "1uI4w6Lrz1g"
+        }
+      },
+      "crosslink_status": "pending"
+    },
+    {
+      "run_id": "20260419_090057",
+      "run_dir": "outputs/runs/20260419_090057",
+      "topic": "How Hydraulic Excavators Work Explained",
+      "tone": "driving rock with mechanical rhythms, powerful guitars, and energetic momentum",
+      "created_at": "2026-04-19T09:47:32.806980-05:00",
+      "videos": {
+        "full": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-19",
+          "uploaded_at": "2026-04-19T09:47:32.806980-05:00",
+          "video_id": "9g6TRUJEep0"
+        },
+        "short_hook": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-19",
+          "uploaded_at": "2026-04-19T09:47:32.806980-05:00",
+          "video_id": "F4n1XKnHOxM"
+        },
+        "short_educational": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-20",
+          "uploaded_at": "2026-04-20T08:00:00.913172-05:00",
+          "video_id": "5NE6f8iYmVM"
+        },
+        "short_intro": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-21",
+          "uploaded_at": "2026-04-21T08:00:05.893008-05:00",
+          "video_id": "g1f35JAoh5w"
+        }
+      },
+      "crosslink_status": "pending"
+    },
+    {
+      "run_id": "20260420_090022",
+      "run_dir": "outputs/runs/20260420_090022",
+      "topic": "How Aluminum Cans Are Stamped Explained",
+      "tone": "energetic pop punk with driving guitars, pounding drums, and rebellious energy",
+      "created_at": "2026-04-20T09:40:50.796119-05:00",
+      "videos": {
+        "full": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-20",
+          "uploaded_at": "2026-04-20T09:40:50.796119-05:00",
+          "video_id": "nBrpDA-PurU"
+        },
+        "short_hook": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-20",
+          "uploaded_at": "2026-04-20T09:40:50.796119-05:00",
+          "video_id": "UGXgkLCshx4"
+        },
+        "short_educational": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-21",
+          "uploaded_at": "2026-04-21T08:00:05.893008-05:00",
+          "video_id": "oqI-S-NfMCE"
+        },
+        "short_intro": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-22",
+          "uploaded_at": "2026-04-22T08:00:04.827226-05:00",
+          "video_id": "zaWUpklY7Is"
+        }
+      },
+      "crosslink_status": "pending"
+    },
+    {
+      "run_id": "20260421_090020",
+      "run_dir": "outputs/runs/20260421_090020",
+      "topic": "Centrifugal Governors Explained",
+      "tone": "driving rock with mechanical rhythms, powerful guitars, and energetic momentum",
+      "created_at": "2026-04-21T09:43:50.648729-05:00",
+      "videos": {
+        "full": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-21",
+          "uploaded_at": "2026-04-21T09:43:50.648729-05:00",
+          "video_id": "Jb9lR6S_BFk"
+        },
+        "short_hook": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-21",
+          "uploaded_at": "2026-04-21T09:43:50.648729-05:00",
+          "video_id": "rUU2zxXjVtA"
+        },
+        "short_educational": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-22",
+          "uploaded_at": "2026-04-22T08:00:04.827226-05:00",
+          "video_id": "y57h6gkYDLE"
+        },
+        "short_intro": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-23",
+          "uploaded_at": "2026-04-23T08:00:04.481145-05:00",
+          "video_id": "bRap54jDzLU"
+        }
+      },
+      "crosslink_status": "pending"
+    },
+    {
+      "run_id": "20260422_090015",
+      "run_dir": "outputs/runs/20260422_090015",
+      "topic": "How Variable Frequency Drives Work Explained",
+      "tone": "driving rock with mechanical rhythms, powerful guitars, and energetic momentum",
+      "created_at": "2026-04-22T09:46:50.210868-05:00",
+      "videos": {
+        "full": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-22",
+          "uploaded_at": "2026-04-22T09:46:50.210868-05:00",
+          "video_id": "DKEICM3WVv8"
+        },
+        "short_hook": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-22",
+          "uploaded_at": "2026-04-22T09:46:50.210868-05:00",
+          "video_id": "SnF8trMaA7o"
+        },
+        "short_educational": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-23",
+          "uploaded_at": "2026-04-23T08:00:04.481145-05:00",
+          "video_id": "1PHjwHC8xfQ"
+        },
+        "short_intro": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-24",
+          "uploaded_at": "2026-04-24T08:00:04.665157-05:00",
+          "video_id": "xCrjZ0scAiY"
+        }
+      },
+      "crosslink_status": "pending"
+    },
+    {
+      "run_id": "20260423_090026",
+      "run_dir": "outputs/runs/20260423_090026",
+      "topic": "How Insulin Controls Blood Sugar Explained",
+      "tone": "upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy",
+      "created_at": "2026-04-23T09:42:56.214503-05:00",
+      "videos": {
+        "full": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-23",
+          "uploaded_at": "2026-04-23T09:42:56.214503-05:00",
+          "video_id": "9A9OLmg7wWk"
+        },
+        "short_hook": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-23",
+          "uploaded_at": "2026-04-23T09:42:56.214503-05:00",
+          "video_id": "TL40G60hxug"
+        },
+        "short_educational": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-24",
+          "uploaded_at": "2026-04-24T08:00:04.665157-05:00",
+          "video_id": "6vNDf2KrXoM"
+        },
+        "short_intro": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-25",
+          "uploaded_at": "2026-04-25T08:00:04.455370-05:00",
+          "video_id": "gz4D7xfpkIU"
+        }
+      },
+      "crosslink_status": "pending"
+    },
+    {
+      "run_id": "20260424_090033",
+      "run_dir": "outputs/runs/20260424_090033",
+      "topic": "Hash Tables: O(1) Lookups Explained",
+      "tone": "upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy",
+      "created_at": "2026-04-24T09:49:17.179240-05:00",
+      "videos": {
+        "full": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-24",
+          "uploaded_at": "2026-04-24T09:49:17.179240-05:00",
+          "video_id": "FoWqyzjvvoo"
+        },
+        "short_hook": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-24",
+          "uploaded_at": "2026-04-24T09:49:17.179240-05:00",
+          "video_id": "-fiBRBKZYQU"
+        },
+        "short_educational": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-25",
+          "uploaded_at": "2026-04-25T08:00:04.455370-05:00",
+          "video_id": "U_2hiZ4P3nA"
+        },
+        "short_intro": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-26",
+          "uploaded_at": "2026-04-26T08:00:05.992762-05:00",
+          "video_id": "Ne8KMrFNREc"
+        }
+      },
+      "crosslink_status": "pending"
+    },
+    {
+      "run_id": "20260425_090028",
+      "run_dir": "outputs/runs/20260425_090028",
+      "topic": "Pneumatic Nail Guns Explained",
+      "tone": "energetic pop punk with driving guitars, pounding drums, and rebellious energy",
+      "created_at": "2026-04-25T09:41:23.686914-05:00",
+      "videos": {
+        "full": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-25",
+          "uploaded_at": "2026-04-25T09:41:23.686914-05:00",
+          "video_id": "g3Qv__X7MN4"
+        },
+        "short_hook": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-25",
+          "uploaded_at": "2026-04-25T09:41:23.686914-05:00",
+          "video_id": "W8z-Cw8sZbA"
+        },
+        "short_educational": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-26",
+          "uploaded_at": "2026-04-26T08:00:05.992762-05:00",
+          "video_id": "eyuSGu9Z-pM"
+        },
+        "short_intro": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-27",
+          "uploaded_at": "2026-04-27T08:00:05.088318-05:00",
+          "video_id": "ZI4jsbb2KYY"
+        }
+      },
+      "crosslink_status": "pending"
+    },
+    {
+      "run_id": "20260426_090029",
+      "run_dir": "outputs/runs/20260426_090029",
+      "topic": "How Lithium-Ion Batteries Work Explained",
+      "tone": "upbeat pop rock with catchy hooks, bright guitars, and enthusiastic energy",
+      "created_at": "2026-04-26T09:38:03.230316-05:00",
+      "videos": {
+        "full": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-26",
+          "uploaded_at": "2026-04-26T09:38:03.230316-05:00",
+          "video_id": "PsQNbZyjNIE"
+        },
+        "short_hook": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-26",
+          "uploaded_at": "2026-04-26T09:38:03.230316-05:00",
+          "video_id": "bKamHNinhbQ"
+        },
+        "short_educational": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-27",
+          "uploaded_at": "2026-04-27T08:00:05.088318-05:00",
+          "video_id": "pEdKaIryCG4"
+        },
+        "short_intro": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-28",
+          "uploaded_at": "2026-04-28T08:00:05.702415-05:00",
+          "video_id": "hgHPusT08fQ"
+        }
+      },
+      "crosslink_status": "pending"
+    },
+    {
+      "run_id": "20260427_090014",
+      "run_dir": "outputs/runs/20260427_090014",
+      "topic": "Synchromesh Gearbox Explained",
+      "tone": "energetic pop punk with driving guitars, pounding drums, and rebellious energy",
+      "created_at": "2026-04-27T09:40:12.523252-05:00",
+      "videos": {
+        "full": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-27",
+          "uploaded_at": "2026-04-27T09:40:12.523252-05:00",
+          "video_id": "RvDlCBxO3F8"
+        },
+        "short_hook": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-27",
+          "uploaded_at": "2026-04-27T09:40:12.523252-05:00",
+          "video_id": "TP2WiFkLbzw"
+        },
+        "short_educational": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-28",
+          "uploaded_at": "2026-04-28T08:00:05.702415-05:00",
+          "video_id": "DJGu1579_rs"
+        },
+        "short_intro": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-29",
+          "uploaded_at": "2026-04-29T08:00:05.061078-05:00",
+          "video_id": "axRCkU8Gn-8"
+        }
+      },
+      "crosslink_status": "pending"
+    },
+    {
+      "run_id": "20260428_090015",
+      "run_dir": "outputs/runs/20260428_090015",
+      "topic": "How CNC Lathes Shape Metal Explained",
+      "tone": "energetic pop punk with driving guitars, pounding drums, and rebellious energy",
+      "created_at": "2026-04-28T09:40:49.425745-05:00",
+      "videos": {
+        "full": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-28",
+          "uploaded_at": "2026-04-28T09:40:49.425745-05:00",
+          "video_id": "nuXchABKvpc"
+        },
+        "short_hook": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-28",
+          "uploaded_at": "2026-04-28T09:40:49.425745-05:00",
+          "video_id": "IsbMht5Akjc"
+        },
+        "short_educational": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-29",
+          "uploaded_at": "2026-04-29T08:00:05.061078-05:00",
+          "video_id": "j9hY_HLyNbQ"
+        },
+        "short_intro": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-30",
+          "uploaded_at": "2026-04-30T08:00:05.567625-05:00",
+          "video_id": "LM5LN9t1ToY"
+        }
+      },
+      "crosslink_status": "pending"
+    },
+    {
+      "run_id": "20260429_090021",
+      "run_dir": "outputs/runs/20260429_090021",
+      "topic": "How Disc Brakes Stop Cars Explained",
+      "tone": "energetic pop punk with driving guitars, pounding drums, and rebellious energy",
+      "created_at": "2026-04-29T09:39:06.729123-05:00",
+      "videos": {
+        "full": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-29",
+          "uploaded_at": "2026-04-29T09:39:06.729123-05:00",
+          "video_id": "N3wlTFnHUNk"
+        },
+        "short_hook": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-29",
+          "uploaded_at": "2026-04-29T09:39:06.729123-05:00",
+          "video_id": "2sLdHqfGeek"
+        },
+        "short_educational": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-30",
+          "uploaded_at": "2026-04-30T08:00:05.567625-05:00",
+          "video_id": "LFs6ViLMF6M"
+        },
+        "short_intro": {
+          "status": "pending",
+          "scheduled_date": "2026-05-01",
+          "uploaded_at": null,
+          "video_id": null
+        }
+      },
+      "crosslink_status": "pending"
+    },
+    {
+      "run_id": "20260430_090023",
+      "run_dir": "outputs/runs/20260430_090023",
+      "topic": "Solenoid Valves: Flow Control Explained",
+      "tone": "driving rock with mechanical rhythms, powerful guitars, and energetic momentum",
+      "created_at": "2026-04-30T09:42:32.264787-05:00",
+      "videos": {
+        "full": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-30",
+          "uploaded_at": "2026-04-30T09:42:32.264787-05:00",
+          "video_id": "k-bWek6_rq0"
+        },
+        "short_hook": {
+          "status": "uploaded",
+          "scheduled_date": "2026-04-30",
+          "uploaded_at": "2026-04-30T09:42:32.264787-05:00",
+          "video_id": "6nnlmOlRxWo"
+        },
+        "short_educational": {
+          "status": "pending",
+          "scheduled_date": "2026-05-01",
+          "uploaded_at": null,
+          "video_id": null
+        },
+        "short_intro": {
+          "status": "pending",
+          "scheduled_date": "2026-05-02",
+          "uploaded_at": null,
+          "video_id": null
+        }
+      },
+      "crosslink_status": "pending"
     }
   ]
 }

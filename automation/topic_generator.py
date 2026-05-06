@@ -167,44 +167,72 @@ def check_topic_similarity(new_topic, recent_topics, threshold=0.3):
 def analyze_category_distribution(history, recent_count=20):
     """
     Analyze category distribution in recent topics.
+    Uses fine-grained categories matching performance data from backfill_analytics.
     Returns dict with category counts and over-represented categories.
     """
     # Get recent entries with full data
     recent_entries = history["topics"][-recent_count:] if history["topics"] else []
 
-    # Extract keywords that might indicate categories
+    # Fine-grained categories matching the performance data
+    # Order matters: more specific categories checked first
     category_keywords = {
-        'quantum': ['quantum', 'entanglement', 'tunneling', 'photoelectric', 'superconductivity', 'superconductor'],
-        'biology': ['cells', 'organisms', 'photosynthesis', 'proteins', 'dna', 'bacteria', 'biology', 'alleles', 'genes', 'trait'],
-        'physics': ['light', 'waves', 'energy', 'motion', 'force', 'pressure', 'momentum', 'doppler', 'polarized', 'refraction'],
-        'chemistry': ['molecules', 'chemical', 'reactions', 'atoms', 'elements', 'catalytic', 'compounds', 'oxidation'],
-        'engineering': [
-            # Civil/Structural
-            'bridge', 'suspension', 'arch', 'beam', 'truss', 'foundation', 'skyscraper', 'dam', 'tunnel',
-            # Mechanical/Automotive
-            'engine', 'turbine', 'piston', 'gear', 'transmission', 'brake', 'hydraulic', 'pneumatic',
-            'regenerative', 'flywheel', 'crankshaft', 'suspension',
-            # Aerospace
-            'airplane', 'aircraft', 'wing', 'airfoil', 'jet', 'rocket', 'propulsion', 'aerodynamic',
-            # Electrical
-            'circuit', 'motor', 'generator', 'transformer', 'capacitor', 'battery', 'solar', 'wind turbine',
-            # General Engineering
-            'mechanical', 'designed', 'built', 'constructed', 'engineered', 'system works'
+        'metalworking': [
+            'laser cut', 'plasma cut', 'cnc', 'milling', 'welding', 'weld',
+            'forging', 'forge', 'metal explained', 'shapes metal', 'slice metal',
+            'vaporize metal', 'joins metal', 'induction heating',
+        ],
+        'mechanical_engineering': [
+            'engine', 'turbofan', 'turbine', 'piston', 'gear', 'transmission',
+            'brake', 'hydraulic', 'pneumatic', 'regenerative', 'flywheel',
+            'crankshaft', 'excavator', 'jet', 'propulsion', 'aerodynamic',
+        ],
+        'electrical_engineering': [
+            'circuit', 'motor', 'generator', 'transformer', 'capacitor',
+            'diode', 'kirchhoff', 'piezoelectric', 'voltage', 'induction motor',
+            'battery', 'solar panel', 'wind turbine',
         ],
         'manufacturing': [
-            # Production
-            'manufactured', 'factory', 'assembly', 'production', 'fabricated', 'molded', 'forged',
-            'stamped', 'extruded', 'machined', 'cast', 'welded',
-            # Specific products
-            'how steel', 'how glass', 'how plastic', 'how rubber', 'how paper', 'how aluminum',
-            'how semiconductors', 'how chips', 'how processors', 'how screens', 'how lenses',
-            # Processes
-            'injection molding', 'die casting', '3d printing', 'additive', 'cnc', 'laser cutting',
-            'assembly line', 'mass production', 'quality control',
-            # How it's made style
-            'made from', 'production process', 'manufacturing process', 'created by', 'built in factories'
+            'injection mold', 'die casting', '3d printing', 'extru',
+            'grain elevator', 'paper', 'wood chips', 'fiberglass', 'insulation',
+            'ball bearing', 'bearing', 'anodiz', 'tempered glass',
+            'assembly line', 'production process', 'factory',
+            'how steel', 'how glass', 'how plastic', 'how rubber', 'how aluminum',
         ],
-        'earth_science': ['ocean', 'hurricane', 'rocks', 'tectonic', 'geological', 'metamorphic', 'volcano', 'earthquake']
+        'computer_science': [
+            'algorithm', 'data structure', 'hash table', 'sql', 'database',
+            'microchip', 'semiconductor', 'processor', 'encryption', 'networking',
+            'binary', 'compiler', 'memory', 'cpu',
+        ],
+        'biology': [
+            'cell', 'dna', 'protein', 'photosynthesis', 'bacteria', 'evolution',
+            'gene', 'crispr', 'kidney', 'urine', 'eye', 'anatomy', 'organ',
+            'blood', 'muscle', 'nerve', 'brain', 'immune', 'virus',
+        ],
+        'physics': [
+            'light', 'wave', 'optic', 'refraction', 'polarized', 'sonar',
+            'force', 'pressure', 'momentum', 'doppler', 'magnetism',
+            'thermodynamic', 'radiation', 'spectrum',
+        ],
+        'chemistry': [
+            'molecule', 'chemical', 'reaction', 'atom', 'element', 'catalyst',
+            'compound', 'oxidation', 'vapor deposition', 'bonding', 'ion',
+        ],
+        'food_science': [
+            'freeze-dry', 'freeze dry', 'chocolate', 'ferment', 'pasteur',
+            'food', 'cooking science', 'baking',
+        ],
+        'environmental': [
+            'sewage', 'water purif', 'recycl', 'waste', 'pollution',
+            'renewable', 'carbon capture',
+        ],
+        'earth_science': [
+            'ocean', 'hurricane', 'rock', 'tectonic', 'geological',
+            'volcano', 'earthquake', 'weather', 'glacier', 'erosion',
+        ],
+        'quantum': [
+            'quantum', 'entanglement', 'tunneling', 'photoelectric',
+            'superconductivity', 'superconductor',
+        ],
     }
 
     category_counts = Counter()
@@ -213,17 +241,26 @@ def analyze_category_distribution(history, recent_count=20):
         topic = entry.get("topic", "").lower()
 
         # Check which category this topic belongs to
+        matched = False
         for category, keywords in category_keywords.items():
             if any(keyword in topic for keyword in keywords):
                 category_counts[category] += 1
+                matched = True
                 break  # Only count once per topic
+
+        if not matched:
+            category_counts['other'] += 1
 
     # Calculate percentages
     total = len(recent_entries)
     category_percentages = {cat: (count / total * 100) for cat, count in category_counts.items()}
 
-    # Identify over-represented categories (>25% of recent topics)
-    over_represented = [cat for cat, pct in category_percentages.items() if pct > 25]
+    # Identify over-represented categories using data-driven targets
+    over_represented = []
+    for cat, pct in category_percentages.items():
+        target = CATEGORY_TARGETS.get(cat, 0.10) * 100  # default 10% target
+        if pct > target + 10:  # more than 10 percentage points over target
+            over_represented.append(cat)
 
     return {
         'counts': dict(category_counts),
@@ -364,31 +401,46 @@ CRITICAL UNIQUENESS REQUIREMENTS:
 
     prompt = f"""SYSTEM CONTEXT: This is an automated pipeline. Do NOT use brainstorming skills. Do NOT ask clarifying questions. Just generate the output directly.
 
-You are a topic generator for educational science videos. Generate ONE topic ONLY.
+You are a topic generator for educational science music videos. Generate ONE topic ONLY.
 {trends_section}{category_section}{recent_topics_section}
 REQUIREMENTS:
 - Category: One of {categories}
 - K-12 appropriate (ages 10-18)
 - Visually interesting (stock footage available)
-- Specific educational science concept (no broad topics) focused on everyday phenomena
+- EVERYDAY RELEVANCE: The topic MUST relate to something the viewer personally encounters in daily life (their car, phone, body, food, home appliances, workplace tools, the buildings they enter, the clothes they wear, etc.)
 - UNIQUENESS: Your topic will be compared against recent videos listed below (DO NOT repeat)
 
-TOPIC VARIETY - Balance engineering/manufacturing with pure science:
-- Engineering & Manufacturing: "How it's made" production processes, mechanical systems, industrial manufacturing
-- Physics: Waves, optics, motion, forces, energy, thermodynamics, electricity, magnetism
-- Biology: Cell processes, genetics, ecology, evolution, anatomy, physiology
-- Computer Science: Algorithms, data structures, networking, AI, encryption, computation
-- Chemistry: Reactions, molecular structures, materials science, bonding
+TOPIC FRAMING - CRITICAL:
+Frame every topic as a SINGLE SURPRISING REVELATION, not a process explanation.
+- DO NOT write "How X works" or "How X is made"
+- DO NOT write multi-step process topics (e.g., "The 12 steps of aluminum stamping")
+- DO frame as: "The reason X does Y" or "Why X is actually Y" or "The hidden Z inside every W"
+- The topic should make someone say "Wait, really?!" -- a single counterintuitive or mind-blowing fact
 
-EXAMPLE DIVERSE TOPICS:
-- How injection molding creates plastic parts through high-pressure manufacturing (manufacturing)
-- How fiber optic cables transmit data using total internal reflection (physics)
-- How CRISPR gene editing targets specific DNA sequences in living cells (biology)
-- How public key encryption uses prime factorization for secure communication (computer science)
-- How catalytic converters transform toxic exhaust using redox reactions (chemistry)
+GOOD EXAMPLES (revelation-framed, everyday relevance):
+- The reason your dishwasher actually uses less water than washing by hand
+- Why the tiny holes in airplane windows keep you alive at 35,000 feet
+- The hidden generator inside your car that charges itself every time you brake
+- Why aluminum cans are thinner than a human hair yet hold 90 PSI of pressure
+- The 1788 device inside every engine that prevents it from tearing itself apart
+
+BAD EXAMPLES (process-framed, avoid these):
+- How freeze-drying preserves food through sublimation
+- How aluminum cans are manufactured through a 12-step stamping process
+- How regenerative braking converts kinetic energy into electrical energy
+- How solenoid valves control fluid flow through electromagnetic actuation
+
+TOPIC VARIETY - Diversify across these categories (ranked by audience retention):
+- Mechanical Engineering (TOP PERFORMER): Engines, brakes, hydraulic systems, pneumatic mechanisms, gear systems
+- Biology (TOP PERFORMER, highest subscriber growth): Anatomy, physiology, cell processes, organ systems
+- Computer Science (TOP PERFORMER): Microchip fabrication, algorithms, networking, data structures
+- Electrical Engineering: Motors, transformers, circuits, power systems
+- Manufacturing: Production processes, industrial systems, materials
+- Physics: Waves, optics, motion, forces, thermodynamics
+- Chemistry: Reactions, materials science, chemical processes
 
 CRITICAL OUTPUT FORMAT - Output EXACTLY these two lines with no other text:
-Topic: [specific educational science concept]
+Topic: [single surprising revelation about an everyday thing]
 Tone: [musical tone matched to the topic - see guidelines below]
 
 {tone_guidelines}
@@ -399,7 +451,7 @@ CRITICAL: This is scenario 1 - an automated system. DO NOT brainstorm. DO NOT as
 Generate ONE topic now:"""
 
     result = subprocess.run(
-        ["/Users/ethantrokie/.local/bin/claude", "-p", prompt, "--model", "claude-sonnet-4-5", "--dangerously-skip-permissions"],
+        ["/Users/ethantrokie/.local/bin/claude", "-p", prompt, "--model", "claude-sonnet-4-6", "--dangerously-skip-permissions"],
         capture_output=True,
         text=True,
         timeout=120
@@ -456,6 +508,119 @@ def write_idea_file(topic, tone):
         f.write(f"{topic}. Tone: {tone}\n")
 
 
+def _load_category_performance():
+    """
+    Load category performance data from backfill analytics.
+    Returns dict of category -> {engaged_view_rate, subs_per_topic, views} or None.
+    """
+    perf_path = Path("automation/state/video_performance_history.json")
+    if not perf_path.exists():
+        return None
+    try:
+        with open(perf_path) as f:
+            data = json.load(f)
+        return data.get("category_summary", None)
+    except (json.JSONDecodeError, IOError):
+        return None
+
+
+# Data-driven category targets based on engaged view rate (the "stayed vs swiped" proxy).
+# Updated from backfill_analytics.py results across 137 videos.
+# Higher engaged_view_rate = more people stay to watch instead of swiping away.
+CATEGORY_TARGETS = {
+    # Tier 1: Highest engaged view rate (45%+) — grow these
+    "mechanical_engineering": 0.20,  # 49.0% engaged rate, turbofans/hydraulics/pneumatics
+    "biology": 0.15,                # 47.3% engaged rate, highest subs/topic (6.0)
+    "computer_science": 0.15,       # 45.3% engaged rate, microchips/SQL/hash tables
+
+    # Tier 2: Solid performers (37-42%) — maintain
+    "electrical_engineering": 0.15, # 38.9% engaged rate, transformers/motors/circuits
+    "manufacturing": 0.15,          # 37.5% engaged rate, grain/paper/injection molding
+
+    # Tier 3: Lower engaged rate (33-37%) — reduce frequency
+    "metalworking": 0.10,           # 34.8% engaged rate — was over-indexed at ~35% of videos
+    "physics": 0.05,                # 35.2% engaged rate, sonar/optics
+    "chemistry": 0.05,              # 35.6% engaged rate, CVD/reactions
+}
+
+
+def build_data_driven_category_guidance(category_analysis):
+    """
+    Build category guidance for the Claude prompt using real performance data.
+    Compares current category distribution against targets derived from engaged view rates.
+    """
+    perf_data = _load_category_performance()
+    total = category_analysis['total']
+    if total == 0:
+        return ""
+
+    counts = category_analysis['counts']
+
+    # Map the analysis categories to our target categories
+    # The analysis uses broader buckets, so we need to combine some
+    current_pcts = {}
+    for cat in CATEGORY_TARGETS:
+        current_pcts[cat] = (counts.get(cat, 0) / total * 100) if total > 0 else 0
+
+    # Also check combined eng+mfg+metal since the analyzer may lump them
+    eng_combined = counts.get('engineering', 0) + counts.get('manufacturing', 0)
+    eng_combined_pct = (eng_combined / total * 100) if total > 0 else 0
+
+    # Find under-represented categories (current % is more than 5 points below target)
+    under_rep = []
+    over_rep = []
+    for cat, target_pct in CATEGORY_TARGETS.items():
+        target = target_pct * 100
+        actual = current_pcts.get(cat, 0)
+        if actual < target - 5:
+            under_rep.append((cat, actual, target))
+        elif actual > target + 10:
+            over_rep.append((cat, actual, target))
+
+    # Build performance insight strings
+    perf_insights = ""
+    if perf_data:
+        # Sort categories by engaged view rate
+        sorted_cats = sorted(
+            perf_data.items(),
+            key=lambda x: x[1].get("engaged_view_rate", 0),
+            reverse=True
+        )
+        top_cats = sorted_cats[:3]
+        perf_insights = "PROVEN TOP PERFORMERS (by % of viewers who stay vs swipe away):\n"
+        for cat, data in top_cats:
+            rate = data.get("engaged_view_rate", 0)
+            subs = data.get("subscribers_gained", 0)
+            topic_count = data.get("topic_count", 1)
+            subs_per = subs / max(topic_count, 1)
+            perf_insights += f"- {cat.replace('_', ' ').title()}: {rate:.0f}% stayed to watch, {subs_per:.1f} new subs/topic\n"
+
+    guidance = f"""CATEGORY DISTRIBUTION (data-driven from channel analytics):
+
+{perf_insights}
+TARGET MIX for upcoming videos:
+- Mechanical Engineering (turbofans, hydraulics, pneumatics): ~20%
+- Biology (anatomy, physiology, cell processes): ~15%
+- Computer Science (algorithms, chips, databases): ~15%
+- Electrical Engineering (motors, circuits, transformers): ~15%
+- Manufacturing (production processes, "how it's made"): ~15%
+- Metalworking (CNC, welding, forging, laser cutting): ~10%
+- Physics & Chemistry: ~10%
+"""
+
+    if under_rep:
+        cats_str = ", ".join(f"{c.replace('_', ' ')} ({a:.0f}% actual vs {t:.0f}% target)" for c, a, t in under_rep)
+        guidance += f"\nUNDER-REPRESENTED — PREFER THESE: {cats_str}\n"
+
+    if over_rep:
+        cats_str = ", ".join(f"{c.replace('_', ' ')} ({a:.0f}% actual vs {t:.0f}% target)" for c, a, t in over_rep)
+        guidance += f"\nOVER-REPRESENTED — AVOID THESE: {cats_str}\n"
+
+    guidance += "\nAVOID abstract quantum physics — stock footage cannot visualize these well."
+
+    return guidance
+
+
 def main():
     """Main execution."""
     print("🎯 Generating educational science topic...")
@@ -476,37 +641,8 @@ def main():
             pct = category_analysis['percentages'][cat]
             print(f"     {cat}: {pct:.1f}% of recent videos")
 
-    # Build category guidance for prompt
-    category_guidance = ""
-
-    # Check engineering/manufacturing representation
-    eng_count = category_analysis['counts'].get('engineering', 0)
-    mfg_count = category_analysis['counts'].get('manufacturing', 0)
-    total_eng_mfg = eng_count + mfg_count
-    total = category_analysis['total']
-    eng_mfg_pct = (total_eng_mfg / total * 100) if total > 0 else 0
-
-    # Preference for engineering/manufacturing — target ~70% (strongest performing category)
-    if eng_mfg_pct < 70:
-        category_guidance = f"""CATEGORY BALANCE PREFERENCE:
-Engineering and manufacturing topics are currently at {eng_mfg_pct:.1f}% of recent videos.
-TARGET: 70% engineering/manufacturing, 30% everyday science.
-STRONGLY PREFER engineering or manufacturing topics — these are the channel's best performers
-(laser cutters: 84% retention, tempered glass: 2,455 views, ball bearings: 62% retention).
-Consider: "How it's made" production processes, engineering mechanisms, industrial systems, materials science.
-The remaining 30% should be everyday science topics with broad appeal and search volume.
-AVOID abstract quantum physics and highly specialized biology — stock footage cannot visualize these well.
-"""
-
-    # Add diversity requirements if categories are over-represented
-    if category_analysis['over_represented']:
-        over_cats = ', '.join(category_analysis['over_represented'])
-        additional_guidance = f"""CATEGORY DIVERSITY REQUIREMENT:
-Recent analysis shows these categories are OVER-REPRESENTED: {over_cats}
-You MUST choose a topic from a DIFFERENT category to ensure diversity.
-Strongly prefer: engineering, manufacturing, or other under-represented categories.
-AVOID quantum mechanics topics unless it's been 7+ videos since the last quantum topic."""
-        category_guidance = category_guidance + "\n" + additional_guidance if category_guidance else additional_guidance
+    # Build data-driven category guidance from real performance metrics
+    category_guidance = build_data_driven_category_guidance(category_analysis)
 
     # Fetch trending topics if enabled
     trends_text = ""
