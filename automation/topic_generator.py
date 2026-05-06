@@ -451,7 +451,7 @@ CRITICAL: This is scenario 1 - an automated system. DO NOT brainstorm. DO NOT as
 Generate ONE topic now:"""
 
     result = subprocess.run(
-        ["/Users/ethantrokie/.local/bin/claude", "-p", prompt, "--model", "claude-sonnet-4-5", "--dangerously-skip-permissions"],
+        ["/Users/ethantrokie/.local/bin/claude", "-p", prompt, "--model", "claude-sonnet-4-6", "--dangerously-skip-permissions"],
         capture_output=True,
         text=True,
         timeout=120

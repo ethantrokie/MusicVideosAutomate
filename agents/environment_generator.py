@@ -32,7 +32,7 @@ def generate_environment_prompts(
                 [
                     "/Users/ethantrokie/.local/bin/claude",
                     "-p", prompt,
-                    "--model", "claude-sonnet-4-6",
+                    "--model", "claude-haiku-4-5",
                     "--dangerously-skip-permissions"
                 ],
                 capture_output=True,

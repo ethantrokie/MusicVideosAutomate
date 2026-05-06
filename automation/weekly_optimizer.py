@@ -375,7 +375,7 @@ RULES:
 Respond with ONLY valid JSON, no markdown or explanation:"""
 
     result = subprocess.run(
-        ["/Users/ethantrokie/.local/bin/claude", "-p", prompt, "--model", "claude-sonnet-4-5", "--dangerously-skip-permissions"],
+        ["/Users/ethantrokie/.local/bin/claude", "-p", prompt, "--model", "claude-sonnet-4-6", "--dangerously-skip-permissions"],
         capture_output=True,
         text=True,
         timeout=60
